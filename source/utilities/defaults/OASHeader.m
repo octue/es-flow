@@ -45,9 +45,6 @@ function [varargout] = OASHeader(varargin)
 % Email:                    tom.clark@oceanarraysystems.com
 % Website:                  www.oceanarraysystems.com
 %
-% Revision History:        	2 December 2014     Created
-%                           8 December 2014     Describe changes
-%
-% Copyright (c) 2015 Ocean Array Systems, All Rights Reserved.
+% Copyright (c) 2016 Ocean Array Systems, All Rights Reserved.
 
 varargout = {};
