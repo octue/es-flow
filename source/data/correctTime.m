@@ -83,14 +83,10 @@ if nargin > 2
     % Use input epsValue
     epsValue = varargin{1}/100;
 else
-    % Use default epsValue
+    % Use default epsValue in seconds
     epsValue = 0.01;
 end
 
-% Check for monotonicity
-if ~isMonotonic(adcpData, epsValue)
-    error('MATLAB:InvalidInput','Data is not approximately monotonic. Review data timebase to ensure there are no missed profiles or gaps in the time series. If you are confident that lack of monotonicity is a result of rounding error in the timebase, raise the epsValue parameter')
-end
 
 % Get the approximate timebase
 startTime = adcpData.t(1);
@@ -102,8 +98,8 @@ correctedEndTime = addtodate(approxEndTime, -1*drift, 'second');
 
 % Return an error if the timebase varies by more than 1% step to step.
 dt = diff(adcpData.t);
-if any(((dt(2:end) - dt(1:end-1))./dt(1:end-1)) >= 0.01)
-    error('MATLAB:InvalidTimebase', 'Sampling period dt fluctuates by more than 1% between adjacent samples')
+if any(((dt(2:end) - dt(1:end-1))./dt(1:end-1)) >= epsValue)
+    error('MATLAB:InvalidTimebase', ['Sampling period dt fluctuates by more than ' num2str(epsValue*100) ' percent between adjacent samples'])
 end
 
 % Impose strictly monotonic timebase between the start and the end times
