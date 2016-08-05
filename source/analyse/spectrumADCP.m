@@ -1,4 +1,4 @@
-function [k1 psd fbs sbs N K fcut] = spectrumADCP(adcpData, bin, U, varargin)
+function [k1, psd, fbs, sbs, N, K, fcut] = spectrumADCP(adcpData, bin, U, varargin)
 %SPECTRUMADCP Power Spectral Density (PSD) of velocity content at a bin
 %
 % Syntax:  
@@ -75,7 +75,7 @@ function [k1 psd fbs sbs N K fcut] = spectrumADCP(adcpData, bin, U, varargin)
 %       N               [1 x 1]         Noise level coefficient from Eq. 10,
 %                                       Reference [1]
 %
-%       K               [1 x 1]         PSD signal coefficient K from Ed. 10,
+%       K               [1 x 1]         PSD signal coefficient K from Eq. 10,
 %                                       Reference [1]
 %
 %       fcut            [1 x 1]         Cutoff frequency above which noise
