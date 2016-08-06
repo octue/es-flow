@@ -138,7 +138,7 @@ v = adcpData.v(bin,:);
 w = adcpData.w(bin,:);
 
 % Base the FFT on flow speed, not u1
-speed = sqrt(u.^2 + v.^2 + w.^2);
+speed = sqrt(u.^2);
 Y = fft(speed);
 
 % Scale and magnitude of one-sided FFT to get PSD and frequencies
