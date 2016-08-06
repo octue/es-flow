@@ -134,8 +134,8 @@ end
 
 % Get signal 1
 u = adcpData.u(bin,:);
-v = adcpData.v(bin,:);
-w = adcpData.w(bin,:);
+% v = adcpData.v(bin,:);
+% w = adcpData.w(bin,:);
 
 % Base the FFT on flow speed, not u1
 speed = sqrt(u.^2);
@@ -149,10 +149,17 @@ nyquist = 1/(2*dt);
 freq = (1:n/2)/(n/2)*nyquist;
 k1 = 2*pi*freq.*U;
 
-warning('Developer note: Check spectrumADCP() against the spectrumData() which was validated during a commercial work package, and if necessary rewrite to utilise spectrumData')
+% warning('Developer note: Check spectrumADCP() against the spectrumData() which was validated during a commercial work package, and if necessary rewrite to utilise spectrumData')
 
 % Cheap computation of fbs and sbs
-sbs = 2*tand(adcpData.beamAngle)*(adcpData.z(bin) - adcpData.zUnit);
+
+% TEMP HACK
+if ~isfield(adcpData,'beamAngle')
+%     dispnow('Defaulting missing beamAngle field to 25 degrees and zUnit to 0')
+    sbs = 2*tand(25)*(adcpData.z(bin));
+else
+    sbs = 2*tand(adcpData.beamAngle)*(adcpData.z(bin) - adcpData.zUnit);
+end
 fbs = U/sbs;
 
 

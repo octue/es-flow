@@ -1,4 +1,4 @@
-classdef InstrumentAnalysis
+classdef InstrumentAnalysis < handle
     %INSTRUMENTANALYSIS Provides an analysis framework for an instrument
     %
     % Future Improvements:
@@ -77,8 +77,11 @@ classdef InstrumentAnalysis
             end
             
             % Set the data file property
-            obj.DataFiles = varargin;
-            
+            if numel(varargin) == 1
+                obj.DataFiles = varargin{1};
+            else
+                obj.DataFiles = varargin;
+            end
         end
         
     end

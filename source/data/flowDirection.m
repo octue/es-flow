@@ -116,7 +116,6 @@ elseif (numel(size(opts.plot)) ~= 2) || (any(size(opts.plot) ~= [1 1]))
 end
 
 % Checks on type
-class(adcpInput)
 if ~isstruct(adcpInput) && ~isa(adcpInput,'matlab.io.MatFile')
     error('MATLAB:InvalidInput','Input ''adcpInput'' must be a data structure conforming to the OAS ADCP data structure definition (see help loadADCP) or a matfile equivalent')
 elseif ~ischar(opts.filter)
@@ -152,11 +151,14 @@ end
 switch opts.binIndex
     case 0
         % Average down the bin profiles
-        u = mean(adcpInput.u,1);
-        v = mean(adcpInput.u,1);
+        u = nanmean(adcpInput.u,1);
+        v = nanmean(adcpInput.u,1);
     otherwise
         u = adcpInput(opts.binIndex,:);
         v = adcpInput(opts.binIndex,:);
+        if isnan(u) || isnan(v)
+            warning('NaN values exist in this bin. Choose a lower bin or use the removeNaNs function.')
+        end
 end
 
 % Apply the filter to the velocities we use before determining direction:

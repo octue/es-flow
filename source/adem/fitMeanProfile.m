@@ -110,13 +110,27 @@ if nargin < 5
 end
 
 % Define the boundary layer data that we know (mean profiles).
-xData = z;
-yData = Ux;
+xData = z(~isnan(Ux));
+yData = Ux(~isnan(Ux));
 
-% Set weightings if empty is given
+% Handle an entirely NaN input
+if isempty(yData)
+    profile.Pi      = NaN;
+    profile.S       = NaN;
+    profile.deltac  = NaN;
+    profile.U1      = NaN;
+    profile.Utau    = NaN;
+    profile.kappa   = NaN;
+    profile.resnorm = NaN;
+    profile.type    = type;
+    return
+end
+
+% Set weightings and mask out nan entres
 if isempty(weights)
     weights = ones(size(z));
 end
+weights = weights(~isnan(Ux));
 
 % Define von Karman constant
 kappa = 0.41;
@@ -130,12 +144,17 @@ opts = optimoptions('lsqcurvefit','Display','off');
 switch type
     
     case 'lewkowicz'
+        try
         [xFit, profile.resnorm] = lsqcurvefit(@(x,xData) lewkowicz(x, xData, kappa, weights), x0, xData, yData, [],[],opts);
+        catch me
+            save('debug.mat','xData','yData','opts','x0','kappa','weights')
+            throw(me)
+        end
         profile.Pi      = xFit(1);
         profile.S       = xFit(2);
         profile.deltac  = xFit(3);
         profile.U1      = xFit(4);
-        profile.Utau    = U1/S;
+        profile.Utau    = profile.U1/profile.S;
         profile.kappa   = kappa;
         
     case 'logarithmic'
@@ -152,6 +171,19 @@ end
 % Outputs
 profile.type = type;
 
+% Handle any complex output
+if ~isreal(profile.Pi)
+    
+    save('debug_complex.mat','xData','yData','opts','x0','kappa','weights')
+    profile.Pi      = NaN;
+    profile.S       = NaN;
+    profile.deltac  = NaN;
+    profile.U1      = NaN;
+    profile.Utau    = NaN;
+    profile.kappa   = NaN;
+    profile.resnorm = NaN;
+    return
+end
 end
 
 

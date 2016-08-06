@@ -81,8 +81,10 @@ try
 catch me
     
     % Issue a warning instead of a hard error if there's an input '-warn' flag
-    if nargin >= 1 && strcmpi(flag,'-warn')
-        warning('Local copy not clean, or present local copy hash not available in remote repo. Commit all changes and push to remote.')
+    if nargin >= 1 
+        if strcmpi(flag,'-warn')
+	         warning('Local copy not clean, or present local copy hash not available in remote repo. Commit all changes and push to remote.')
+        end
         verStr = 'v_uncommitted';
         cd(workDir)
     else

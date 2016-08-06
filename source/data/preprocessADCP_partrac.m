@@ -98,10 +98,11 @@ function [adcpData, items] = loadAndStitchPartrac(tag, varargin)
         adcpData.u = [adcpData.u s.East'];
         adcpData.v = [adcpData.v s.North'];
         adcpData.w = [adcpData.w s.Vertical'];
+        if iFile == 1
+            adcpData.z = [adcpData.z; s.BinHeight(:)];
+        end
         
-        adcpData.z = [adcpData.z; s.BinHeight(:)];
-        
-        adcpData.d = [adcpData.d; s.WaterDepth(:)];
+        adcpData.d = [adcpData.d s.WaterDepth(:)'];
         
         % For this dataset, we have a ManualSpikes field where John has manually
         % removed data. We'll make sure to retain it but take care when

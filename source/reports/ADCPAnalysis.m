@@ -38,6 +38,9 @@ classdef ADCPAnalysis < InstrumentAnalysis
           WindowLength        % Window duration in seconds
           WindowOverlap       % Fraction, typically 0 or 0.5, of window overlap.
           WindowInds          % 
+          WindowDuration
+          WindowOffset
+          
     end
     
     properties (Dependent)
@@ -48,15 +51,10 @@ classdef ADCPAnalysis < InstrumentAnalysis
         
         function obj = ADCPAnalysis(datafile, varargin)
             
-            % Call superclass constructor
+            % Call superclass constructor and add the datafile
             obj@InstrumentAnalysis(varargin{:})
-            
-            datafile
-            
             obj.SetDataFiles('files', datafile);
             
-            obj.DataFiles
-
             % Check that the input is a .adcp file
             assert(ischar(obj.DataFiles), 'Single OAS format .adcp file must be used to create an ADCPAnalysis.')
             assert(strcmpi(obj.DataFiles(end-4:end),'.adcp'), 'Input data file must be in OAS *.adcp format.')
@@ -74,7 +72,9 @@ classdef ADCPAnalysis < InstrumentAnalysis
                 exists = exist(res_file, 'file');
                 ctr = ctr + 1;
             end
-            obj.Results = matfile(obj.ResultsFile,'Writable',true);
+            obj.Results = matfile(res_file,'Writable',true);
+            % This forces creation of the mat file
+            obj.Results.frequency = [];
 
             % Add any metadata as read-only dynamic properties
             if isfield(obj.Data, 'metadata')
@@ -95,7 +95,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
         
         function rf = get.ResultsFile(obj)
             %RESULTSFILE Get the results file to which analysis data will be
-            %saved
+            %saved            
             rf = obj.Results.Source;
         end
         
@@ -107,12 +107,14 @@ classdef ADCPAnalysis < InstrumentAnalysis
             if overlap<0
                 warning('Setting overlap < 0 spaces out windows. Some data will be excluded from the analysis. This may be intentional (e.g. to accelerate processing during early preview)')
             end
-            
+                        
             % Error check and process the window size
+            dt = datevec(obj.Data.t(1,2)-obj.Data.t(1,1));
+            dt = dt(6);
             switch lower(type)
                 case 'duration'
-                    length = round(obj.frequency*len);
-                    if length ~= obj.frequency*len
+                    length = round(len/dt);
+                    if length ~= len/dt
                         dispnow('Adjusted inexactly specified window length to nearest integer value.')
                     end
                 case 'length'
@@ -124,7 +126,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
             
             % Set the properties
             obj.WindowLength = length;
-            obj.WindowDuration = length/obj.frequency;
+            obj.WindowDuration = length*dt;
             obj.WindowOffset = round(length*(1-overlap));
             obj.WindowOverlap = 1-(obj.WindowOffset/length);
             
@@ -160,14 +162,20 @@ classdef ADCPAnalysis < InstrumentAnalysis
         function Run(obj)
             %RUN Runs all available window analyses in parallel.
             
+            warning('Check for a missing beam angle and z unit - spectrumADCP will default to 52 degrees and 0 respectively!')
+            
             % Get the number of windows
             nWindows = size(obj.WindowInds,2);
             
-            % Run all window analyses in parallel
-            parfor i = 1:nWindows
+            % Run all window analyses. Running the last one first implicitly
+            % defines sizes. Note: Tried to parfor this; but multiple threaads
+            % writing into one file is unstable (there's no threadlocking on the
+            % file access).
+            obj.AnalyseWindow(nWindows)
+            for i = 2:nWindows
                 % Do individual window analyses
                 dispnow(['Processing ADCP window ' num2str(i) ' of ' num2str(nWindows)])
-                obj.AnalyseWindow(i) %#ok<PFBNS>
+                obj.AnalyseWindow(i)
             end
             
         end
@@ -198,7 +206,8 @@ classdef ADCPAnalysis < InstrumentAnalysis
             % TODO calculate beam separation frequency outside this routine and
             % use it as an input to the frequency range cutoff for baptiste's
             % analysis
-            for iBin = 1:nBins
+            nBins = numel(data.z);
+            for iBin = 1: nBins
                 % NB use unity velocity scaling for k1 which gives more compact
                 % storage.
                 fRange = [1 Inf];
@@ -208,35 +217,35 @@ classdef ADCPAnalysis < InstrumentAnalysis
             % Fit analytical mean profile boundary layer parameters, unweighted.
             % For first guess we use the Song data (see gupta and clark)
             % [Pi, S0, deltac0, U10].
-            x0 = [0.34 26.7 max(data.z(:)) max(uvwBar(1,:))];
+            x0 = [0.34 26.7 max(data.z(:)) max(uvwBar(1,~isnan(uvwBar(1,:))))];
             profile = fitMeanProfile(data.z(:), uvwBar(1,:)', [], x0, 'lewkowicz');
             
             % Store results to the main matfile. We set it up to store frequency
             % variation down the first dimension, bin variation down the second,
             % and window variation down the third. NB we can always squeeze the
             % dimensions down.
-            if isempty(obj.Results.frequency)
-                obj.Results.frequency(:,1,1)        = k1U./(2*pi);
-                obj.Results.beamSeparation(1,:,1)   = sbs;
-                obj.Results.fcsVer                  = fcsVer;
-                obj.Results.tssVer                  = tssVer;
-                obj.Results.fs                      = 1/(data.t(2) - data.t(1));
+            if i == 1
+                obj.Results.frequency         = k1U./(2*pi);
+                obj.Results.beamSeparation    = sbs;
+                obj.Results.fcsVer            = fcsVer('-quiet');
+%                 obj.Results.tssVer            = tssVer;
+                obj.Results.fs                = 1/(data.t(2) - data.t(1));
             end
-            obj.Results.psd(:,:,i)              = psd;
-            obj.Results.uvwBar(1:3,:,i)         = uvwBar;
-            obj.Results.windowInds(:,i)         = inds(:);
-            obj.Results.t(i)                    = data.t(1);
-            obj.Results.bapt_fRange(1,:,i)      = fRange';
-            obj.Results.bapt_N(1,:,i)           = N;
-            obj.Results.bapt_K(1,:,i)           = K;
-            obj.Results.bapt_FCut(1,:,i)        = fcut;
-            obj.Results.lew_Pi(i)               = profile.Pi;
-            obj.Results.lew_S(i)                = profile.S;
-            obj.Results.lew_U1(i)               = profile.U1;
-            obj.Results.lew_Utau(i)             = profile.Utau;
-            obj.Results.lew_deltac(i)           = profile.deltac;
-            obj.Results.lew_kappa(i)            = profile.kappa;
-            obj.Results.lew_resnorm(i)          = profile.resnorm;
+            obj.Results.psd(1:size(psd,1), 1:nBins,i)	= psd;
+            obj.Results.uvwBar(1:3,1:nBins,i)       = uvwBar;
+            obj.Results.windowInds(1:2,i)           = inds(:);
+            obj.Results.t(i,1)                      = data.t(1);
+            obj.Results.bapt_fRange(1:2,i)          = fRange(:);
+            obj.Results.bapt_N(1:nBins,i)           = N(:);
+            obj.Results.bapt_K(1:nBins,i)           = K(:);
+            obj.Results.bapt_FCut(1:nBins,i)        = fcut(:);
+            obj.Results.lew_Pi(i,1)                 = profile.Pi;
+            obj.Results.lew_S(i,1)                  = profile.S;
+            obj.Results.lew_U1(i,1)                 = profile.U1;
+            obj.Results.lew_Utau(i,1)               = profile.Utau;
+            obj.Results.lew_deltac(i,1)             = profile.deltac;
+            obj.Results.lew_kappa(i,1)              = profile.kappa;
+            obj.Results.lew_resnorm(i,1)            = profile.resnorm;
             
         end
         
