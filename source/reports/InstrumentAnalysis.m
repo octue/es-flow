@@ -1,4 +1,4 @@
-classdef InstrumentAnalysis
+classdef InstrumentAnalysis < matlab.mixin.setget & dynamicprops
     %INSTRUMENTANALYSIS Provides an analysis framework for an instrument
     %
     % Future Improvements:
