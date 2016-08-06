@@ -1,12 +1,22 @@
-function [Pi, S, deltac, U1, Utau, kappa] = fitMeanProfile(z, Ux, weights, x0)
-%FITMEANPROFILE Least square fit to find mean boundary layer parameters per Ref.1
-% Perform a least squares fit to ascertain mean boundary layer parameters 
-% Pi, S, deltac, U1 for the experimentally determined 2d boundary layer f(Ux,z).
-% Uses the using the Lewkowicz (1982) formulation (Perry and Marusic eq.9) of
-% the Coles wake function.
+function profile = fitMeanProfile(z, Ux, weights, x0, type)
+%FITMEANPROFILE Least square fit to find mean boundary layer parameters.
+% Perform a least squares fit to ascertain mean boundary layer parameters, for a
+% range of different analytical profiles.
+%
+% Profiles available:
+%   'lewkowicz'
+%       Returns Pi, S, deltac, U1, kappa, U_tau for the experimentally
+%       determined 2d boundary layer f(Ux,z). Uses the using the Lewkowicz
+%       (1982) formulation (Perry and Marusic eq.9) of the Coles wake function.
+%
+%   'logarithmic'
+%       Not implemented yet.
+%
+%   'exponential'
+%       Not implemented yet.
 %
 % Syntax:  
-%       [Pi, S, deltac, U1, Utau] = fitMeanProfile(z,Ux, weight, x0)
+%       profile = fitMeanProfile(z,Ux, weight, x0)
 %       Determines parameters describing an equilibrium or quasi-equilibriium
 %       boundary layer for use with analyses in Ref [1].
 %
@@ -26,22 +36,30 @@ function [Pi, S, deltac, U1, Utau, kappa] = fitMeanProfile(z, Ux, weights, x0)
 %
 %       x0          [4 x 1]     Initial guesses for [Pi, S0, deltac0, U10]. 
 %
-% Outputs:
+% Outputs for type lewkowicz:
 %
-%   	Pi          [1 x 1]     Coles wake parameter Pi
+%       profile     struct with the following fields:
+% 
+%           .Pi          [1 x 1]    Coles wake parameter Pi
+% 
+%           .S           [1 x 1]    Ratio between free stream and friction
+%                                   velocity 
+%                                   S = U1/Utau
+% 
+%           .deltac      [1 x 1]    The boundary layer thickness in m
+% 
+%           .U1          [1 x 1]    The free stream speed in m/s
+% 
+%           .Utau        [1 x 1]    The skin friction velocity in m/s
+% 
+%           .kappa       [1 x 1]    Kappa, the von karman constant used for the
+%                                   fit. Presently 0.41 always (see future
+%                                   improvements)
 %
-%       S           [1 x 1]     Ratio between free stream and friction velocity
-%                               S = U1/Utau
+%           .resnorm     [1 x 1]    Normalised residual associated with the fit.
 %
-%       deltac      [1 x 1]     The boundary layer thickness in m
-%
-%       U1          [1 x 1]     The free stream speed in m/s
-%
-%       Utau        [1 x 1]     The skin friction velocity in m/s
-%
-%       kappa       [1 x 1]     Kappa, the von karman constant used for the fit.
-%                               Presently 0.41 always (see future improvements)
-%
+%           .type        string     Type of fit, 'lewkowicz'.
+% 
 % References:
 %
 %   [1] Perry AE and Marusic I (1995) A wall-wake model for turbulent boundary
@@ -82,16 +100,14 @@ function [Pi, S, deltac, U1, Utau, kappa] = fitMeanProfile(z, Ux, weights, x0)
 % Email:                    tom.clark@oceanarraysystems.com
 % Website:                  www.oceanarraysystems.com
 %
-% Revisions:        30 July 2014        Created.
-%                   XX April 2015       Substantial revision to use lsqcurvefit,
-%                                       a much more robust approach and modified
-%                                       outputs to give just mean boundary layer
-%                                       quantities.
-%                   18 April 2015       Properly documented with OAS header.
-%
 % Copyright (c) 2014-2015 Ocean Array Systems, All Rights Reserved.
 
 % TODO Input checks on data type and dimension
+
+% Adding a switch based on type which is currently redundant
+if nargin < 5
+    type = 'lewkowicz';
+end
 
 % Define the boundary layer data that we know (mean profiles).
 xData = z;
@@ -105,22 +121,42 @@ end
 % Define von Karman constant
 kappa = 0.41;
 
-% Run the curve fit
+% Suppress display of optimisation progress
 opts = optimoptions('lsqcurvefit','Display','off');
-[xFit] = lsqcurvefit(@(x,xData) analytic(x, xData, kappa, weights), x0, xData, yData, [],[],opts);
+
+% Run the curve fit, for different types of boundary layer profile. Using
+% lsqcurvefit is a more robust approach than the previous minimisation approach,
+% which used a Nelder-Meade simplex search and was quite flaky.
+switch type
+    
+    case 'lewkowicz'
+        [xFit, profile.resnorm] = lsqcurvefit(@(x,xData) lewkowicz(x, xData, kappa, weights), x0, xData, yData, [],[],opts);
+        profile.Pi      = xFit(1);
+        profile.S       = xFit(2);
+        profile.deltac  = xFit(3);
+        profile.U1      = xFit(4);
+        profile.Utau    = U1/S;
+        profile.kappa   = kappa;
+        
+    case 'logarithmic'
+        error('not implemented yet')
+        
+    case 'exponential'
+        error('not implemented yet')
+        
+    otherwise
+        error('Unknown velocity profile type. Try ''lewkowicz'', ''logarithmic'', or ''exponential''.')
+        
+end
 
 % Outputs
-Pi      = xFit(1);
-S       = xFit(2);
-deltac  = xFit(3);
-U1      = xFit(4);
-Utau    = U1/S;
+profile.type = type;
 
 end
 
 
 
-function [fx] = analytic(x, xData, kappa, weights)
+function [fx] = lewkowicz(x, xData, kappa, weights)
 
 % Extract for clarity
 Pi      = x(1);
@@ -149,9 +185,7 @@ uDeficit1 = -log(1)/kappa + (Pi/kappa)*2 - (Pi/kappa)*2;
 uBar1 = -uDeficit1*Utau + U1;
 u(eta>=1) = uBar1;
 
-% Weight according to the confidence in uBar throuhghout the water column.
+% Weight according to the confidence in uBar throughout the water column.
 fx = weights.*u;
-
-
 
 end
