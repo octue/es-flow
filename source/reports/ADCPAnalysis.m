@@ -46,10 +46,16 @@ classdef ADCPAnalysis < InstrumentAnalysis
     
     methods
         
-        function obj = ADCPAnalysis(varargin)
+        function obj = ADCPAnalysis(datafile, varargin)
             
             % Call superclass constructor
             obj@InstrumentAnalysis(varargin{:})
+            
+            datafile
+            
+            obj.SetDataFiles('files', datafile);
+            
+            obj.DataFiles
 
             % Check that the input is a .adcp file
             assert(ischar(obj.DataFiles), 'Single OAS format .adcp file must be used to create an ADCPAnalysis.')
@@ -154,8 +160,13 @@ classdef ADCPAnalysis < InstrumentAnalysis
         function Run(obj)
             %RUN Runs all available window analyses in parallel.
             
-            parfor i = 1:size(obj.WindowInds,2)
+            % Get the number of windows
+            nWindows = size(obj.WindowInds,2);
+            
+            % Run all window analyses in parallel
+            parfor i = 1:nWindows
                 % Do individual window analyses
+                dispnow(['Processing ADCP window ' num2str(i) ' of ' num2str(nWindows)])
                 obj.AnalyseWindow(i) %#ok<PFBNS>
             end
             
@@ -209,12 +220,12 @@ classdef ADCPAnalysis < InstrumentAnalysis
                 obj.Results.beamSeparation(1,:,1)   = sbs;
                 obj.Results.fcsVer                  = fcsVer;
                 obj.Results.tssVer                  = tssVer;
+                obj.Results.fs                      = 1/(data.t(2) - data.t(1));
             end
             obj.Results.psd(:,:,i)              = psd;
             obj.Results.uvwBar(1:3,:,i)         = uvwBar;
             obj.Results.windowInds(:,i)         = inds(:);
             obj.Results.t(i)                    = data.t(1);
-            obj.Results.dt                      = data.t(2) - data.t(1);
             obj.Results.bapt_fRange(1,:,i)      = fRange';
             obj.Results.bapt_N(1,:,i)           = N;
             obj.Results.bapt_K(1,:,i)           = K;
