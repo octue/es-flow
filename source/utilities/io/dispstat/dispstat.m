@@ -36,7 +36,7 @@ keepthis = 0; % option for not overwriting
 keepprev = 0;
 timestamp = 0; % time stamp option
 init = 0; % is it initialization step?
-if ~isstr(TXT)
+if ~ischar(TXT)
     return
 end
 persistent prevCharCnt;

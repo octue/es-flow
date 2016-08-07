@@ -113,6 +113,13 @@ end
 xData = z(~isnan(Ux));
 yData = Ux(~isnan(Ux));
 
+% Ensure double precision inputs
+% TODO Ensure that sensible precision data is saved in the .adcp files and
+% manage correct precision throughout.
+xData = double(xData);
+x0 = double(x0);
+yData = double(yData);
+
 % Handle an entirely NaN input
 if isempty(yData)
     profile.Pi      = NaN;

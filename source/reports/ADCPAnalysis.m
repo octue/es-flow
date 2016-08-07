@@ -73,6 +73,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
                 ctr = ctr + 1;
             end
             obj.Results = matfile(res_file,'Writable',true);
+            
             % This forces creation of the mat file
             obj.Results.frequency = [];
 
@@ -100,6 +101,36 @@ classdef ADCPAnalysis < InstrumentAnalysis
         end
         
         
+        function AttachResults(obj, file, cleanup)
+            %ATTACHRESULTS Attach to an existing results file. 
+            % Setting cleanup = true deletes the existing results file.
+            if nargin == 2
+                cleanup = false;
+            end
+            assert(exist(file,'file')~=0, 'The results file to attach to must already exist.')
+            
+            % Map into the results file we want to attach
+            newres = matfile(file,'Writable',true);
+            
+            % Check that the windowing applied is compatible if there are
+            % already results in there
+            if ~all(isequal(newres.windowInds, obj.WindowInds))
+                error('Attempt to load results file with different window overlaps to current settings.')
+            end
+            
+            % TODO more checks that it's got all the necessary fields
+            
+            % Delete the currently attached results file
+            if cleanup
+                delete(obj.Results)
+            end
+            
+            % Attach the new file
+            obj.Results = newres;
+            
+        end
+        
+        
         function SetWindowing(obj, overlap, type, len)
             
             % Error check the overlap value
@@ -107,7 +138,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
             if overlap<0
                 warning('Setting overlap < 0 spaces out windows. Some data will be excluded from the analysis. This may be intentional (e.g. to accelerate processing during early preview)')
             end
-                        
+            
             % Error check and process the window size
             dt = datevec(obj.Data.t(1,2)-obj.Data.t(1,1));
             dt = dt(6);
@@ -172,7 +203,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
             % writing into one file is unstable (there's no threadlocking on the
             % file access).
             obj.AnalyseWindow(nWindows)
-            for i = 2:nWindows
+            for i = 1:nWindows
                 % Do individual window analyses
                 dispnow(['Processing ADCP window ' num2str(i) ' of ' num2str(nWindows)])
                 obj.AnalyseWindow(i)
@@ -190,8 +221,11 @@ classdef ADCPAnalysis < InstrumentAnalysis
             % Get the basic ADCPdata in a structure
             data = obj.Window(i);
             
-            % Get the depth and time averaged direction for this window
+            % Get the depth- and time- averaged direction for this window
             dir = mean(flowDirection(data));
+            
+            % Get the depth for this window
+            d = nanmean(data.d);
             
             % Rotate adcp frame of reference to the local direction
             data = rotateADCP(data, dir);
@@ -235,6 +269,8 @@ classdef ADCPAnalysis < InstrumentAnalysis
             obj.Results.uvwBar(1:3,1:nBins,i)       = uvwBar;
             obj.Results.windowInds(1:2,i)           = inds(:);
             obj.Results.t(i,1)                      = data.t(1);
+            obj.Results.d(i,1)                      = d;
+            obj.Results.flowDirection(i,1)          = dir;
             obj.Results.bapt_fRange(1:2,i)          = fRange(:);
             obj.Results.bapt_N(1:nBins,i)           = N(:);
             obj.Results.bapt_K(1:nBins,i)           = K(:);
@@ -249,8 +285,81 @@ classdef ADCPAnalysis < InstrumentAnalysis
             
         end
         
-%      	function ReFit(obj)
-%       end
+        
+        function AddFloodRate(obj,smoothfac)
+            %ADDFLOODRATE Adds a smoothed Flood Rate metric to the results. If
+            %positive, the tide is flooding, if negative it is ebbing. Beware
+            %this may be out of phase with tdal velocities so cannot be used as
+            %a discriminant for the ebb and flood tide.
+            
+            if nargin == 1
+                % Use default smoothing factor of 1000 which was established by
+                % trial and error during the TiME project
+                smoothfac = 1000;
+            end
+            
+            % Use penalised least square spline fit, with robust outlier
+            % management
+            sm_d = smoothn(obj.Results.d, smoothfac, 'robust');
+            
+            % Differentiate (simple forward first order)
+            fr = diff(sm_d)./diff(obj.Results.t);
+            obj.Results.FloodRate = [fr(1); fr];
+            
+        end
+        
+        
+     	function RobustSmooth(obj, maxU1, smoothfac)
+            %ROBUSTSMOOTH Uses robust spline based smoothing (\cite{Garcia2010})
+            %to improve parameter space fit models. Uses criteria of U1 within
+            %a specified max value (input maxU1) and Pi within 3* the median Pi
+            %value.
+            if nargin == 1
+                maxU1 = 6; % Highest tidal speed in the world... ish.
+            end
+            if nargin <= 2
+                % Use default smoothing factor of 1000 which was established by
+                % trial and error during the TiME project
+                smoothfac = 1000;
+            end
+            
+            % TODO extend to logarithmic/exponential BL fits.
+            
+            % Deal with outliers based on plausible ranges of U1 and Pi
+            U1 = obj.Results.lew_U1;
+            Pi = obj.Results.lew_Pi;
+            
+            % Mask on U1 criteria
+            mask_U1 = true(size(U1));
+            mask_U1(U1>maxU1) = false;
+            
+            % Mask on Pi criteria
+            rangePi = 3*nanmedian(abs(Pi(mask_U1)));
+            mask_Pi = false(size(Pi));
+            mask_Pi(~isnan(Pi)) = (Pi(~isnan(Pi))<rangePi) & (Pi(~isnan(Pi))>(-1*rangePi));
+            
+            % Flip the sign of U1 during ebb to create 
+            if ~isfield(obj.Results,'FloodRate')
+                dispnow('Computing Flood Rate for use in timeseries smoothing.')
+                obj.AddFloodRate;
+            end
+            size(obj.Results.FloodRate)
+            size(obj.Results.lew_Pi)
+            obj.Results.lew_U1 = obj.Results.lew_U1.*sign(obj.Results.FloodRate);
+
+            % Combine the logical masks from different criteria
+            mask = mask_Pi & mask_U1;
+            
+            % Use dynamic fieldnames to cycle through the variables we want to smooth.
+            % TODO update as more analyses are added
+            params = {'lew_U1','lew_Pi','lew_S','lew_Utau','lew_deltac','lew_kappa'};
+            for i = 1:numel(params)
+                param = obj.Results.(params{i});
+                param(~mask) = NaN;
+                obj.Results.(['sm_' params{i}]) = smoothn(param,smoothfac,'robust');
+            end
+            
+        end
         
     end
     

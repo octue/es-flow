@@ -35,7 +35,7 @@ classdef InstrumentAnalysis < handle
     
     methods
         
-        function obj = InstrumentAnalysis(resultsFolder, reportFolder, name)
+        function obj = InstrumentAnalysis(resultsFolder, reportFolder, name, allowOverwrite)
             
             % Make the output directories if necessary
             if exist(resultsFolder,'dir') == 0
