@@ -51,7 +51,8 @@ function [y,w] = dctn(y,DIM,w)
 %   reused in the next calls.
 % ----------
 
-error(nargchk(1,3,nargin))
+% TODO implement input checking
+% error(nargchk(1,3,nargin))
 
 y = double(y);
 sizy = size(y);

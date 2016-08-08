@@ -146,8 +146,8 @@ function [z,s,exitflag,Wtot] = smoothn(varargin)
 %   Visit my <a
 %   href="matlab:web('http://www.biomecardio.com/matlab/smoothn.html')">website</a> for more details about SMOOTHN 
 
-% Check input arguments
-error(nargchk(1,12,nargin));
+% TODO Check input arguments
+% error(nargchk(1,12,nargin));
 
 %% Test & prepare the variables
 %---
@@ -455,12 +455,14 @@ function z = InitialGuess(y,I)
             [z,L] = bwdist(I);
             z = y;
             z(~I) = y(L(~I));
+            % TODO Implement irrespective of the image procesing toolbox
         else
         % If BWDIST does not exist, NaN values are all replaced with the
         % same scalar. The initial guess is not optimal and a warning
         % message thus appears.
             z = y;
             z(~I) = mean(y(I));
+            
             warning('MATLAB:smoothn:InitialGuess',...
                 ['BWDIST (Image Processing Toolbox) does not exist. ',...
                 'The initial guess may not be optimal; additional',...
