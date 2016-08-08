@@ -176,7 +176,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
         end
         
         
-        function [data, results] = Window(obj, index)
+        function [data, results] = Window(obj, index, bins)
             %WINDOW gets a window from the ADCP data structure.
             
             assert(~isempty(obj.WindowInds),'Use the SetWindowing() method on this ADCPAnalysis object before attempting to retrieve windows by index.')
@@ -184,7 +184,39 @@ classdef ADCPAnalysis < InstrumentAnalysis
             
             data = getWindow(obj.Data, 'IndexRange', obj.WindowInds(:,index)');
             if nargout > 1
-                results = [];
+                % By default, return window results for all bins
+                if nargin == 2
+                    bins = 1:numel(data.z);
+                end
+                % Get the full window out
+                results.frequency = obj.Results.frequency;
+                results.beamSeparation = obj.Results.beamSeparation;
+                results.fcsVer = obj.Results.fcsVer;
+                results.fs = obj.Results.fs;
+                results.psd = obj.Results.psd(:, bins, index);
+                results.uvwBar = obj.Results.uvwBar(1:3,bins,index);
+                results.windowInds = obj.Results.windowInds(1:2,index);
+                results.t = obj.Results.t(index,1);
+                results.d = obj.Results.d(index,1);
+                results.flowDirection = obj.Results.flowDirection(index,1);
+                results.bapt_fRange = obj.Results.bapt_fRange(1:2,index);
+                results.bapt_N = obj.Results.bapt_N(bins,index);
+                results.bapt_K = obj.Results.bapt_K(bins,index);
+                results.bapt_FCut = obj.Results.bapt_FCut(bins,index);
+                results.lew_Pi = obj.Results.lew_Pi(index,1);
+                results.lew_S = obj.Results.lew_S(index,1);
+                results.lew_U1 = obj.Results.lew_U1(index,1);
+                results.lew_Utau = obj.Results.lew_Utau(index,1);
+                results.lew_deltac = obj.Results.lew_deltac(index,1);
+                results.lew_kappa = obj.Results.lew_kappa(index,1);
+                results.lew_resnorm = obj.Results.lew_resnorm(index,1);
+                results.sm_lew_Pi = obj.Results.sm_lew_Pi(index,1);
+                results.sm_lew_S = obj.Results.sm_lew_S(index,1);
+                results.sm_lew_U1 = obj.Results.sm_lew_U1(index,1);
+                results.sm_lew_Utau = obj.Results.sm_lew_Utau(index,1);
+                results.sm_lew_deltac = obj.Results.sm_lew_deltac(index,1);
+                results.FloodRate = obj.Results.FloodRate(index,1);
+                results.dirSign = obj.Results.dirSign(index,1);
             end
             
         end
@@ -208,6 +240,12 @@ classdef ADCPAnalysis < InstrumentAnalysis
                 dispnow(['Processing ADCP window ' num2str(i) ' of ' num2str(nWindows)])
                 obj.AnalyseWindow(i)
             end
+            
+            % Add the Flood rate
+            obj.AddFloodRate;
+            
+            % Smooth the fitted parameters
+            obj.RobustSmooth;
             
         end
         
@@ -286,6 +324,20 @@ classdef ADCPAnalysis < InstrumentAnalysis
         end
         
         
+%         function [window, sec] = ReportWindows(obj, i, bins)
+%             %REPORTWINDOW Returns a report section on a window or window
+%             
+%             % Table of window parameters
+%             % Time, PCSprings, Dirn, uvwBar, d, lew_U1, Pi, S, U_tau, d, deltac, bapt_frange 
+%             
+%             % Plot of bapt_N, bapt_K varying with height, tagged with values at
+%             % the bins of interest.
+%             
+%             % Plot of PSD in the bins of interest.
+%             
+%         end
+        
+
         function AddFloodRate(obj,smoothfac)
             %ADDFLOODRATE Adds a smoothed Flood Rate metric to the results. If
             %positive, the tide is flooding, if negative it is ebbing. Beware
@@ -329,34 +381,45 @@ classdef ADCPAnalysis < InstrumentAnalysis
             U1 = obj.Results.lew_U1;
             Pi = obj.Results.lew_Pi;
             
-            % Mask on U1 criteria
+            % Mask on U1 criteria. NB U1 stored such that it should always be
+            % positive regardless of direction.
             mask_U1 = true(size(U1));
             mask_U1(U1>maxU1) = false;
+            mask_U1(U1<0) = false;
             
             % Mask on Pi criteria
             rangePi = 3*nanmedian(abs(Pi(mask_U1)));
             mask_Pi = false(size(Pi));
             mask_Pi(~isnan(Pi)) = (Pi(~isnan(Pi))<rangePi) & (Pi(~isnan(Pi))>(-1*rangePi));
             
-            % Flip the sign of U1 during ebb to create 
-            if ~isfield(obj.Results,'FloodRate')
-                dispnow('Computing Flood Rate for use in timeseries smoothing.')
-                obj.AddFloodRate;
-            end
-            size(obj.Results.FloodRate)
-            size(obj.Results.lew_Pi)
-            obj.Results.lew_U1 = obj.Results.lew_U1.*sign(obj.Results.FloodRate);
+            % Flip the sign of U1 during ebb
+            fd = obj.Results.flowDirection; % temporary local var to avoid reading from disc twice
+            dir_sign = sign(fd - nanmean(fd));
+            
+            % STore the direction signum
+            obj.Results.dirSign = dir_sign;
 
             % Combine the logical masks from different criteria
             mask = mask_Pi & mask_U1;
             
-            % Use dynamic fieldnames to cycle through the variables we want to smooth.
+            % Derectify U1 and smooth the approximately sinusoidal signal.
+            lew_U1 = obj.Results.lew_U1.*dir_sign;
+            lew_U1(~mask) = NaN;
+            obj.Results.('sm_lew_U1') = smoothn(lew_U1,smoothfac,'robust','MaxIter',500).*dir_sign;
+            
+            % Use dynamic fieldnames to cycle through the rest of the variables
+            % we want to smooth.
             % TODO update as more analyses are added
-            params = {'lew_U1','lew_Pi','lew_S','lew_Utau','lew_deltac','lew_kappa'};
+            params = {'lew_Pi','lew_S','lew_Utau','lew_deltac','lew_kappa'};
             for i = 1:numel(params)
                 param = obj.Results.(params{i});
                 param(~mask) = NaN;
-                obj.Results.(['sm_' params{i}]) = smoothn(param,smoothfac,'robust');
+                warning('off','MATLAB:smoothn:InitialGuess')
+                % TODO implement a check on the image processing toolbox,
+                % because this function behaves differently according to whether
+                % you have it installed or not.
+                obj.Results.(['sm_' params{i}]) = smoothn(param,smoothfac,'robust','MaxIter',500);
+                
             end
             
         end
