@@ -55,15 +55,19 @@ classdef PDFObject
         % Set data
         function [PDFObj] = setPDF(PDFObj, xInput, pdfInput)
             
+            % Check they're the same length
+            assert(isequal(size(xInput),size(pdfInput)), 'Input x and pdf should be the same size')
+            
             % Set as column vectors always
             PDFObj.x   = xInput(:);
             PDFObj.pdf = pdfInput(:);
             
             % Normalise
-            if PDFObj.discreteTF && (sum(pdfInput)~=1)
+            sum(pdfInput)
+            if PDFObj.discreteTF && (abs(sum(pdfInput)-1) > eps('single'))
                 disp('PDFObject: Input discrete PDF does not sum to 1! Normalising to compensate.')
+                PDFObj = normalisePDF(PDFObj);
             end
-            PDFObj = normalisePDF(PDFObj);
                 
             
         end % end function setPDF
@@ -277,6 +281,9 @@ classdef PDFObject
 
             % randomly permute the sample's order
             x = x(randperm(n));
+            
+            % Sample actual values not indices
+            x = PDFObj.x(x);
             
         end % end function discreteSample
         
