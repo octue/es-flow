@@ -8,7 +8,7 @@ function [performancePDF, varargout] = herbie(herbPDF, evaluationFcn, varargin)
 %
 %   Herbie is trivially parallelisable by opening a matlabpool before execution.
 %
-% Syntax:  
+% Syntax:
 %
 %                  performancePDF = herbie(a, evaluationFcn)
 %                            Performs monte carlo simulation using the supplied
