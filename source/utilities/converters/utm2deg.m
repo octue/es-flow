@@ -51,16 +51,21 @@ function  [Lat,Lon] = utm2deg(xx,yy,utmzone)
 
 % Argument checking
 %
-error(nargchk(3, 3, nargin)); %3 arguments required
+assert(nargin == 3, 'Incorrect number of input aguments'); %3 arguments required
 n1=length(xx);
 n2=length(yy);
 n3=size(utmzone,1);
+% Apply the same utmzone to all if only one is given
+if (n3~= n1) && (size(n3,1)==1)
+    utmzone = repmat(utmzone, [n1 1]);
+    n3 = n1;
+end
 if (n1~=n2 || n1~=n3)
    error('x,y and utmzone vectors should have the same number or rows');
 end
 c=size(utmzone,2);
 if (c~=4)
-   error('utmzone should be a vector of strings like "30 T"');
+   error('utmzone should be a column vector of strings like "30 T"');
 end
 
    
@@ -74,6 +79,7 @@ Lon=zeros(n1,1);
 % Main Loop
 %
 for i=1:n1
+   
    if (utmzone(i,4)>'X' || utmzone(i,4)<'C')
       fprintf('utm2deg: Warning utmzone should be a vector of strings like "30 T", not "30 t"\n');
    end

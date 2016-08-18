@@ -64,7 +64,7 @@ switch nargin
         if ishandle(varargin{1})
             TR = loadBathy();
             plotHandle = varargin{1};
-        elseif strcmpi(class(varargin{1}),'TriRep')
+        elseif isa(varargin{1},'TriRep') || isa(varargin{1},'triangulation')
             TR = varargin{1};
         else
             TR = loadBathy(varargin{1});
@@ -83,7 +83,7 @@ if isempty(plotHandle)
     
     ph = trisurf(TR.Triangulation,TR.X(:,1),TR.X(:,2),TR.X(:,3));
     set(ph,'EdgeColor','none')
-    axis equal
+%     axis equal
     
 else
     

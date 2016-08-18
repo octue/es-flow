@@ -1,4 +1,4 @@
-function [k1 psd fbs sbs N K fcut] = spectrumADCP(adcpData, bin, U, varargin)
+function [k1, psd, fbs, sbs, N, K, fcut] = spectrumADCP(adcpData, bin, U, varargin)
 %SPECTRUMADCP Power Spectral Density (PSD) of velocity content at a bin
 %
 % Syntax:  
@@ -75,7 +75,7 @@ function [k1 psd fbs sbs N K fcut] = spectrumADCP(adcpData, bin, U, varargin)
 %       N               [1 x 1]         Noise level coefficient from Eq. 10,
 %                                       Reference [1]
 %
-%       K               [1 x 1]         PSD signal coefficient K from Ed. 10,
+%       K               [1 x 1]         PSD signal coefficient K from Eq. 10,
 %                                       Reference [1]
 %
 %       fcut            [1 x 1]         Cutoff frequency above which noise
@@ -134,11 +134,11 @@ end
 
 % Get signal 1
 u = adcpData.u(bin,:);
-v = adcpData.v(bin,:);
-w = adcpData.w(bin,:);
+% v = adcpData.v(bin,:);
+% w = adcpData.w(bin,:);
 
 % Base the FFT on flow speed, not u1
-speed = sqrt(u.^2 + v.^2 + w.^2);
+speed = sqrt(u.^2);
 Y = fft(speed);
 
 % Scale and magnitude of one-sided FFT to get PSD and frequencies
@@ -149,10 +149,17 @@ nyquist = 1/(2*dt);
 freq = (1:n/2)/(n/2)*nyquist;
 k1 = 2*pi*freq.*U;
 
-warning('Developer note: Check spectrumADCP() against the spectrumData() which was validated during a commercial work package, and if necessary rewrite to utilise spectrumData')
+% warning('Developer note: Check spectrumADCP() against the spectrumData() which was validated during a commercial work package, and if necessary rewrite to utilise spectrumData')
 
 % Cheap computation of fbs and sbs
-sbs = 2*tand(adcpData.beamAngle)*(adcpData.z(bin) - adcpData.zUnit);
+
+% TEMP HACK
+if ~isfield(adcpData,'beamAngle')
+%     dispnow('Defaulting missing beamAngle field to 25 degrees and zUnit to 0')
+    sbs = 2*tand(25)*(adcpData.z(bin));
+else
+    sbs = 2*tand(adcpData.beamAngle)*(adcpData.z(bin) - adcpData.zUnit);
+end
 fbs = U/sbs;
 
 

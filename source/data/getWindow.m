@@ -131,12 +131,16 @@ adcpWindow.z = adcpInput.z;
 % We need to find flags that have dimension [anything x nT] and window them too,
 % otherwise just copy the whole flag field
 flagFields = fields(adcpInput.flags);
-nT = numel(adcpInput.t);
-for i = 1:numel(flagFields)
-    if size(adcpInput.flags.(flagFields{i}),2) == nT
-        adcpWindow.flags.(flagFields{i}) = adcpInput.flags.(flagFields{i})(:,indices);
-    else
-        adcpWindow.flags.(flagFields{i}) = adcpInput.flags.(flagFields{i});
+if isa(adcpInput,'matlab.io.MatFile') || isa(adcpInput,'MatFiles')
+    dispnow('Skipping flag windowing from MatFile object.')
+else
+    nT = numel(adcpInput.t);
+    for i = 1:numel(flagFields)
+        if size(adcpInput.flags.(flagFields{i}),2) == nT
+            adcpWindow.flags.(flagFields{i}) = adcpInput.flags.(flagFields{i})(:,indices);
+        else
+            adcpWindow.flags.(flagFields{i}) = adcpInput.flags.(flagFields{i});
+        end
     end
 end
         

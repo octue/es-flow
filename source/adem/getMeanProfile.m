@@ -1,11 +1,19 @@
 function [Ux] = getMeanProfile(Pi, S, deltac, U1, z)
 %GETMEANPROFILE Determine mean boundary layer velocity u(z) 
+
+% TODO UPDATE DOCS TO REFLECT ABILITY TO TAKE PROFILE STRUCTURE
+
 % Uses the using the Lewkowicz (1982) formulation (Perry and Marusic eq.9) of
 % the Coles wake function to determine U(z) from parameters Pi, S, deltac, U1.
 %
 % Syntax:  
 %       [Ux] = getMeanProfile(Pi, S, deltac, U1, z)
 %       Determines u(z) using the approach described in Ref. 1.
+%
+%       [Ux] = getMeanProfile(profile, z)
+%       Determines u(z) using the analytical type in the profile structure. This
+%       doc needs tidying - see fitMeanProfile for tidy example of profile
+%       structure
 %
 % Inputs:
 %       z           [nZ x 1]    Height in m above the wall at which boundary
@@ -25,10 +33,6 @@ function [Ux] = getMeanProfile(Pi, S, deltac, U1, z)
 %       Ux          [nZ x 1]    Streamwise velocity in m/s at points
 %                               corresponding to the heights in z
 %
-%       dUds_dEta    [nZ x 1]   Gradient of the normalised velocity deficit
-%                               Uds = (U1-Ux)/Utau with respect to 
-%                               the eta coordinate.
-%
 % References:
 %
 %   [1] Perry AE and Marusic I (1995) A wall-wake model for turbulent boundary
@@ -44,11 +48,6 @@ function [Ux] = getMeanProfile(Pi, S, deltac, U1, z)
 %
 %   [3] Support directional variation with height; i.e. accept U(y)
 %
-% Other m-files required:   none
-% Subfunctions:             none
-% Nested functions:         none
-% MAT-files required:       none
-%
 % Author:                   T. H. Clark
 % Work address:             Ocean Array Systems Ltd
 %                           Hauser Forum
@@ -58,15 +57,33 @@ function [Ux] = getMeanProfile(Pi, S, deltac, U1, z)
 % Email:                    tom.clark@oceanarraysystems.com
 % Website:                  www.oceanarraysystems.com
 %
-% Revisions:        07 April 2015       Created
-%                   18 April 2015       Properly documented with OAS header,
-%                                       minor change of output name from u to
-%                                       Ux. Renamed getMean to getMeanProfile.
-%
-% Copyright (c) 2014-2015 Ocean Array Systems, All Rights Reserved.
+% Copyright (c) 2014-2016 Ocean Array Systems, All Rights Reserved.
 
 % Define von Karman constant
 kappa = 0.41;
+if nargin == 2
+    
+    if isstruct(Pi)
+        % TODO TIDY THIS
+        profile = Pi;
+        z = S;
+
+        Pi = profile.Pi;
+        type = profile.type;
+        S = profile.S;
+        deltac = profile.deltac;
+        U1 = profile.U1;
+        kappa = profile.kappa;
+        
+    else
+        error('incorrect arguments')
+    end
+else
+    warning('Using the original API of getMeanProfile - this will be deprecated. Use an input profile structre instead.')
+end
+
+
+
 
 % S is the ratio between free stream velocity and the wall friction velocity -
 % use it to get U1 (eq.7 Perry and Marusic)

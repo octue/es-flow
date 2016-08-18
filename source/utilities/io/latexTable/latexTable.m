@@ -67,6 +67,10 @@ function latex = latexTable(input)
 %
 % % % Now call the function to generate LaTex code:
 % latex = latexTable(input);
+%
+% To print latex code to the console
+% print latex code to console:
+% disp(char(latex));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% Default settings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % These settings are used if the corresponding optional inputs are not given.
@@ -90,6 +94,11 @@ if ~isfield(input,'tableBorders'),input.tableBorders = 1;end
 if ~isfield(input,'tableCaption'),input.tableCaption = 'MyTableCaption';end
 if ~isfield(input,'tableLabel'),input.tableLabel = 'MyTableLabel';end
 if ~isfield(input,'makeCompleteLatexDocument'),input.makeCompleteLatexDocument = 0;end
+if ~isfield(input,'sideways'),input.sideways = false;end
+if ~isfield(input,'boldFirstRow'),input.boldFirstRow = false;end
+if ~isfield(input,'boldFirstCol'),input.boldFirstCol = false;end
+if ~isfield(input,'arrayStretch'),input.arrayStretch = 2;end
+if ~isfield(input,'tabColSep'),input.tabColSep = 10;end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % process table datatype
@@ -157,7 +166,12 @@ if input.tableBorders
 else
     header = ['\begin{tabular}{',repmat(input.tableColumnAlignment,1,size(C,2)),'}'];
 end
-latex = {'\begin{table}[H!]';'\centering';header};
+
+if input.sideways
+    latex = {'\begin{sidewaystable}[H!]';'\centering';['{\def\arraystretch{' num2str(input.arrayStretch) '}\tabcolsep=' num2str(input.tabColSep) 'pt'];header};
+else
+    latex = {'\begin{table}[H!]';'\centering';['{\def\arraystretch{' num2str(input.arrayStretch) '}\tabcolsep=10pt'];header};
+end
 
 % generate table
 for i=1:size(C,1)
@@ -174,8 +188,15 @@ for i=1:size(C,1)
         elseif isnumeric(dataValue)
           dataValue = num2str(dataValue,dataFormatArray{i,j});
         end
+        if (i==1) && input.boldFirstRow
+            dataValue = ['\textbf{' dataValue '}'];
+        end
         if j==1
-            rowStr = dataValue;
+            if input.boldFirstCol
+                rowStr = ['\textbf{' dataValue '}'];
+            else
+                rowStr = dataValue;
+            end
         else
             rowStr = [rowStr,' & ',dataValue];
         end
@@ -184,8 +205,13 @@ for i=1:size(C,1)
 end
 
 % make table footer lines:
-footer = {'\end{tabular}';['\caption{',input.tableCaption,'}']; ...
-    ['\label{table:',input.tableLabel,'}'];'\end{table}'};
+if input.sideways
+    endr = '\end{sidewaystable}';
+else
+    endr = '\end{table}';
+end
+footer = {'\end{tabular}';'}';['\caption{',input.tableCaption,'}']; ...
+    ['\label{table:',input.tableLabel,'}'];endr};
 if input.tableBorders
     latex = [latex;{hLine};footer];
 else
@@ -200,6 +226,6 @@ if input.makeCompleteLatexDocument
 end
 
 % print latex code to console:
-disp(char(latex));
+% disp(char(latex));
 
 end

@@ -25,6 +25,10 @@ switch keyword
     case 'twosquare'
         width  = 1000;
         height = 450;
+    case 'twostack'
+        width = 500;
+        height = 850;
+        
     case 'threesquare'
         width  = 1500;
         height = 450;
