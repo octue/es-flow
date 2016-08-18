@@ -63,7 +63,6 @@ classdef PDFObject
             PDFObj.pdf = pdfInput(:);
             
             % Normalise
-            sum(pdfInput)
             if PDFObj.discreteTF && (abs(sum(pdfInput)-1) > eps('single'))
                 disp('PDFObject: Input discrete PDF does not sum to 1! Normalising to compensate.')
                 PDFObj = normalisePDF(PDFObj);
