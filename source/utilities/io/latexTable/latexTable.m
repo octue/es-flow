@@ -98,6 +98,7 @@ if ~isfield(input,'sideways'),input.sideways = false;end
 if ~isfield(input,'boldFirstRow'),input.boldFirstRow = false;end
 if ~isfield(input,'boldFirstCol'),input.boldFirstCol = false;end
 if ~isfield(input,'arrayStretch'),input.arrayStretch = 2;end
+if ~isfield(input,'tabColSep'),input.tabColSep = 10;end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % process table datatype
@@ -167,7 +168,7 @@ else
 end
 
 if input.sideways
-    latex = {'\begin{sidewaystable}[H!]';'\centering';['{\def\arraystretch{' num2str(input.arrayStretch) '}\tabcolsep=10pt'];header};
+    latex = {'\begin{sidewaystable}[H!]';'\centering';['{\def\arraystretch{' num2str(input.arrayStretch) '}\tabcolsep=' num2str(input.tabColSep) 'pt'];header};
 else
     latex = {'\begin{table}[H!]';'\centering';['{\def\arraystretch{' num2str(input.arrayStretch) '}\tabcolsep=10pt'];header};
 end
