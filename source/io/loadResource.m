@@ -120,14 +120,3 @@ end
 
 % Actually load the data
 resourceData = load(fileName,'-mat');
-
-% Display a list of fields
-disp('____________________________')
-disp('loadResource.m: AVAILABLE FIELDS')
-disp(fields(resourceData));
-disp('____________________________')
-
-    
-    
-    
-    
