@@ -152,7 +152,7 @@ switch opts.binIndex
     case 0
         % Average down the bin profiles
         u = nanmean(adcpInput.u,1);
-        v = nanmean(adcpInput.u,1);
+        v = nanmean(adcpInput.v,1);
     otherwise
         u = adcpInput(opts.binIndex,:);
         v = adcpInput(opts.binIndex,:);
