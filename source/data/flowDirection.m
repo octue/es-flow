@@ -14,7 +14,8 @@ function [direction] = flowDirection(adcpInput, varargin)
 % bins in the water column) some kind of filtering is required. Methods adopted
 % here include moving averages, Savitzky-Golay filtering and a simple mean.
 %
-% Directions are given in degrees anticlockwise from East.
+% Directions are given in degrees anticlockwise from East, and are always
+% positive, sometimes exceeding 360, to maintain a continuous timeseries (to avoid discontinuities around marine 270.
 %
 % Syntax:
 %
@@ -180,6 +181,16 @@ end
 
 direction = atan2d(vFilt, uFilt);
 
+% Avoid wrapping through the discontinuity caused by the arctan function
+mask = direction<0;
+while any(mask)
+    direction = direction + 360;
+    %direction(mask) = direction(mask) + 360; DONT DO THIS. If we do this, you
+    %just shift the discontinuity to somewhere else (the 0 degree bearing). What
+    %you need is for the reference to be high enough that the entire timeseries
+    %varies smoothly.
+    mask = direction < 0;
+end
 
 
 
