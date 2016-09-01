@@ -1,4 +1,4 @@
-function [streams, upstreams, distances, velocities, depths] = streamEulerian(s, seeds, receivers, monitors, t)
+function [tsVec, streams, upstreams, distances, velocities, depths] = streamEulerian(s, seeds, receivers, monitors, t)
 %STREAMEULERIAN Finds distances between instantaneous streamlines and points.
 % Optionally interpolates velocity and depth fields to find u,v, depth at input monitor points.
 
