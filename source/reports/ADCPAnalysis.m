@@ -230,6 +230,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
             % Get the number of windows
             nWindows = size(obj.WindowInds,2);
             
+            
             % Run all window analyses. Running the last one first implicitly
             % defines sizes. Note: Tried to parfor this; but multiple threaads
             % writing into one file is unstable (there's no threadlocking on the
@@ -261,6 +262,9 @@ classdef ADCPAnalysis < InstrumentAnalysis
             
             % Get the depth- and time- averaged direction for this window
             dir = mean(flowDirection(data));
+            % TODO sort directions generically and apply a convention on sign;
+            % f/ex flood is always positive U1 and Ebb is always negative. That
+            % saves having to arbitrarily switch direction
             
             % Get the depth for this window
             d = nanmean(data.d);
@@ -289,8 +293,9 @@ classdef ADCPAnalysis < InstrumentAnalysis
             % Fit analytical mean profile boundary layer parameters, unweighted.
             % For first guess we use the Song data (see gupta and clark)
             % [Pi, S0, deltac0, U10].
-            x0 = [0.34 26.7 d max(uvwBar(1,~isnan(uvwBar(1,:))))];
-            profile = fitMeanProfile(data.z(:), uvwBar(1,:)', [], x0, 'lewkowicz');
+            uBar = sqrt(sum((uvwBar(:,:).^2),1));
+            x0 = [0.34 26.7 d max(uBar(1,~isnan(uBar(1,:))))];
+            profile = fitMeanProfile(data.z(:), uBar', [], x0, 'lewkowicz');
             
             % Store results to the main matfile. We set it up to store frequency
             % variation down the first dimension, bin variation down the second,
@@ -424,6 +429,13 @@ classdef ADCPAnalysis < InstrumentAnalysis
             
         end
         
+        
+        function CleanDirection(obj)
+            
+           % HACK - sorts the direction problem on the sentinel V
+           
+           
+        end
     end
     
 end

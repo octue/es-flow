@@ -180,18 +180,17 @@ switch opts.filter
 end
 
 direction = atan2d(vFilt, uFilt);
-
-% Avoid wrapping through the discontinuity caused by the arctan function
-mask = direction<0;
-while any(mask)
-    direction = direction + 360;
-    %direction(mask) = direction(mask) + 360; DONT DO THIS. If we do this, you
-    %just shift the discontinuity to somewhere else (the 0 degree bearing). What
-    %you need is for the reference to be high enough that the entire timeseries
-    %varies smoothly.
-    mask = direction < 0;
+dispnow('WARNING HACKING FLOWDIRECTION FOR MEYGEN SENTINEL - FIXME')
+if nanmean(uFilt(:)) < 0
+    % Avoid wrapping through the discontinuity caused by the arctan function
+    mask = direction>0;
+    direction(mask) = direction(mask) - 360;
+else
+    
+    % Avoid wrapping through the discontinuity caused by the arctan function
+    mask = direction<0;
+    direction(mask) = direction(mask) + 360;
 end
-
 
 
 %% GRAPHICAL OUTPUT
