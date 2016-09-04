@@ -179,7 +179,8 @@ switch opts.filter
 end
 
 direction = atan2d(vFilt, uFilt);
-
+% TODO overcome problems by defining direction as a unit normal vector not an
+% angle.
 
 
 

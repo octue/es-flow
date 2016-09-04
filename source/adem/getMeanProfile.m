@@ -79,7 +79,8 @@ if nargin == 2
         error('incorrect arguments')
     end
 else
-    warning('Using the original API of getMeanProfile - this will be deprecated. Use an input profile structre instead.')
+    % This warning is getting annoying
+%     warning('Using the original API of getMeanProfile - this will be deprecated. Use an input profile structre instead.')
 end
 
 
