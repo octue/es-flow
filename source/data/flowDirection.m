@@ -14,7 +14,8 @@ function [direction] = flowDirection(adcpInput, varargin)
 % bins in the water column) some kind of filtering is required. Methods adopted
 % here include moving averages, Savitzky-Golay filtering and a simple mean.
 %
-% Directions are given in degrees anticlockwise from East.
+% Directions are given in degrees anticlockwise from East, and are always
+% positive, sometimes exceeding 360, to maintain a continuous timeseries (to avoid discontinuities around marine 270.
 %
 % Syntax:
 %
@@ -152,7 +153,7 @@ switch opts.binIndex
     case 0
         % Average down the bin profiles
         u = nanmean(adcpInput.u,1);
-        v = nanmean(adcpInput.u,1);
+        v = nanmean(adcpInput.v,1);
     otherwise
         u = adcpInput(opts.binIndex,:);
         v = adcpInput(opts.binIndex,:);
@@ -179,8 +180,6 @@ switch opts.filter
 end
 
 direction = atan2d(vFilt, uFilt);
-% TODO overcome problems by defining direction as a unit normal vector not an
-% angle.
 
 
 

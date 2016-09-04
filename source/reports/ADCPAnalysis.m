@@ -289,7 +289,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
             % Fit analytical mean profile boundary layer parameters, unweighted.
             % For first guess we use the Song data (see gupta and clark)
             % [Pi, S0, deltac0, U10].
-            x0 = [0.34 26.7 max(data.z(:)) max(uvwBar(1,~isnan(uvwBar(1,:))))];
+            x0 = [0.34 26.7 d max(uvwBar(1,~isnan(uvwBar(1,:))))];
             profile = fitMeanProfile(data.z(:), uvwBar(1,:)', [], x0, 'lewkowicz');
             
             % Store results to the main matfile. We set it up to store frequency
