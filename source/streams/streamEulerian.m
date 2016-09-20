@@ -1,4 +1,4 @@
-function [streams, upstreams, distances, velocities, depths] = streamEulerian(s, seeds, receivers, monitors)
+function [tsVec, streams, upstreams, distances, velocities, depths] = streamEulerian(s, seeds, receivers, monitors, t)
 %STREAMEULERIAN Finds distances between instantaneous streamlines and points.
 % Optionally interpolates velocity and depth fields to find u,v, depth at input monitor points.
 
@@ -21,6 +21,15 @@ nReceivers = size(receivers,1);
 nTimeSteps = size(s.u,3);
 nMonitors  = size(monitors,1);
 
+% Do one or many timesteps
+if nargin > 4
+    tsVec = interp1(s.t,1:nTimeSteps,t,'nearest');
+    nTimeSteps = 1;
+else
+    % Do for all timesteps
+    tsVec = 1:nTimeSteps;
+end
+
 % Preallocate output arrays
 distances = zeros(nSources, nReceivers, nTimeSteps);
 streams = cell(nSources,nTimeSteps);
@@ -29,34 +38,38 @@ velocities = zeros(nMonitors, 2, nTimeSteps);
 depths = zeros(nMonitors, nTimeSteps);
 
 % For each timestep
-for timeStep = 1:nTimeSteps;
+ctr = 0;
+for timeStep = tsVec;
+    ctr = ctr+1;
     
     % Compute the Eulerian streamlines
     streamsTemp   = stream2(s.x, s.y, s.u(:,:,timeStep), s.v(:,:,timeStep), seeds(:,1), seeds(:,2));
     upstreamsTemp = stream2(s.x, s.y, -1*s.u(:,:,timeStep), -1*s.v(:,:,timeStep), seeds(:,1), seeds(:,2));
       
     % Save the streamline data (streamlines are in cells)
-    streams(:,timeStep)   = streamsTemp(:);
-    upstreams(:,timeStep) = upstreamsTemp(:);
+    streams(:,ctr)   = streamsTemp(:);
+    upstreams(:,ctr) = upstreamsTemp(:);
     
-    % Compute minimum distance between streamline sources and receiver locations
-    dist = zeros(nSources, nReceivers);
-    for sCtr = 1:nSources
-        for rCtr = 1:nReceivers
-            dist(sCtr,rCtr) = minDistance(streamsTemp{sCtr}, receivers(rCtr,:));
+    if ~isempty(receivers)
+        % Compute minimum distance between streamline sources and receiver locations
+        dist = zeros(nSources, nReceivers);
+        for sCtr = 1:nSources
+            for rCtr = 1:nReceivers
+                dist(sCtr,rCtr) = minDistance(streamsTemp{sCtr}, receivers(rCtr,:));
+            end
         end
-    end
-    
     % Assign the matrix for storage at this timestep
-    distances(:,:,timeStep) = dist;
+    distances(:,:,ctr) = dist;
     
-    % Lookup velocities at monitor points for the current timestep
-    velocities(:,1,timeStep) = interp2(s.x,s.y,s.u(:,:,timeStep),monitors(:,1),monitors(:,2),'spline');
-    velocities(:,2,timeStep) = interp2(s.x,s.y,s.v(:,:,timeStep),monitors(:,1),monitors(:,2),'spline');
-    
-    % Lookup depths at monitor points for the current timestep
-    depths(:,timeStep) = interp2(s.x,s.y,s.depth(:,:,timeStep), monitors(:,1), monitors(:,2),'spline');
-    
+    end
+    if ~isempty(monitors)
+        % Lookup velocities at monitor points for the current timestep
+        velocities(:,1,ctr) = interp2(s.x,s.y,s.u(:,:,timeStep),monitors(:,1),monitors(:,2),'spline');
+        velocities(:,2,ctr) = interp2(s.x,s.y,s.v(:,:,timeStep),monitors(:,1),monitors(:,2),'spline');
+
+        % Lookup depths at monitor points for the current timestep
+        depths(:,ctr) = interp2(s.x,s.y,s.depth(:,:,timeStep), monitors(:,1), monitors(:,2),'spline');
+    end
 end
 
 end % end Main Function
