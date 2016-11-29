@@ -1,3 +1,6 @@
+# OAS Build directory
+build
+
 .metadata
 bin/
 tmp/
