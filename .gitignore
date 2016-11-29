@@ -1,90 +1,50 @@
-/venv
-amy/static/.idea
-frontend-templates/pricely/.idea
-amy/.idea
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
 
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+# Eclipse Core
+.project
 
-# C extensions
-*.so
+# External tool builders
+.externalToolBuilders/
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+# Locally stored "Eclipse launch configurations"
+*.launch
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# PyDev specific (Python IDE for Eclipse)
+*.pydevproject
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# CDT-specific (C/C++ Development Tooling)
+.cproject
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*,cover
-.hypothesis/
+# JDT-specific (Eclipse Java Development Tools)
+.classpath
 
-# Translations
-*.mo
-*.pot
+# Java annotation processor (APT)
+.factorypath
 
-# Django stuff:
-*.log
-local_settings.py
+# PDT-specific (PHP Development Tools)
+.buildpath
 
-# Flask instance folder
-instance/
+# sbteclipse plugin
+.target
 
-# Scrapy stuff:
-.scrapy
+# Tern plugin
+.tern-project
 
-# Sphinx documentation
-docs/_build/
+# TeXlipse plugin
+.texlipse
 
-# PyBuilder
-target/
+# STS (Spring Tool Suite)
+.springBeans
 
-# IPython Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# dotenv
-.env
-
-# virtualenv
-venv/
-ENV/
-
-# Spyder project settings
-.spyderproject
-
-# Jetbrains ide folders
-.idea/
+# Code Recommenders
+.recommenders/
