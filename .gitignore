@@ -1,8 +1,9 @@
 # OAS Build directory
-build
+build/
+lib/
+bin/
 
 .metadata
-bin/
 tmp/
 *.tmp
 *.bak
