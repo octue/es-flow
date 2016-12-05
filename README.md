@@ -35,6 +35,8 @@ Other OAS-owned repsitories which are used by es-flow:
 ___
 ## Third party dependencies
  
+ We're not yet committed to any of these, but searching for the best libraries:
+ 
 [**Armadillo**](http://arma.sourceforge.net) provides an extensive linear algebra library with a MATLAB-like API.
 
 [**Eigen**](http://eigen.tuxfamily.org/) provides a linear algebra library. It isn't as consistent with MATLAB's API as armadillo, but is used extensively in the ceres examples so could be easier for later stage development.
@@ -42,6 +44,10 @@ ___
 [**ceres-solver**](http://ceres-solver.org/index.html#), a well supported project by Google, is used for nonlinear least squares optimisation.
 
 [**CppNumericalSolvers**](https://github.com/PatWie/CppNumericalSolvers) provides a directly analagous alternative to MATLAB's `fminsearch()`.
+
+[**Linterp**](http://rncarpio.github.io/linterp/) provides a interpolation of gridded and unstructured data in N dimensions.
+
+[**Tino Kluge**](http://kluge.in-chemnitz.de/opensource/spline/) maintains a spline interpolant library with linear extrapolation.
 
 ### Third party library installation (OSX)
 
