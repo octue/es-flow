@@ -1,20 +1,20 @@
 /*
- * SpectrumProfile.cpp
+ * Signature.cpp
  *
  *  Created on: 29 Nov 2016
  *      Author: thc29
  */
 
-#include "SpectrumProfile.h"
+#include "adem_signature.h"
 
 namespace es {
 
-SpectrumProfile::SpectrumProfile() {
+Signature::Signature() {
 	// TODO Auto-generated constructor stub
 
 }
 
-SpectrumProfile::~SpectrumProfile() {
+Signature::~Signature() {
 	// TODO Auto-generated destructor stub
 }
 

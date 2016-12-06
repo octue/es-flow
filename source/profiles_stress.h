@@ -8,7 +8,7 @@
 #ifndef SOURCE_BASIC_PROFILES_STRESSPROFILE_H_
 #define SOURCE_BASIC_PROFILES_STRESSPROFILE_H_
 
-#include "Profile.h"
+#include "profile.h"
 
 namespace es {
 

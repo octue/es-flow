@@ -1,11 +1,11 @@
 /*
- * AdemAnalysis_test.cpp
+ * StressProfile_test.cpp
  *
  *  Created on: 29 Nov 2016
  *      Author: thc29
  */
 
-#include "AdemAnalysis.h"
+//#include "StressProfile.h"
 
 namespace es {
 

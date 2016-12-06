@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 project(es_flow)
+
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -49,5 +50,6 @@ else()
 
 endif()
 
-# Add the souce directory
+# Add the souce and test directories
 add_subdirectory(source)
+add_subdirectory(test)

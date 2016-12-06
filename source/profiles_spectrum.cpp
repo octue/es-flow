@@ -1,20 +1,20 @@
 /*
- * Fit.cpp
+ * profiles_spectrum.cpp
  *
  *  Created on: 29 Nov 2016
  *      Author: thc29
  */
 
-#include "Fit.h"
+#include "profiles_spectrum.h"
 
 namespace es {
 
-Fit::Fit() {
+SpectrumProfile::SpectrumProfile() {
 	// TODO Auto-generated constructor stub
 
 }
 
-Fit::~Fit() {
+SpectrumProfile::~SpectrumProfile() {
 	// TODO Auto-generated destructor stub
 }
 

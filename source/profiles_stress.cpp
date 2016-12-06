@@ -1,20 +1,20 @@
 /*
- * Bins.cpp
+ * StressProfile.cpp
  *
  *  Created on: 29 Nov 2016
  *      Author: thc29
  */
 
-#include "Bins.h"
+#include "profiles_stress.h"
 
 namespace es {
 
-Bins::Bins() {
+StressProfile::StressProfile() {
 	// TODO Auto-generated constructor stub
 
 }
 
-Bins::~Bins() {
+StressProfile::~StressProfile() {
 	// TODO Auto-generated destructor stub
 }
 

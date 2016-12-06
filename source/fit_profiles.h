@@ -5,8 +5,8 @@
  *      Author: thc29
  */
 
-#ifndef SOURCE_FIT_FIT_H_
-#define SOURCE_FIT_FIT_H_
+#ifndef SOURCE_FIT_H_
+#define SOURCE_FIT_H_
 
 namespace es {
 
@@ -18,4 +18,4 @@ public:
 
 } /* namespace es */
 
-#endif /* SOURCE_FIT_FIT_H_ */
+#endif /* SOURCE_FIT_H_ */

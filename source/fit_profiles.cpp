@@ -1,20 +1,20 @@
 /*
- * InstrumentAnalysis.cpp
+ * Fit.cpp
  *
  *  Created on: 29 Nov 2016
  *      Author: thc29
  */
 
-#include "InstrumentAnalysis.h"
+#include "fit_profiles.h"
 
 namespace es {
 
-InstrumentAnalysis::InstrumentAnalysis() {
+Fit::Fit() {
 	// TODO Auto-generated constructor stub
 
 }
 
-InstrumentAnalysis::~InstrumentAnalysis() {
+Fit::~Fit() {
 	// TODO Auto-generated destructor stub
 }
 

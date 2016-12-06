@@ -5,8 +5,8 @@
  *      Author: thc29
  */
 
-#ifndef SOURCE_BASIC_PROFILES_SPECTRUMPROFILE_H_
-#define SOURCE_BASIC_PROFILES_SPECTRUMPROFILE_H_
+#ifndef SOURCE_PROFILES_SPECTRUM_H_
+#define SOURCE_PROFILES_SPECTRUM_H_
 
 #include "Profile.h"
 
@@ -20,4 +20,4 @@ public:
 
 } /* namespace es */
 
-#endif /* SOURCE_BASIC_PROFILES_SPECTRUMPROFILE_H_ */
+#endif /* SOURCE_PROFILES_SPECTRUM_H_ */

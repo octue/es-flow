@@ -1,12 +1,12 @@
 /*
- * AdemAnalysis.h
+ * adem_analysis.h
  *
  *  Created on: 29 Nov 2016
  *      Author: thc29
  */
 
-#ifndef SOURCE_ADEM_ADEMANALYSIS_H_
-#define SOURCE_ADEM_ADEMANALYSIS_H_
+#ifndef SOURCE_ADEM_ANALYSIS_H_
+#define SOURCE_ADEM_ANALYSIS_H_
 
 namespace es {
 
@@ -30,4 +30,4 @@ public:
 
 } /* namespace es */
 
-#endif /* SOURCE_ADEM_ADEMANALYSIS_H_ */
+#endif /* SOURCE_ADEM_ANALYSIS_H_ */

@@ -1,20 +1,20 @@
 /*
- * Signature.cpp
+ * instrument_analysis.cpp
  *
  *  Created on: 29 Nov 2016
  *      Author: thc29
  */
 
-#include "Signature.h"
+#include "instrument_analysis.h"
 
 namespace es {
 
-Signature::Signature() {
+InstrumentAnalysis::InstrumentAnalysis() {
 	// TODO Auto-generated constructor stub
 
 }
 
-Signature::~Signature() {
+InstrumentAnalysis::~InstrumentAnalysis() {
 	// TODO Auto-generated destructor stub
 }
 

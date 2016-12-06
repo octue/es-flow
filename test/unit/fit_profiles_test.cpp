@@ -5,8 +5,8 @@
  *      Author: thc29
  */
 
-#include "Fit.h"
+#include "gtest/gtest.h"
 
-namespace es {
-
-} /* namespace es */
+TEST(basic_check, test_eq) {
+    EXPECT_EQ(1,0);
+}
