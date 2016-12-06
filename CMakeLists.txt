@@ -50,6 +50,9 @@ else()
 
 endif()
 
+# Add include directories so the test routines can pick up the library contents
+include_directories(source)
+
 # Add the souce and test directories
 add_subdirectory(source)
 add_subdirectory(test)

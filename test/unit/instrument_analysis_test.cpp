@@ -5,7 +5,7 @@
  *      Author: thc29
  */
 
-#include "InstrumentAnalysis.h"
+#include "instrument_analysis.h"
 
 namespace es {
 
