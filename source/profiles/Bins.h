@@ -10,10 +10,17 @@
 
 namespace es {
 
-class Bins {
+class Bin {
 public:
-	Bins();
-	virtual ~Bins();
+	double x;
+	double y;
+	double z;
+	double dx;
+	double dy;
+	double dz;
+	
+	Bin();
+	virtual ~Bin();
 };
 
 } /* namespace es */

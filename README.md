@@ -4,7 +4,7 @@ Atmospheric and marine flow characterisation tools.
 
 A C++ port of Ocean Array Systems' original MATLAB-based flow analysis tools. This will allow rapid processing and fewer obstacles to deployment.
 
-___
+
 ## Project structure and Code Style
 
 The folder structure is arranged as:
@@ -21,7 +21,7 @@ The folder structure is arranged as:
 
 Code style, includes and project structure should conform to the [Google C++ style guide](https://google.github.io/styleguide/cppguide.html) 
 
-___
+
 ## First party dependencies
 
 Other OAS-owned repsitories which are used by es-flow:
@@ -32,7 +32,7 @@ Other OAS-owned repsitories which are used by es-flow:
 
 **tg-engine** Provides numerical application of the biot savart equation for a collection of line vortices.
 
-___
+
 ## Third party dependencies
  
  We're not yet committed to any of these, but searching for the best libraries:
@@ -53,7 +53,7 @@ ___
 
 ### Third party library installation (Linux)
 
-___
+
 ## Compilation
 
 A cross-platform compilation file is provided using cmake.
