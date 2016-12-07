@@ -14,6 +14,9 @@ class Fit {
 public:
 	Fit();
 	virtual ~Fit();
+	int Fitness() {
+		return 1;
+	};
 };
 
 } /* namespace es */

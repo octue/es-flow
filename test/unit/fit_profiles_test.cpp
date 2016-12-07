@@ -6,7 +6,13 @@
  */
 
 #include "gtest/gtest.h"
+#include "fit_profiles.h"
+
+using namespace es;
 
 TEST(basic_check, test_eq) {
-    EXPECT_EQ(1,0);
+    Fit my_fit;
+    int my_check_value = 0;
+
+    EXPECT_EQ(my_check_value, my_fit.Fitness());
 }
