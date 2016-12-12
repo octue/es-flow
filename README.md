@@ -35,6 +35,8 @@ Other OAS-owned repsitories which are used by es-flow:
 
 ## Third party dependencies
  
+ [**Intel MKL**]() Provides FFT and otehr performance primitives.
+ 
  We're not yet committed to any of these, but searching for the best libraries:
  
 [**Armadillo**](http://arma.sourceforge.net) provides an extensive linear algebra library with a MATLAB-like API.
@@ -49,7 +51,21 @@ Other OAS-owned repsitories which are used by es-flow:
 
 [**Tino Kluge**](http://kluge.in-chemnitz.de/opensource/spline/) maintains a spline interpolant library with linear extrapolation.
 
+[**matio**](https://github.com/tbeu/matio) read and write tools for MATLAB .mat format files, including recent v7.3 (HDFS) file formats. Much higher level than writing the HDF5 files ourselves.
+
+ 
 ### Third party library installation (OSX)
+
+**Intel MKL**:
+Download the Intel MKL library packages. Click on the icon and follow installation instructions. You'll need the administrator password. The tools are installed in `/opt/intel/`.
+The `include` directory is `/opt/intel/include`.
+
+**matio**:
+Whatever you do, don't try to fork and build from source - the autoconf is complex and not suitable for OSX. Luckily there's a brew formula:
+```bash
+brew install homebrew/science/libmatio --with-hdf5
+```
+Simples!
 
 ### Third party library installation (Linux)
 

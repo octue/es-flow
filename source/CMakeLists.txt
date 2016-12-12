@@ -3,6 +3,16 @@
 find_package(Ceres REQUIRED)
 include_directories(${CERES_INCLUDE_DIRS})
 
+# Add Intel MKL dependency
+set(MKL_MULTI_THREADED "1")
+find_package(MKL REQUIRED)
+include_directories(${MKL_INCLUDE_DIRS})
+
+# Add matio dependency
+find_package(MATIO REQUIRED)
+include_directories(${MATIO_INCLUDE_DIRS})
+
+
 # Add the flow library
 set(SOURCE_FILES
         adem_analysis.cpp
@@ -25,4 +35,4 @@ add_library(flow STATIC ${SOURCE_FILES})
 
 # The hello world function which gives an executable target for the library
 add_executable(es_flow main.cpp)
-target_link_libraries(es_flow ${CERES_LIBRARIES})
+target_link_libraries(es_flow ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${MATIO_LIBRARIES})

@@ -1,5 +1,11 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include "matio.h"
 #include "ceres/ceres.h"
 #include "glog/logging.h"
+#include "mkl_dfti.h"
+
+
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
 using ceres::Problem;
@@ -38,5 +44,33 @@ int main(int argc, char** argv) {
     std::cout << summary.BriefReport() << "\n";
     std::cout << "x : " << initial_x
               << " -> " << x << "\n";
+
+    // run an FFT
+
+    float xf[200][100];
+    DFTI_DESCRIPTOR_HANDLE fft;
+    MKL_LONG len[2] = {200, 100};
+    // initialize x
+    DftiCreateDescriptor ( &fft, DFTI_SINGLE, DFTI_REAL, 2, len );
+    DftiCommitDescriptor ( fft );
+    DftiComputeForward ( fft, xf );
+    DftiFreeDescriptor ( &fft );
+
+    std::cout << "FFT COMPLETE\n";
+
+
+    mat_t *matfp;
+
+    matfp = Mat_CreateVer("matfile73.mat", NULL, MAT_FT_MAT73);
+    if ( NULL == matfp ) {
+        fprintf(stderr,"Error creating MAT file \"matfile73.mat\"!\n");
+        return EXIT_FAILURE;
+    }
+    Mat_Close(matfp);
+
+    std::cout << "MATIO TEST COMPLETE";
+
+
+
     return 0;
 }
