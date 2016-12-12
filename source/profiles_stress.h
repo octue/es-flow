@@ -12,11 +12,11 @@
 
 namespace es {
 
-class StressProfile: public Profile {
-public:
-	StressProfile();
-	virtual ~StressProfile();
-};
+//class StressProfile: public Profile {
+//public:
+//	StressProfile();
+//	virtual ~StressProfile();
+//};
 
 } /* namespace es */
 

@@ -9,13 +9,13 @@
 
 namespace es {
 
-StressProfile::StressProfile() {
-	// TODO Auto-generated constructor stub
-
-}
-
-StressProfile::~StressProfile() {
-	// TODO Auto-generated destructor stub
-}
+//StressProfile::StressProfile() {
+//	// TODO Auto-generated constructor stub
+//
+//}
+//
+//StressProfile::~StressProfile() {
+//	// TODO Auto-generated destructor stub
+//}
 
 } /* namespace es */

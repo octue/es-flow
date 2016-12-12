@@ -9,13 +9,13 @@
 
 namespace es {
 
-SpectrumProfile::SpectrumProfile() {
-	// TODO Auto-generated constructor stub
-
-}
-
-SpectrumProfile::~SpectrumProfile() {
-	// TODO Auto-generated destructor stub
-}
+//SpectrumProfile::SpectrumProfile() {
+//	// TODO Auto-generated constructor stub
+//
+//}
+//
+//SpectrumProfile::~SpectrumProfile() {
+//	// TODO Auto-generated destructor stub
+//}
 
 } /* namespace es */

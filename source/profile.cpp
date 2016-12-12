@@ -28,8 +28,11 @@ namespace es {
         }
     }
 
-    Bins::Bins(int n, double *z, double *dx, double *dy, double *dz): Bins(n, z), dx(dx), dy(dy), dz(dz) {
+    Bins::Bins(int n, double *z, double *d_x, double *d_y, double *d_z): Bins(n, z) {
         // Construct from a spacing and bin size in x, y, z
+        dx = d_x;
+        dy = d_y;
+        dz = d_z;
     }
 
     Bins::Bins(int n, double *z, double half_angle_degrees): Bins(n, z) {
@@ -43,22 +46,33 @@ namespace es {
         }
     }
 
-    Bins::Bins(int n, double *z, double half_angle_degrees, double *dz): Bins(n, z, half_angle_degrees), dz(dz) {
+    Bins::Bins(int n, double *z, double half_angle_degrees, double *d_z): Bins(n, z, half_angle_degrees) {
         // Construct from spacing, with bin height given and bin widths using a half angle
         int i;
         double tha;
         tha = tand(half_angle_degrees);
+        double *dx = NULL;
+        double *dy = NULL;
+        double *dz = NULL;
+        dx = new double[n];
+        dy = new double[n];
+        dz = new double[n];
         for (i = 0; i < n - 1; i++) {
             dx[i] = 2.0 * z[i] * tha;
             dy[i] = dx[i];
+            dz[i] = d_z[i];
         }
     }
 
     Bins::~Bins() {
         //Destructor
+        delete [] dx;
+        delete [] dy;
+        delete [] dz;
     }
 
-    Profile::Profile(Bins b): bins(b) {
+    template <class ProfileType>
+    Profile<ProfileType>::Profile(const Bins &bins) : bins(bins) {
         // Construct from just bins, with default position {0.0, 0.0, 0.0}
 
         // Initialise position to the default
@@ -68,8 +82,9 @@ namespace es {
 
     }
 
-    // Construct from bins and a position
-    Profile::Profile(Bins b, double x, double y, double z): bins(b) {
+    template <class ProfileType>
+    Profile<ProfileType>::Profile(const Bins &bins, double x, double y, double z): bins(bins) {
+        // Construct from bins and a position
 
         // Initialise position to the default 0,0,0
         position[0] = x;
@@ -78,17 +93,18 @@ namespace es {
 
     }
 
-    Profile::~Profile() {
+    template <class ProfileType>
+    Profile<ProfileType>::~Profile() {
         // Destructor
     }
 
     template <class ProfileType>
-    void Profile::setValues(const std::vector<ProfileType> &values) {
+    void Profile<ProfileType>::setValues(const std::vector<ProfileType> &values) {
         Profile::values = values;
     }
 
     template <class ProfileType>
-    const std::vector<ProfileType> &Profile::getValues() const {
+    const std::vector<ProfileType> &Profile<ProfileType>::getValues() const {
         return values;
     }
 

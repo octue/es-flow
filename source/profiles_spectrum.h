@@ -12,11 +12,11 @@
 
 namespace es {
 
-class SpectrumProfile: public Profile {
-public:
-	SpectrumProfile();
-	virtual ~SpectrumProfile();
-};
+//class SpectrumProfile: public Profile {
+//public:
+//	SpectrumProfile();
+//	virtual ~SpectrumProfile();
+//};
 
 } /* namespace es */
 

@@ -44,10 +44,10 @@ namespace es {
     public:
 
         // Construct using bins only (zero values and position)
-        Profile(Bins b);
+        Profile(const Bins &bins);
 
         // Construct using bins and a global origin location
-        Profile(Bins b, double x, double y, double z);
+        Profile(const Bins &bins, double x, double y, double z);
 
         // Destroy
         virtual ~Profile();
