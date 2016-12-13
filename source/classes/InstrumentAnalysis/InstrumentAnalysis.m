@@ -70,7 +70,7 @@ classdef InstrumentAnalysis < handle
                 case 'files'
                     for i = 1:nargin-2
                         assert(ischar(varargin{i}), 'One or more input data file names is not a string.')
-                        assert(exist(varargin{1},'file') ~= 0, 'One or more input data file names does not exist.')
+                        assert(exist(varargin{i},'file') ~= 0, sprintf('One or more input data file names does not exist (%s).', varargin{i}) )
                     end
                 otherwise
                     error('MATLAB:InstrumentAnalysis:UnknownType','Unknown datatype specified.')
