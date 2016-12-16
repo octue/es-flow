@@ -35,7 +35,7 @@ Other OAS-owned repsitories which are used by es-flow:
 
 ## Third party dependencies
  
- [**Intel MKL**]() Provides FFT and otehr performance primitives.
+ [**Intel MKL**]() Provides FFT and other performance primitives.
  
  We're not yet committed to any of these, but searching for the best libraries:
  
@@ -53,6 +53,7 @@ Other OAS-owned repsitories which are used by es-flow:
 
 [**matio**](https://github.com/tbeu/matio) read and write tools for MATLAB .mat format files, including recent v7.3 (HDFS) file formats. Much higher level than writing the HDF5 files ourselves.
 
+[**cxxopts**](https://github.com/jarro2783/cxxopts) argument parser for C++11 under the MIT license (NB most "standard" parsers are under GNU!!!)
  
 ### Third party library installation (OSX)
 

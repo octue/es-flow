@@ -1,4 +1,8 @@
 
+# Add argument parsing tool
+find_package(CXXOPTS REQUIRED)
+include_directories(${CXXOPTS_INCLUDE_DIRS})
+
 # Add ceres-solver dependency
 find_package(Ceres REQUIRED)
 include_directories(${CERES_INCLUDE_DIRS})
@@ -11,7 +15,6 @@ include_directories(${MKL_INCLUDE_DIRS})
 # Add matio dependency
 find_package(MATIO REQUIRED)
 include_directories(${MATIO_INCLUDE_DIRS})
-
 
 # Add the flow library
 set(SOURCE_FILES
