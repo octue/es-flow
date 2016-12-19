@@ -35,15 +35,23 @@ Other OAS-owned repsitories which are used by es-flow:
 
 ## Third party dependencies
  
- [**Intel MKL**]() Provides FFT and other performance primitives.
+ We are currently using:
  
- We're not yet committed to any of these, but searching for the best libraries:
+ [**Intel MKL**]() to provide FFT and other performance primitives.
+ 
+[**ceres-solver**](http://ceres-solver.org/index.html#), a well supported project by Google, is used for nonlinear least squares optimisation.
+
+[**Eigen**](http://eigen.tuxfamily.org/) provides a linear algebra library. It isn't as consistent with MATLAB's API as armadillo, but is used extensively in ceres-solver so might be sensible to use in other areas of development too.
+
+[**matio**](https://github.com/tbeu/matio) read and write tools for MATLAB .mat format files, including recent v7.3 (HDFS) file formats. Much higher level than writing the HDF5 files ourselves.
+
+[**cxxopts**](https://github.com/jarro2783/cxxopts) argument parser for C++11 under the MIT license (NB most "standard" parsers are under GNU!!!).
+ 
+[**glog**](https://github.com/google/glog) google's asynchronous logging library, used for logging to file.
+ 
+ We're not yet committed to any of the following, but searching for the best libraries:
  
 [**Armadillo**](http://arma.sourceforge.net) provides an extensive linear algebra library with a MATLAB-like API.
-
-[**Eigen**](http://eigen.tuxfamily.org/) provides a linear algebra library. It isn't as consistent with MATLAB's API as armadillo, but is used extensively in the ceres examples so could be easier for later stage development.
-
-[**ceres-solver**](http://ceres-solver.org/index.html#), a well supported project by Google, is used for nonlinear least squares optimisation.
 
 [**CppNumericalSolvers**](https://github.com/PatWie/CppNumericalSolvers) provides a directly analagous alternative to MATLAB's `fminsearch()`.
 
@@ -51,22 +59,28 @@ Other OAS-owned repsitories which are used by es-flow:
 
 [**Tino Kluge**](http://kluge.in-chemnitz.de/opensource/spline/) maintains a spline interpolant library with linear extrapolation.
 
-[**matio**](https://github.com/tbeu/matio) read and write tools for MATLAB .mat format files, including recent v7.3 (HDFS) file formats. Much higher level than writing the HDF5 files ourselves.
-
-[**cxxopts**](https://github.com/jarro2783/cxxopts) argument parser for C++11 under the MIT license (NB most "standard" parsers are under GNU!!!)
- 
 ### Third party library installation (OSX)
 
-**Intel MKL**:
+**Intel MKL:**
 Download the Intel MKL library packages. Click on the icon and follow installation instructions. You'll need the administrator password. The tools are installed in `/opt/intel/`.
 The `include` directory is `/opt/intel/include`.
 
-**matio**:
+**matio:**
 Whatever you do, don't try to fork and build from source - the autoconf is complex and not suitable for OSX. Luckily there's a brew formula:
 ```bash
 brew install homebrew/science/libmatio --with-hdf5
 ```
-Simples!
+**ceres-solver including eigen and glog dependencies:**
+```bash
+brew install homebrew/science/ceres-solver
+```
+**cxxopts:**
+Not necessary to install if simply deploying executables, as it's a header only library. To build es-flow, cxxopts must be installed alongside es-flow. From the es-flow root directory:
+```bash
+cd ..
+git clone https://github.com/jarro2783/cxxopts
+```
+Then using cmake to build es-flow will find the headers correctly.
 
 ### Third party library installation (Linux)
 
