@@ -35,9 +35,9 @@ Other OAS-owned repsitories which are used by es-flow:
 
 ## Third party dependencies
  
- We are currently using:
+We are currently using:
  
- [**Intel MKL**]() to provide FFT and other performance primitives.
+[**Intel MKL**]() to provide FFT and other performance primitives.
  
 [**ceres-solver**](http://ceres-solver.org/index.html#), a well supported project by Google, is used for nonlinear least squares optimisation.
 
@@ -49,7 +49,7 @@ Other OAS-owned repsitories which are used by es-flow:
  
 [**glog**](https://github.com/google/glog) google's asynchronous logging library, used for logging to file.
  
- We're not yet committed to any of the following, but searching for the best libraries:
+We're not yet committed to any of the following, but searching for the best libraries:
  
 [**Armadillo**](http://arma.sourceforge.net) provides an extensive linear algebra library with a MATLAB-like API.
 
