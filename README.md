@@ -59,6 +59,8 @@ We're not yet committed to any of the following, but searching for the best libr
 
 [**Tino Kluge**](http://kluge.in-chemnitz.de/opensource/spline/) maintains a spline interpolant library with linear extrapolation.
 
+[**eigen-matio**](https://github.com/tesch1/eigen-matio) could be useful for reading and writing eigen matrix types to mat files.
+
 ### Third party library installation (OSX)
 
 **Intel MKL:**
