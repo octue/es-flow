@@ -8,7 +8,7 @@ set(UNIT_TEST_SOURCE_FILES
         unit/profiles_velocity_test.cpp
         unit/profiles_spectrum_test.cpp
         unit/profiles_stress_test.cpp
-        unit/window_test.cpp)
+        unit/window_test.cpp ../source/readers.cpp ../source/readers.h)
 
 # Include google test
 enable_testing()
@@ -16,7 +16,7 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 # The unit test executable
-add_executable(es_flow_test ${UNIT_TEST_SOURCE_FILES})
+add_executable(es_flow_test ${UNIT_TEST_SOURCE_FILES} ../source/readers.cpp ../source/readers.h)
 
 # Link the google test libraries
 target_link_libraries(es_flow_test ${GTEST_BOTH_LIBRARIES})

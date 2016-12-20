@@ -33,9 +33,9 @@ set(SOURCE_FILES
         profiles_stress.cpp
         profiles_stress.h
         window.cpp window.h
-        profile.cpp profile.h)
-add_library(flow STATIC ${SOURCE_FILES})
+        profile.cpp profile.h readers.cpp readers.h)
+add_library(flow STATIC ${SOURCE_FILES} readers.cpp readers.h)
 
 # The hello world function which gives an executable target for the library
-add_executable(es_flow main.cpp)
+add_executable(es_flow main.cpp readers.cpp readers.h)
 target_link_libraries(es_flow ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${MATIO_LIBRARIES})
