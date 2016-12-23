@@ -4,6 +4,10 @@ lib/
 bin/
 cmake-build-debug
 
+####################### Google style lint
+
+cpplint.py
+
 ####################### Jetbrains CLion IDE
 
 # User-specific stuff:
