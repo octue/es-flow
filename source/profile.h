@@ -97,6 +97,9 @@ namespace es {
 
     template <class ProfileType>
     void Profile<ProfileType>::setValues(const std::vector<ProfileType> &values) {
+        if (values.size() != bins.n_bins) {
+            throw std::out_of_range("size of vector 'values' does not equal the number of bins for this profile");
+        }
         Profile::values = values;
     }
 

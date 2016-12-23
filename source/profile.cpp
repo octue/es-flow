@@ -15,7 +15,7 @@ double tand(double angle) {
 namespace es {
 
     Bins::Bins(std::vector<double> z): z_ctrs(z) {
-        // Construct from a spacing with default bin size from central differencing the spacing
+        // Construct from a spacing with default bin size from central difference of the spacing
         int i;
         n_bins = z_ctrs.size();
         dx = std::vector<double>(n_bins);
