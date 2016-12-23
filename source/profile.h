@@ -1,5 +1,26 @@
 /*
- * Funciton definitions are included here, rather than the cpp file, because of the templating constraint. See http://stackoverflow.com/questions/495021/why-can-templates-only-be-implemented-in-the-header-file
+ * profile.h Profile handling for (e.g.) Velocity, Reynolds Stress and Spectral Tensor Profile management
+ *
+ * Function definitions are included here, rather than the cpp file, because of the templating constraint. See http://stackoverflow.com/questions/495021/why-can-templates-only-be-implemented-in-the-header-file
+ *
+ * References:
+ *
+ *   [1]
+ *
+ * Future Improvements:
+ *
+ *   [1]
+ *
+ * Author:                   T. Clark
+ * Work address:             Ocean Array Systems Ltd
+ *                           Hauser Forum
+ *                           3 Charles Babbage Road
+ *                           Cambridge
+ *                           CB3 0GT
+ * Email:                    tom.clark@oceanarraysystems.com
+ * Website:                  www.oceanarraysystems.com
+ *
+ * Copyright (c) 2016 Ocean Array Systems. All Rights Reserved.
  *
  */
 #ifndef SOURCE_PROFILE_H
