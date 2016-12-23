@@ -1,15 +1,32 @@
 /*
- * To parameterise tests, check out minute 9 onward in https://www.youtube.com/watch?v=16FI1-d2P4E&t=20s
+ * FIT_PROFILES_TEST.CPP Test fixtures for bins, profiles and profile fitting methods.
+ *
+ * References:
+ *
+ *   [1]
+ *
+ * Future Improvements:
+ *
+ *   [1] Possibly useful to parameterise tests. To see how, check out minute 9 onward in
+ *   https://www.youtube.com/watch?v=16FI1-d2P4E&t=20s
+ *
+ * Author:                   T. Clark
+ * Work address:             Ocean Array Systems Ltd
+ *                           Hauser Forum
+ *                           3 Charles Babbage Road
+ *                           Cambridge
+ *                           CB3 0GT
+ * Email:                    tom.clark@oceanarraysystems.com
+ * Website:                  www.oceanarraysystems.com
+ *
+ * Copyright (c) 2016-17 Ocean Array Systems, All Rights Reserved.
+ *
  */
 
 #include "gtest/gtest.h"
 #include "profile.h"
-//#include "fit_profiles.h"
-
 
 using namespace es;
-
-
 
 // Test fixture for the Bin class
 class BinTest : public ::testing::Test {
@@ -30,6 +47,7 @@ protected:
 
 };
 
+// Unit tests for the Bin class
 TEST_F(BinTest, test_construct_bins){
 
     // Construct 10 bins spaced equally 1 m apart from 1m above reference using the base constructor
@@ -60,7 +78,7 @@ protected:
 
 };
 
-
+// Unit tests for the profile class
 TEST_F(ProfileTest, test_construct_double_profile){
 
     // Construct profiles with 100 bins spaced equally 1 m apart from 1m above reference using the base constructor
@@ -82,18 +100,18 @@ TEST_F(ProfileTest, test_construct_double_profile){
     vals.push_back(0.0);
     try {
         p1.setValues(vals);
-        FAIL() << "Expected std::range_error";
+        FAIL() << "Expected std::out_of_range exception";
     }
-    catch(std::range_error const & err) {
-        EXPECT_EQ(err.what(),std::string("Length of the values vector does not equal the number of bins for this profile."));
+    catch(std::out_of_range const & err) {
+        EXPECT_EQ(err.what(), std::string("size of vector 'values' does not equal the number of bins for this profile"));
     }
     catch(...) {
-        FAIL() << "Expected std::range_error";
+        FAIL() << "Expected std::out_of_range - exception of another type found";
     }
 
 }
 
-// Test fixture for profile fitting
+// Test fixture for the fitting process
 class FitTest : public ::testing::Test {
 
 protected:
@@ -126,13 +144,3 @@ protected:
     // Objects declared here can be used by all tests
     int a= 11;
 };
-
-
-//// Tests that the Fit::Bar() method does Abc.
-//TEST_F(FitTest, test_eq) {
-//    Fit my_fit;
-//    int my_check_value = a;
-//    std::cout << my_check_value << std::endl;
-//
-//    EXPECT_EQ(my_check_value, my_fit.Fitness());
-//}
