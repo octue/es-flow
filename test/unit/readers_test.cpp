@@ -27,6 +27,7 @@
 #include <errno.h>
 #include "gtest/gtest.h"
 #include "readers.h"
+#include "data_types.h"
 
 using namespace es;
 
@@ -59,19 +60,22 @@ protected:
 TEST_F(ReaderTest, test_lidar_basic){
 
     // Get lidar_basic test file
+    std::string file = data_path + std::string("/es_lidar_basic.mat");
 
     // Construct a lidar data reader and apply windowing settings (default 10 minute windows, 50% overlap)
     double window_duration = 10*60;
     double overlap = 0.5;
-    std::string file = data_path + std::string("/es_lidar_basic.mat");
-    LidarReader lr(file);
-//    lr.checkTimeseries(STRICTLY_MONOTONIC);
-//    lr.setWindowDuration(window_duration);
+
+    //
+    Reader<BasicLidar> lr(file);
+    lr.checkTimeseries(STRICTLY_MONOTONIC);
+    lr.setWindowDuration(window_duration);
 //    lr.setWindowOverlap(window_overlap);
-//
-//    // Ensure that the printing operator does not error
-//    std::cout << lr << std::endl;
-//
+
+    // Ensure that the printing operator does not error
+    std::cout << lr << std::endl;
+
+
 }
 
 class AnalysisTest : public ::testing::Test {
