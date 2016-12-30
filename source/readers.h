@@ -32,7 +32,7 @@ namespace es {
         STRICTLY_MONOTONIC  = 3,    // AS INCREASING + checks that timestamp uniformly increases, data skipping causes errors. Extracts sampling frequency.
     };
 
-    template <typename DataType>
+    template <class DataType>
     class Reader {
     public:
 
@@ -40,13 +40,13 @@ namespace es {
 
         ~Reader();
 
-        void checkFileType();
-
         std::string logString() const;
 
-        void read(<DataType> *data);
+        void read();
 
-        void readWindow(const int index, <DataType> *data);
+        void readWindow(const int index);
+
+        void checkFileType();
 
         void checkTimeseries(enum timeseries_check_level);
 
@@ -126,7 +126,7 @@ namespace es {
     }
 
     template <class DataType>
-    int Reader::getWindowSize() const {
+    int Reader<DataType>::getWindowSize() const {
         return windowSize;
     }
 
@@ -141,12 +141,14 @@ namespace es {
     }
 
     template <class DataType>
-    Reader<DataType>::read(<DataType> *data) {
-
+    void Reader<DataType>::read() {
+        // Simply invoke the read method of the DataType class.
+//        <DataType>.read(file_type, matfp);
     }
 
     template <class DataType>
-    Reader<DataType>::readWindow(const int index, <DataType> *data) {
+    void Reader<DataType>::readWindow(const int index) {
+//        <DataType>.read(file_type, matfp);
 
     }
 
