@@ -69,11 +69,11 @@ class ProfileTest : public ::testing::Test {
 protected:
 
     virtual void SetUp() {
-        std::cout << std::endl << "Setting up BinTest()..." << std::endl;
+        std::cout << std::endl << "Setting up ProfileTest()..." << std::endl;
     }
 
     virtual void TearDown() {
-        std::cout << "Tearing down BinTest()..." << std::endl;
+        std::cout << "Tearing down ProfileTest()..." << std::endl;
     }
 
 };
@@ -144,3 +144,8 @@ protected:
     // Objects declared here can be used by all tests
     int a= 11;
 };
+
+// Unit tests for fitting routines
+TEST_F(FitTest, test_fit){
+
+}

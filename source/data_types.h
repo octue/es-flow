@@ -28,60 +28,20 @@
 #include <string>
 #include "matio.h"
 #include <eigen3/Eigen/Core>
+#include "variable_readers.h"
 
 using Eigen::Array;
-using Eigen::Matrix;
 using Eigen::Vector3d;
+using Eigen::VectorXd;
+using Eigen::Dynamic;
 
 namespace es {
 
-    void checkVariableType(matvar_t *mat_var, int matvar_type) {
-
-        // Throw error if the requested data type does not match the saved data type
-        if (mat_var->class_type != matvar_type) {
-            std::string msg = "Error reading mat file (" + std::string(mat_var->name) + " incorrect variable type)";
-            throw std::invalid_argument(msg);
-        }
-
-    }
-
-    void readVariable(mat_t *matfp, const std::string var_name, auto var, bool print_var) {
-
-        // Get the variable's structure pointer and check validity
-        matvar_t *mat_var = Mat_VarRead(matfp, var_name);
-        if (mat_var == NULL) {
-            std::string msg = "Error reading mat file (most likely incorrect file type: " + var_name + " variable is missing)";
-            throw std::invalid_argument(msg);
-        }
-
-
-        // Get the mat_var_type required for the input
-        std::cout << sprintf("%s\n",mat_var->name) << std::endl;
-        std::cout << "Reading file type: " << typeid(var).name() << std::endl;
-        switch (typeid(var).name()) {
-            case "string" :
-                    checkVariableType(mat_var, MAT_VAR_TYPE);
-                    var = std::string((const char*)var->data, var->dims[1]);
-                break;
-            case "Array" :
-                break;
-        }
-
-        // Crap out if rank > 2
-
-
-        // Optionally print the variable
-        if (print_var) Mat_VarPrint(var, true);
-
-        Mat_VarFree(matvar);
-        matvar = NULL;
-    }
-    }
-
     class BasicLidar {
+    public:
         const std::string type = "lidar_basic";
-        Array<double, Dynamic, 1> t;
-        Vector<double, Dynamic, 1> z;
+        VectorXd t;
+        VectorXd z;
         Array<double, Dynamic, Dynamic> u;
         Array<double, Dynamic, Dynamic> v;
         Array<double, Dynamic, Dynamic> w;
@@ -99,14 +59,24 @@ namespace es {
 
         void read(mat_t *matfp, bool print_var = true) {
 
-            readVariable(matfp, 't', *t, print_var);
-            readVariable(matfp, 'z', *z, print_var);
-            readVariable(matfp, 'u', *u, print_var);
-            readVariable(matfp, 'v', *v, print_var);
-            readVariable(matfp, 'w', *w, print_var);
-            readVariable(matfp, 'position', *postion, print_var);
-            readVariable(matfp, 'half_angle', *half_angle, print_var);
-            readVariable(matfp, 'units', *units, print_var);
+            // Straightforward reads
+            t = readVectorXd(matfp, "t", print_var);
+            z = readVectorXd(matfp, "z", print_var);
+            u = readArrayXXd(matfp, "u", print_var);
+            v = readArrayXXd(matfp, "v", print_var);
+            w = readArrayXXd(matfp, "w", print_var);
+            half_angle = readDouble(matfp, "half_angle", print_var);
+
+            // Handle initialisation of position as a two element vector, zero padded (elevation = 0) and as a three
+            // element vector.
+            VectorXd pos = readVectorXd(matfp, "position", print_var);
+            if (pos.size() == 2) {
+                position = Vector3d(pos(0), pos(1), 0.0);
+            }else {
+                position = Vector3d(pos(0), pos(1), pos(2));
+            }
+
+            // TODO read in and tests on units structure
 
         }
 
