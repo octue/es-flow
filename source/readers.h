@@ -56,7 +56,7 @@ namespace es {
 
         std::string logString() const;
 
-        DataType read(bool print=false);
+        DataType *read(bool print=false);
 
         void checkFileType(int level);
 
@@ -79,8 +79,7 @@ namespace es {
         std::string file_type = std::string("none");
         int windowSize;
         double windowDuration;
-        double dt;
-        std::vector<double> t;
+        DataType data;
 
     };
 
@@ -155,15 +154,14 @@ namespace es {
     }
 
     template <class DataType>
-    DataType Reader<DataType>::read(bool print) {
+    DataType *Reader<DataType>::read(bool print) {
         // Simply invoke the read method of the DataType class.
-        DataType data;
         if (std::strcmp(data.type.c_str(), file_type.c_str())) {
             std::string msg = "Mat file type '" + file_type + "' incompatible with the specified data type '" + data.type + "'";
             throw std::invalid_argument(msg);
         }
         data.read(matfp, print);
-        return data;
+        return &data;
     }
 
     template <class DataType>
