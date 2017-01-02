@@ -14,98 +14,63 @@ double tand(double angle) {
 
 namespace es {
 
-    Bins::Bins(int n, double *z): n_bins(n), z_ctrs(z) {
-        // Construct from a spacing with default bin size from central differencing the spacing
+    Bins::Bins(std::vector<double> z): z_ctrs(z) {
+        // Construct from a spacing with default bin size from central difference of the spacing
         int i;
+        n_bins = z_ctrs.size();
+        dx = std::vector<double>(n_bins);
+        dy = std::vector<double>(n_bins);
+        dz = std::vector<double>(n_bins);
         dz[0] = fabs(z[1]-z[0]);
-        for (i = 1; i < n-1; i++) {
+        for (i = 1; i < n_bins-1; i++) {
             dz[i] = 0.5*fabs(z[i+1]-z[i-1]);
         }
-        dz[n-1] = fabs(z[n-1]-z[n-2]);
-        for (i = 0; i < n-1; i++) {
+        dz[n_bins-1] = fabs(z[n_bins-1]-z[n_bins-2]);
+        for (i = 0; i < n_bins-1; i++) {
             dx[i] = dz[i];
             dy[i] = dz[i];
         }
     }
 
-    Bins::Bins(int n, double *z, double *d_x, double *d_y, double *d_z): Bins(n, z) {
+    Bins::Bins(std::vector<double> z, std::vector<double> d_x, std::vector<double> d_y, std::vector<double> d_z): Bins(z) {
         // Construct from a spacing and bin size in x, y, z
         dx = d_x;
         dy = d_y;
         dz = d_z;
+        if ((dx.size() != n_bins) ||  (dy.size() != n_bins) || (dz.size() != n_bins)){
+            throw std::range_error("Length of dx, dy or dz does not match the number of bins");
+        }
     }
 
-    Bins::Bins(int n, double *z, double half_angle_degrees): Bins(n, z) {
+    Bins::Bins(std::vector<double> z, double half_angle_degrees): Bins(z) {
         // Construct from spacing, with bin height from central differencing of the spacing and bin widths using a half angle
         int i;
         double tha;
         tha = tand(half_angle_degrees);
-        for (i = 0; i < n - 1; i++) {
+        dx = std::vector<double>(z_ctrs.size());
+        dy = std::vector<double>(z_ctrs.size());
+        for (i = 0; i < n_bins - 1; i++) {
             dx[i] = 2.0 * z[i] * tha;
             dy[i] = dx[i];
         }
     }
 
-    Bins::Bins(int n, double *z, double half_angle_degrees, double *d_z): Bins(n, z, half_angle_degrees) {
+    Bins::Bins(std::vector<double> z, double half_angle_degrees, std::vector<double> d_z): Bins(z, half_angle_degrees) {
         // Construct from spacing, with bin height given and bin widths using a half angle
         int i;
-        double tha;
-        tha = tand(half_angle_degrees);
-        double *dx = NULL;
-        double *dy = NULL;
-        double *dz = NULL;
-        dx = new double[n];
-        dy = new double[n];
-        dz = new double[n];
-        for (i = 0; i < n - 1; i++) {
-            dx[i] = 2.0 * z[i] * tha;
-            dy[i] = dx[i];
-            dz[i] = d_z[i];
+        dz = d_z;
+        if (dz.size() != n_bins){
+            throw std::range_error("Length of dx, dy or dz does not match the number of bins");
         }
     }
 
     Bins::~Bins() {
         //Destructor
-        delete [] dx;
-        delete [] dy;
-        delete [] dz;
     }
 
-    template <class ProfileType>
-    Profile<ProfileType>::Profile(const Bins &bins) : bins(bins) {
-        // Construct from just bins, with default position {0.0, 0.0, 0.0}
-
-        // Initialise position to the default
-        position[0] = 0.0;
-        position[1] = 0.0;
-        position[2] = 0.0;
-
-    }
-
-    template <class ProfileType>
-    Profile<ProfileType>::Profile(const Bins &bins, double x, double y, double z): bins(bins) {
-        // Construct from bins and a position
-
-        // Initialise position to the default 0,0,0
-        position[0] = x;
-        position[1] = y;
-        position[2] = z;
-
-    }
-
-    template <class ProfileType>
-    Profile<ProfileType>::~Profile() {
-        // Destructor
-    }
-
-    template <class ProfileType>
-    void Profile<ProfileType>::setValues(const std::vector<ProfileType> &values) {
-        Profile::values = values;
-    }
-
-    template <class ProfileType>
-    const std::vector<ProfileType> &Profile<ProfileType>::getValues() const {
-        return values;
+    ::std::ostream& operator<<(::std::ostream& os, const Bins& bins) {
+        // Represent in logs or ostream
+        return os << "debug statement for bins class";
     }
 
 } /* namespace es */

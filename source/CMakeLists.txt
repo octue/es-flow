@@ -22,6 +22,7 @@ set(SOURCE_FILES
         adem_analysis.h
         adem_signature.cpp
         adem_signature.h
+        data_types.h
         fit_profiles.cpp
         fit_profiles.h
         instrument_analysis.cpp
@@ -32,8 +33,10 @@ set(SOURCE_FILES
         profiles_spectrum.h
         profiles_stress.cpp
         profiles_stress.h
-        window.cpp window.h
-        profile.cpp profile.h)
+        profile.cpp profile.h
+        readers.cpp readers.h
+        variable_readers.h
+        window.cpp window.h)
 add_library(flow STATIC ${SOURCE_FILES})
 
 # The hello world function which gives an executable target for the library
