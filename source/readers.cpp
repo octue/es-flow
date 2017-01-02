@@ -21,23 +21,6 @@
  * Copyright (c) 2016-17 Ocean Array Systems, All Rights Reserved.
  */
 
-#include "readers.h"
-#include "matio.h"
-#include <stdexcept>
-
 namespace es {
-
-//    LidarReader::LidarReader(const std::string &file) : Reader(file) {
-//
-//        // Check the file type
-//        checkFileType();
-//        if (file_type != "lidar_basic") {
-//            std::string msg = "Data file of incorrect type: Expected 'lidar_basic', got: ";
-//            throw std::invalid_argument(msg + file_type);
-//        }
-//
-//    }
-
-
 
 } /* namespace es */

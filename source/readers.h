@@ -21,15 +21,29 @@
 #include <cstdlib>
 #include <string>
 #include <stdexcept>
+#include <eigen3/Eigen/Core>
+#include "data_types.h"
+
+using Eigen::Array;
+using Eigen::ArrayXXd;
+using Eigen::Vector3d;
+using Eigen::VectorXd;
+using Eigen::Dynamic;
 
 namespace es {
 
-    // Level of data validation applied to timeseries. Exception is thrown if timeseries checks fail
+    // Level of data validation applied to timeseries. Exception is thrown if checks fail
     enum timeseries_check_level {
         PRESENT             = 0,    // Checks that data is present and of correct type. Extracts start and end timestamps.
         INCREASING          = 1,    // As PRESENT + checks that the timestamp always increases.
         MONOTONIC           = 2,    // As INCREASING + checks that timestamp uniformly increases, allows data skip (e.g. instrument turned off then back on later). Extracts sampling frequency.
         STRICTLY_MONOTONIC  = 3,    // AS INCREASING + checks that timestamp uniformly increases, data skipping causes errors. Extracts sampling frequency.
+    };
+
+    // Level of data validation applied to file type. Exception is thrown if checks fail
+    enum file_type_check_level {
+        NONE                = 0,    // No checks
+        OAS_STANDARD        = 1,    // Checks that the file contains the 'type' string variable
     };
 
     template <class DataType>
@@ -42,13 +56,11 @@ namespace es {
 
         std::string logString() const;
 
-        void read();
+        DataType read(bool print=false);
 
-        void readWindow(const int index);
+        void checkFileType(int level);
 
-        void checkFileType();
-
-        void checkTimeseries(enum timeseries_check_level);
+        void checkTimeseries(int level);
 
         double getWindowDuration() const;
 
@@ -58,11 +70,13 @@ namespace es {
 
         void setWindowSize(int windowSize);
 
+        void readWindow(const int index);
+
     protected:
 
         std::string file;
         mat_t *matfp;
-        std::string file_type;
+        std::string file_type = std::string("none");
         int windowSize;
         double windowDuration;
         double dt;
@@ -91,25 +105,25 @@ namespace es {
     }
 
     template <class DataType>
-    void Reader<DataType>::checkFileType(){
+    void Reader<DataType>::checkFileType(int level){
 
         // Get the file type from the reserved 'type' variable in the mat file
         matvar_t *type_var = Mat_VarRead(matfp, "type");
         if (type_var == NULL) {
-            throw std::invalid_argument(
-                "Error reading mat file (most likely not an OAS standard file format - 'type' variable is missing)");
+            if (level == OAS_STANDARD) {
+                throw std::invalid_argument("Error reading mat file (most likely not an OAS standard file format - 'type' variable is missing)");
+            }
         } else {
             if (type_var->class_type != MAT_C_CHAR) {
                 throw std::invalid_argument("Error reading mat file ('type' variable must be a character array)");
             }
-            // Mat_VarPrint(type_var, true);
             file_type = std::string((const char*)type_var->data, type_var->dims[1]);
         }
 
     }
 
     template <class DataType>
-    void Reader<DataType>::checkTimeseries(enum timeseries_check_level) {
+    void Reader<DataType>::checkTimeseries(int level) {
 
         // Check the integrity of the timeseries, automatically determine dt and frequency where possible
 
@@ -137,13 +151,19 @@ namespace es {
 
     template <class DataType>
     std::string Reader<DataType>::logString() const {
-        return std::string("Object Reader for type ") + file_type + std::string(", attached to file file ") + file;
+        return std::string("Object Reader for type ") + file_type + std::string(", attached to file ") + file;
     }
 
     template <class DataType>
-    void Reader<DataType>::read() {
+    DataType Reader<DataType>::read(bool print) {
         // Simply invoke the read method of the DataType class.
-//        <DataType>.read(file_type, matfp);
+        DataType data;
+        if (std::strcmp(data.type.c_str(), file_type.c_str())) {
+            std::string msg = "Mat file type '" + file_type + "' incompatible with the specified data type '" + data.type + "'";
+            throw std::invalid_argument(msg);
+        }
+        data.read(matfp, print);
+        return data;
     }
 
     template <class DataType>

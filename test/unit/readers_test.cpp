@@ -62,15 +62,22 @@ TEST_F(ReaderTest, test_lidar_basic){
     // Get lidar_basic test file
     std::string file = data_path + std::string("/es_lidar_basic.mat");
 
-    // Construct a lidar data reader and apply windowing settings (default 10 minute windows, 50% overlap)
+    // Construct a lidar data reader
+    Reader<BasicLidar> lr(file);
+
+    // Check the file is of a standard type
+    lr.checkFileType(OAS_STANDARD);
+
+    // Read the test file into a BasicLidar data type object
+    auto data = lr.read();
+
+    // Apply windowing settings for timeseries processing (default 10 minute windows, 50% overlap)
+    lr.checkTimeseries(STRICTLY_MONOTONIC);
     double window_duration = 10*60;
     double overlap = 0.5;
-
-    //
-    Reader<BasicLidar> lr(file);
-    lr.checkTimeseries(STRICTLY_MONOTONIC);
     lr.setWindowDuration(window_duration);
 //    lr.setWindowOverlap(window_overlap);
+
 
     // Ensure that the printing operator does not error
     std::cout << lr << std::endl;
