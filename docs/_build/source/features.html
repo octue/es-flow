@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Why? &#8212; es_flow 0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index2.html">es_flow 0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="why">
+<h1>Why?<a class="headerlink" href="#why" title="Permalink to this headline">¶</a></h1>
+<ul class="simple" id="chapter-features">
+<li><strong>Code Quality</strong> - Ceres Solver has been used in production at
+Google for more than four years now. It is clean, extensively tested
+and well documented code that is actively developed and supported.</li>
+<li><strong>Modeling API</strong> - It is rarely the case that one starts with the
+exact and complete formulation of the problem that one is trying to
+solve. Ceres&#8217;s modeling API has been designed so that the user can
+easily build and modify the objective function, one term at a
+time. And to do so without worrying about how the solver is going to
+deal with the resulting changes in the sparsity/structure of the
+underlying problem.<ul>
+<li><strong>Derivatives</strong> Supplying derivatives is perhaps the most tedious
+and error prone part of using an optimization library.  Ceres
+ships with <a class="reference external" href="http://en.wikipedia.org/wiki/Automatic_differentiation">automatic</a> and <a class="reference external" href="http://en.wikipedia.org/wiki/Numerical_differentiation">numeric</a> differentiation. So you
+never have to compute derivatives by hand (unless you really want
+to). Not only this, Ceres allows you to mix automatic, numeric and
+analytical derivatives in any combination that you want.</li>
+<li><strong>Robust Loss Functions</strong> Most non-linear least squares problems
+involve data. If there is data, there will be outliers. Ceres
+allows the user to <em>shape</em> their residuals using a
+<code class="xref py py-class docutils literal"><span class="pre">LossFunction</span></code> to reduce the influence of outliers.</li>
+<li><strong>Local Parameterization</strong> In many cases, some parameters lie on a
+manifold other than Euclidean space, e.g., rotation matrices. In
+such cases, the user can specify the geometry of the local tangent
+space by specifying a <code class="xref py py-class docutils literal"><span class="pre">LocalParameterization</span></code> object.</li>
+</ul>
+</li>
+<li><strong>Solver Choice</strong> Depending on the size, sparsity structure, time &amp;
+memory budgets, and solution quality requiremnts, different
+optimization algorithms will suit different needs. To this end,
+Ceres Solver comes with a variety of optimization algorithms:<ul>
+<li><strong>Trust Region Solvers</strong> - Ceres supports Levenberg-Marquardt,
+Powell&#8217;s Dogleg, and Subspace dogleg methods. The key
+computational cost in all of these methods is the solution of a
+linear system. To this end Ceres ships with a variety of linear
+solvers - dense QR and dense Cholesky factorization (using
+<a class="reference external" href="http://eigen.tuxfamily.org/">Eigen</a> or <a class="reference external" href="http://www.netlib.org/lapack/">LAPACK</a>) for dense problems, sparse Cholesky
+factorization (<a class="reference external" href="http://www.cise.ufl.edu/research/sparse/SuiteSparse/">SuiteSparse</a>, <a class="reference external" href="https://www.cise.ufl.edu/research/sparse/CXSparse/">CXSparse</a> or <a class="reference external" href="http://eigen.tuxfamily.org/">Eigen</a>) for large
+sparse problems custom Schur complement based dense, sparse, and
+iterative linear solvers for <a class="reference external" href="http://en.wikipedia.org/wiki/Bundle_adjustment">bundle adjustment</a> problems.</li>
+<li><strong>Line Search Solvers</strong> - When the problem size is so large that
+storing and factoring the Jacobian is not feasible or a low
+accuracy solution is required cheaply, Ceres offers a number of
+line search based algorithms. This includes a number of variants
+of Non-linear Conjugate Gradients, BFGS and LBFGS.</li>
+</ul>
+</li>
+<li><strong>Speed</strong> - Ceres Solver has been extensively optimized, with C++
+templating, hand written linear algebra routines and OpenMP based
+multithreading of the Jacobian evaluation and the linear solvers.</li>
+<li><strong>Solution Quality</strong> Ceres is the <a class="reference external" href="https://groups.google.com/forum/#!topic/ceres-solver/UcicgMPgbXw">best performing</a> solver on the NIST
+problem set used by Mondragon and Borchers for benchmarking
+non-linear least squares solvers.</li>
+<li><strong>Covariance estimation</strong> - Evaluate the sensitivity/uncertainty of
+the solution by evaluating all or part of the covariance
+matrix. Ceres is one of the few solvers that allows you to to do
+this analysis at scale.</li>
+<li><strong>Community</strong> Since its release as an open source software, Ceres
+has developed an active developer community that contributes new
+features, bug fixes and support.</li>
+<li><strong>Portability</strong> - Runs on <em>Linux</em>, <em>Windows</em>, <em>Mac OS X</em>, <em>Android</em>
+<em>and iOS</em>.</li>
+<li><strong>BSD Licensed</strong> The BSD license offers the flexibility to ship your
+application</li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/source/features.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index2.html">es_flow 0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, T. H. Clark.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

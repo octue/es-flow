@@ -49,7 +49,9 @@ We are currently using:
  
 [**glog**](https://github.com/google/glog) google's asynchronous logging library, used for logging to file.
  
-We're not yet committed to any of the following, but searching for the best libraries:
+[**bib2reSTcitation**](https://github.com/cykustcc/bib2reSTcitation) is a tool for converting .bib files to .txt files formatted as ReStructured Text references (useful for document generation compatible with sphinx).
+
+We're not yet committed to any of the following, but a range of possibly useful libraries is::
  
 [**Armadillo**](http://arma.sourceforge.net) provides an extensive linear algebra library with a MATLAB-like API.
 

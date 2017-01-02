@@ -53,8 +53,24 @@ else()
 endif()
 
 
+
+
+# Build the documentation, if we can find sphinx
+set(DOCS_INSTALL_DIR "share/doc/es-flow" CACHE STRING "es-flow docs install path relative to CMAKE_INSTALL_PREFIX")
+find_package(Sphinx QUIET)
+if (NOT SPHINX_FOUND)
+    message("-- Failed to find Sphinx, disabling build of documentation.")
+else()
+    # Generate the User's Guide (html).
+    # The corresponding target is es_flow_docs, but is included in ALL.
+    message("-- Found Sphinx")
+    add_subdirectory(docs)
+endif()
+
+
 # Add include directories so the test routines can pick up the library contents
 include_directories(source)
+
 
 # Add the souce and test directories
 add_subdirectory(source)
