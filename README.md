@@ -51,6 +51,10 @@ We are currently using:
  
 [**bib2reSTcitation**](https://github.com/cykustcc/bib2reSTcitation) is a tool for converting .bib files to .txt files formatted as ReStructured Text references (useful for document generation compatible with sphinx).
 
+[**sphinx**](http://www.sphinx-doc.org/en/1.5.1/) is the document generator; it'll take the .rst documentation files and turn them into formatted documentation, in either latex or HTML form.
+
+[**sphinx_rtd_theme**](https://github.com/snide/sphinx_rtd_theme) gives us the excellent looking ReadTheDocs theme for our HTML documentation.
+
 We're not yet committed to any of the following, but a range of possibly useful libraries is::
  
 [**Armadillo**](http://arma.sourceforge.net) provides an extensive linear algebra library with a MATLAB-like API.
@@ -85,6 +89,13 @@ cd ..
 git clone https://github.com/jarro2783/cxxopts
 ```
 Then using cmake to build es-flow will find the headers correctly.
+
+**Sphinx and sphinx_rtd_theme**
+```bash
+brew install python
+pip install Sphinx
+pip install sphinx_rtd_theme
+```
 
 ### Third party library installation (Linux)
 
