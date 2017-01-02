@@ -34,7 +34,6 @@
 #include <string>
 #include "matio.h"
 #include <eigen3/Eigen/Core>
-#include "variable_readers.h"
 
 using Eigen::Array;
 using Eigen::ArrayXXd;

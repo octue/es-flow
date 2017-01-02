@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Users &#8212; es_flow 0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index2.html">es_flow 0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="users">
+<span id="chapter-users"></span><h1>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li>At <a class="reference external" href="http://www.google.com">Google</a>, Ceres is used to:<ul>
+<li>Estimate the pose of <a class="reference external" href="http://youtu.be/z00ORu4bU-A">Street View</a> cars, aircrafts, and satellites.</li>
+<li>Build 3D models for <a class="reference external" href="http://google-latlong.blogspot.com/2012/04/visit-global-landmarks-with-photo-tours.html">PhotoTours</a>.</li>
+<li>Estimate satellite image sensor characteristics.</li>
+<li>Stitch <a class="reference external" href="http://www.google.com/maps/about/contribute/photosphere/">panoramas</a> on Android and iOS.</li>
+<li>Apply <a class="reference external" href="http://googleresearch.blogspot.com/2014/04/lens-blur-in-new-google-camera-app.html">Lens Blur</a> on Android.</li>
+<li>Solve <a class="reference external" href="http://en.wikipedia.org/wiki/Structure_from_motion">bundle adjustment</a> and <a class="reference external" href="http://en.wikipedia.org/wiki/Simultaneous_localization_and_mapping">SLAM</a> problems in <a class="reference external" href="https://www.google.com/atap/projecttango/">Project
+Tango</a>.</li>
+</ul>
+</li>
+<li><a class="reference external" href="https://www.willowgarage.com/blog/2013/08/09/enabling-robots-see-better-through-improved-camera-calibration">Willow Garage</a> uses Ceres to solve <a class="reference external" href="http://en.wikipedia.org/wiki/Simultaneous_localization_and_mapping">SLAM</a> problems.</li>
+<li><a class="reference external" href="http://www.swri.org/">Southwest Research Institute</a> uses Ceres for
+<a class="reference external" href="http://rosindustrial.org/news/2014/9/24/industrial-calibration-library-update-and-presentation">calibrating robot-camera systems</a>.</li>
+<li><a class="reference external" href="http://www.blender.org">Blender</a> uses Ceres for <a class="reference external" href="http://mango.blender.org/development/planar-tracking-preview/">planar
+tracking</a> and <a class="reference external" href="http://en.wikipedia.org/wiki/Structure_from_motion">bundle adjustment</a>.</li>
+<li><a class="reference external" href="http://imagine.enpc.fr/~moulonp/openMVG/">OpenMVG</a> an open source
+multi-view geometry library uses Ceres for <a class="reference external" href="http://en.wikipedia.org/wiki/Structure_from_motion">bundle adjustment</a>.</li>
+<li><a class="reference external" href="http://research.microsoft.com/en-us/">Microsoft Research</a> uses
+Ceres for nonlinear optimization of objectives involving subdivision
+surfaces under <a class="reference external" href="http://research.microsoft.com/en-us/projects/handmodelingfrommonoculardepth/">skinned control meshes</a>.</li>
+<li><a class="reference external" href="http://www.matterport.com">Matterport</a>, uses Ceres for global
+alignment of 3D point clouds and for pose graph optimization.</li>
+<li><a class="reference external" href="http://obviousengine.com/">Obvious Engineering</a> uses Ceres for
+bundle adjustment for their 3D photography app <a class="reference external" href="http://seene.co/">Seene</a>.</li>
+<li>The <a class="reference external" href="http://www.asl.ethz.ch/">Autonomous Systems Lab</a> at ETH
+Zurich uses Ceres for<ul>
+<li>Camera and Camera/IMU Calibration.</li>
+<li>Large scale optimization of visual, inertial, gps and
+wheel-odometry data for long term autonomy.</li>
+</ul>
+</li>
+<li><a class="reference external" href="http://openptrack.org/">OpenPTrack</a> uses Ceres for camera
+calibration.</li>
+<li>The <a class="reference external" href="http://robotics.dei.unipd.it/">Intelligent Autonomous System Lab</a>
+at University of Padova, Italy, uses Ceres for<ul>
+<li>Camera/depth sensors network calibration.</li>
+<li>Depth sensor distortion map estimation.</li>
+</ul>
+</li>
+<li><a class="reference external" href="http://cs.ucsb.edu/~cmsweeney/theia">Theia</a> is an open source
+Structure from Motion library that uses Ceres for <a class="reference external" href="http://en.wikipedia.org/wiki/Structure_from_motion">bundle adjustment</a>
+and camera pose estimation.</li>
+<li>The <a class="reference external" href="https://www.arl.psu.edu/">Applied Research Laboratory</a> at
+Pennsylvania State University uses in their synthetic aperture Sonar
+beamforming engine, called ASASIN , for estimating platform
+kinematics.</li>
+<li><a class="reference external" href="https://github.com/colmap/colmap">Colmap</a> is a an open source
+structure from motion library that makes heavy use of Ceres for
+bundle adjustment with support for many camera models and for other
+non-linear least-squares problems (relative, absolute pose
+refinement, etc.).</li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/source/users.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index2.html">es_flow 0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, T. H. Clark.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>
