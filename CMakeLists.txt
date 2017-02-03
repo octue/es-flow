@@ -53,8 +53,6 @@ else()
 endif()
 
 
-
-
 # Build the documentation, if we can find sphinx
 set(DOCS_INSTALL_DIR "share/doc/es-flow" CACHE STRING "es-flow docs install path relative to CMAKE_INSTALL_PREFIX")
 find_package(Sphinx QUIET)
