@@ -42,7 +42,7 @@ protected:
         // Code here will be called immediately after the constructor (right
         // before each test).
         if(const char* env_p = std::getenv("TEST_DATA_DIR")) {
-            std::cout << "Setting up ReaderTest with TEST_DATA_DIR = " << env_p << std::endl;
+            std::cout << std::endl << "Setting up ReaderTest with TEST_DATA_DIR = " << env_p << std::endl;
             data_path = env_p;
         } else {
             throw std::invalid_argument("Invalid environment variable 'TEST_DATA_DIR'");
