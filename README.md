@@ -121,7 +121,7 @@ The following environment variables are required for the app to operate:
 
 | **Name** | **Example** | **Description** |
 | --- | --- | --- |
-| TEST_DATA_DIR| /Users/thc29/Source/OAS/es-flow/test/test_data | The file path (absolute or relative to the application working directory) of the test data directory.|
+| TEST_DATA_DIR| /Users/thc29/Source/OAS/es-flow/test/test_data | The file path (absolute or relative to the application working directory) of the test data directory, WITHOUT trailing slash.|
 ### Requirements
 
 The `requirements.txt` file is used to install the app's package dependencies. It is recommended that the versions and packages specified are updated in this file, as upgrades to packages should be considered part of version control, and be unit tested prior to deploymment.
