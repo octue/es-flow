@@ -119,6 +119,8 @@ output_file = 'levenmouth_lidar_basic.mat';
 input_files = files;
 data = galion2lidar_basic(allow_stacking, force_monospace_time, output_file, input_files{:});
 
+save('levenmouth_lidar_raw.mat','-struct','data')
 
+% TODO change raw data structure to basic
 
 
