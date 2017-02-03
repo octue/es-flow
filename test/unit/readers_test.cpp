@@ -41,8 +41,11 @@ protected:
     virtual void SetUp() {
         // Code here will be called immediately after the constructor (right
         // before each test).
+
+        // Get the test data directory path from the environmnet variable
         if(const char* env_p = std::getenv("TEST_DATA_DIR")) {
-            std::cout << std::endl << "Setting up ReaderTest with TEST_DATA_DIR = " << env_p << std::endl;
+            std::cout << std::endl << "Setting up ReaderTest" <<std::endl;
+            std::cout << "TEST_DATA_DIR = " << env_p << std::endl;
             data_path = env_p;
         } else {
             throw std::invalid_argument("Invalid environment variable 'TEST_DATA_DIR'");
@@ -52,7 +55,7 @@ protected:
     virtual void TearDown() {
         // Code here will be called immediately after each test (right
         // before the destructor).
-        std::cout << "Tearing down ReaderTest()..." << std::endl;
+        std::cout << "Tearing down ReaderTest()..." << std::endl << std::endl;
     }
 
 };
@@ -60,7 +63,7 @@ protected:
 TEST_F(ReaderTest, test_lidar_basic){
 
     // Get lidar_basic test file
-    std::string file = data_path + std::string("/es_lidar_basic.mat");
+    std::string file = data_path + std::string("/fake_lidar_basic.mat");
 
     // Construct a lidar data reader
     Reader<BasicLidar> lr(file);
@@ -94,7 +97,7 @@ protected:
     }
 
     virtual void TearDown() {
-        std::cout << "Tearing down AnalysisTest()..." << std::endl;
+        std::cout << "Tearing down AnalysisTest()..." << std::endl << std::endl;
     }
 
 };
