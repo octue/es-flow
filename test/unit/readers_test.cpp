@@ -102,7 +102,6 @@ protected:
 
 };
 
-// Unit tests for the profile class
 TEST_F(AnalysisTest, test_construct_double_profile){
 
 

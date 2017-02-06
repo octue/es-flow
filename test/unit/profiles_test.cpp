@@ -24,8 +24,11 @@
 
 #include "gtest/gtest.h"
 #include "profile.h"
+#include "constants.h"
+#include <Eigen/Dense>
 
 using namespace es;
+using namespace Eigen;
 
 // Test fixture for generating analytical profiles
 class AnalyticalProfileTest : public ::testing::Test {
@@ -42,14 +45,89 @@ protected:
 
 };
 
-// Unit tests for the profile class
 TEST_F(AnalyticalProfileTest, test_adem_profile){
 
+    // Get analytical values for velocity using power law profile
+    double low = 1;
+    double high = 100;
+    size_t n_bins = 100;
+    double z_ref = 60;
+    double u_ref = 10;
+    double alpha = 0.3;
+    VectorXd z = VectorXd::LinSpaced(n_bins,low,high);
+    VectorXd z_norm = z/z_ref;
+    VectorXd speed = z_norm.array().pow(alpha)*u_ref;
+    //std::cout << speed <<std::endl;
+
+//    // Get analytical values for velocity using log law profile and psi function
+//    // von karman constant
+//    double kappa = 0.41;
+//    // zero plane offset distance (e.g. for forest canopies)
+//    double d = 0;
+//    // roughness length
+//    double z0 = 0;
+//    // Monin-Obukhov length
+//    double L;
+
+    // Get analytical values for velocity using law of wall and wake
+    // Jones' modification of the Coles wake factor
+    double pi_j = 0.42;
+    // von karman constant
+    double kappa = 0.41;
+    // boundary layer thickness
+    double delta = 1000.0;
+    // free stream velocity
+    double u_inf = 20.0;
+    // shear / skin friction velocity (s = u_inf / u_tau)
+    double s = 23.6;
+    double u_tau = u_inf/s;
+    // distance of hypothetical smooth wall from actual rough wall z0 = 0.25k_s
+    double z_0 = 0.0;
+
+    VectorXd eta = (z.array() + z_0)/(delta + z_0);
+    VectorXd eta_cubed = eta.array().cube();
+    VectorXd term1 = eta.array().log()/kappa;
+    VectorXd term2 = (eta_cubed.array() - 1.0)/(3.0*kappa);
+    VectorXd term3 = 2.0*pi_j*(1.0 - eta.array().square()*3.0 + eta_cubed.array()*2.0)/kappa;
+    VectorXd u_deficit = term2 - term1 + term3;
+    VectorXd u_bar = u_inf - u_deficit.array()*u_tau;
+
+    // Print variables to plot comparison with MATLAB based equivalent calculation
+    //    std::cout << "pi_j = " << pi_j << ";" << std::endl;
+    //    std::cout << "kappa = " << kappa << ";" << std::endl;
+    //    std::cout << "delta = " << delta << ";" << std::endl;
+    //    std::cout << "s = " << s << ";" << std::endl;
+    //    std::cout << "u_inf = " << u_inf << ";" << std::endl;
+    //    std::cout << "z_0 = " << z_0 << ";" << std::endl;
+    //    std::cout << "z = [" << z << "];" << std::endl;
+    //    std::cout << "u_bar = [" <<u_bar << "];" << std::endl;
+
+    // Elevation of site in degrees latitude
+    double phi_latitude = 52;
+
+
+    Vector3d k;
+    k << 0, 0, 2*omega_world*sind(phi_latitude);
+
+//        size_t dim_x = 28, dim_y = 126;
+//    Eigen::FFT<float> fft;
+//    Eigen::MatrixXf in = Eigen::MatrixXf::Random(dim_x, dim_y);
+//    Eigen::MatrixXcf out;
+//    out.setZero(dim_x, dim_y);
+//
+//    for (int k = 0; k < in.rows(); k++) {
+//        Eigen::VectorXcf tmpOut(dim_x);
+//        fft.fwd(tmpOut, in.row(k));
+//        out.row(k) = tmpOut;
+//    }
+//
+//    for (int k = 0; k < in.cols(); k++) {
+//        Eigen::VectorXcf tmpOut(dim_y);
+//        fft.fwd(tmpOut, out.col(k));
+//        out.col(k) = tmpOut;
+//    }
+
     /*
-// Construct profiles with 100 bins spaced equally 1 m apart from 1m above reference using the base constructor
-    std::vector<double> z;
-    for (int i=0; i<100; i++) z.push_back(double(i+1));
-    Bins bins = Bins(z);
 
     Profile<double> p1(bins);
     Profile<double> p2(bins, 10.1, 0.2, 0.1);
