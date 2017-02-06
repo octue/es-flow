@@ -1,4 +1,8 @@
 
+# Add ceres-solver dependency
+find_package(Ceres REQUIRED)
+include_directories(${CERES_INCLUDE_DIRS})
+
 # List the unit test files
 set(UNIT_TEST_SOURCE_FILES
         unit/adem_analysis_test.cpp

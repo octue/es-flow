@@ -1,4 +1,4 @@
-function [Ux] = getMeanProfile(Pi, S, deltac, U1, z)
+function [Ux, ux2] = getMeanProfile(Pi, S, deltac, U1, z)
 %GETMEANPROFILE Determine mean boundary layer velocity u(z) 
 
 % TODO UPDATE DOCS TO REFLECT ABILITY TO TAKE PROFILE STRUCTURE
@@ -105,8 +105,19 @@ uDeficit1 = -log(1)/kappa + (Pi/kappa)*2 - (Pi/kappa)*2;
 uBar1 = U1 - uDeficit1*Utau;
 u(eta>=1) = uBar1;
 
-% Outputs
 Ux = u;
+
+
+term1 = log(eta)/kappa;
+term2 = (eta.^3 - 1)/(3*kappa);
+term3 = 2*Pi*(1 - 3*eta.^2 + 2*eta.^3)/kappa;
+u_deficit = term2 - term1 +term3;
+u_bar = U1 - u_deficit*Utau;
+u = u_bar;
+
+% Outputs
+ux2 = u;
+
 
 
 end
