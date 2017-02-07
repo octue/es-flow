@@ -43,7 +43,7 @@ namespace es {
 	};
 
     template <typename T>
-    T most_speed(T const & z, const double kappa, const double d, const double z0, const double L){
+    T most_law_speed(T const & z, const double kappa, const double d, const double z0, const double L){
 
     /* Compute speed profile according to the MOST law.
      * von karman constant
@@ -51,9 +51,10 @@ namespace es {
      * roughness length
      * Monin-Obukhov length
      */
-
+		std::cout << "MOST Law not implemented yet" << std::endl;
+		T speed;
+		return speed;
     }
-
 
 	template <typename T>
 	T marusic_jones_speed(T const & z, const double u_ref, const double z_ref, const double alpha){
