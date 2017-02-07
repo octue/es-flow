@@ -14,7 +14,6 @@ using namespace Eigen;
 
 namespace es {
 
-
     /// Compute speed profile according to the power law.
     /**
      * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
@@ -77,7 +76,10 @@ namespace es {
      *
      * Speed is computed as:
      *
-     * TODO
+     * \f{eqnarray*}{
+        \frac{\overline{U}}{U_{\tau}} & = & \frac{1}{\kappa} \ln \left( \frac{z+z_0}{k_s} \right) + Br + \frac{\Pi_j}{\kappa} W_c[\eta, \Pi_j] \\
+        W_c[\eta, \Pi_j] & = & 2 \eta^2 \left( 3 - 2\eta \right) - \frac{1}{3\Pi_j}\eta^3 \\
+        \eta & = & \frac{z+z_0}{\delta + z_0} \f}
      *
      * @param[in]  z        Height(s) in m at which you want to get speed.
      * @param[in]  pi_j     Jones' modification of the Coles wake factor
@@ -114,8 +116,6 @@ namespace es {
         VectorXd speed = u_inf - u_deficit.array() * u_tau;
         return speed;
 	};
-
-
 
 } /* namespace es */
 
