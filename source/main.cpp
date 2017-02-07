@@ -8,6 +8,11 @@
 #include "mkl_dfti.h"
 #include "cxxopts.hpp"
 
+#include <Eigen/Core>
+#include <unsupported/Eigen/FFT>
+
+//using namespace Eigen;
+
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
 using ceres::Problem;
@@ -108,24 +113,42 @@ int main(int argc, char* argv[]) {
         std::cout << summary.BriefReport() << "\n";
         std::cout << "x : " << initial_x << " -> " << x << "\n";
 
-        // Run an example FFT
+//        // Run an example FFT
+//
+//        // Make meaningless data and a size vector
+//        float xf[200][100];
+//        MKL_LONG len[2] = {200, 100};
+//
+//        // Create a decriptor, which is a pattern for what operation an FFT will undertake
+//        DFTI_DESCRIPTOR_HANDLE fft;
+//        DftiCreateDescriptor ( &fft, DFTI_SINGLE, DFTI_REAL, 2, len );
+//        DftiCommitDescriptor ( fft );
+//
+//        // Compute a forward transform, in-place on the data
+//        DftiComputeForward ( fft, xf );
+//
+//        // Free the descriptor
+//        DftiFreeDescriptor ( &fft );
+//
+//        std::cout << "FFT COMPLETE\n";
 
-        // Make meaningless data and a size vector
-        float xf[200][100];
-        MKL_LONG len[2] = {200, 100};
+        size_t dim_x = 28, dim_y = 126;
+        Eigen::FFT<float> fft;
+        Eigen::MatrixXf in = Eigen::MatrixXf::Random(dim_x, dim_y);
+        Eigen::MatrixXcf out;
+        out.setZero(dim_x, dim_y);
 
-        // Create a decriptor, which is a pattern for what operation an FFT will undertake
-        DFTI_DESCRIPTOR_HANDLE fft;
-        DftiCreateDescriptor ( &fft, DFTI_SINGLE, DFTI_REAL, 2, len );
-        DftiCommitDescriptor ( fft );
+        for (int k = 0; k < in.rows(); k++) {
+            Eigen::VectorXcf tmpOut(dim_x);
+            fft.fwd(tmpOut, in.row(k));
+            out.row(k) = tmpOut;
+        }
 
-        // Compute a forward transform, in-place on the data
-        DftiComputeForward ( fft, xf );
-
-        // Free the descriptor
-        DftiFreeDescriptor ( &fft );
-
-        std::cout << "FFT COMPLETE\n";
+        for (int k = 0; k < in.cols(); k++) {
+            Eigen::VectorXcf tmpOut(dim_y);
+            fft.fwd(tmpOut, out.col(k));
+            out.col(k) = tmpOut;
+        }
 
     } catch (const cxxopts::OptionException &e) {
         std::cout << "Error parsing options: " << e.what() << std::endl;
