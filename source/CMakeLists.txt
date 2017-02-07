@@ -16,6 +16,12 @@ include_directories(${MKL_INCLUDE_DIRS})
 find_package(MATIO REQUIRED)
 include_directories(${MATIO_INCLUDE_DIRS})
 
+# Add include directories so the test routines can pick up the library contents
+include_directories(relations)
+
+# Add the souce and test directories
+add_subdirectory(relations)
+
 # Add the flow library
 set(SOURCE_FILES
         adem_analysis.cpp
@@ -27,8 +33,8 @@ set(SOURCE_FILES
         fit_profiles.h
         instrument_analysis.cpp
         instrument_analysis.h
-        profiles_velocity.cpp
-        profiles_velocity.h
+        relations/velocity.cpp
+        relations/velocity.h
         profiles_spectrum.cpp
         profiles_spectrum.h
         profiles_stress.cpp

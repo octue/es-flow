@@ -145,6 +145,15 @@ namespace es {
     }
 
 
+
+    class VelocityProfile: public Profile<double> {
+    public:
+        VelocityProfile();
+        virtual ~VelocityProfile();
+
+        VectorXd AutoDiff();
+    };
+
 } /* namespace es */
 
 
