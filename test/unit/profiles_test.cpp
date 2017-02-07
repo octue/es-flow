@@ -24,7 +24,7 @@
 
 #include "gtest/gtest.h"
 #include "profile.h"
-#include "profiles_velocity.h"
+#include "relations/velocity.h"
 #include "constants.h"
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -87,8 +87,8 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
     std::cout << "checked AutoDiffScalar operation" << std::endl;
 
     // Print useful diagnostics values
-    std::cout << "speed:       " << speed.transpose() << std::endl;
-    std::cout << "derivative: " << dspeed_dz.transpose() << std::endl;
+    std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
+    std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
 }
 
 //TEST_F(AnalyticalProfileTest, test_most_profile) {
@@ -134,41 +134,54 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
 //    std::cout << "checked AutoDiffScalar operation" << std::endl;
 //
 //    // Print useful diagnostics values
-//    std::cout << "speed:       " << speed.transpose() << std::endl;
-//    std::cout << "derivative: " << dspeed_dz.transpose() << std::endl;
+//    std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
+//    std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
 //}
 
 TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
     // Get analytical values for velocity using law of wall and wake
     std::cout << "test_marusic_jones_profile" << std::endl;
 
-    // Vertical spacing
+    // Basic test parameters
+    double pi_j = 0.42;
+    double kappa = 0.41;
+    double delta = 1000.0;
+    double u_inf = 20.0;
+    double s = 23.6;
+    double u_tau = u_inf / s;
+    double z_0 = 0.0;
+
+    // Check that it works for a z value of type double
+    double z_doub = 1.;
+    double speed1 = marusic_jones_speed(z_doub, pi_j, kappa, z_0, delta, u_inf, u_tau);
+    std::cout << "checked scalar double operation (U = " << speed1 << " m/s)" << std::endl;
+
+    // Check that it works for a VectorXd input (vertically spaced z)
     double low = 1;
     double high = 100;
     size_t n_bins = 100;
     VectorXd z = VectorXd::LinSpaced(n_bins, low, high);
+    VectorXd speed = marusic_jones_speed(z, pi_j, kappa, z_0, delta, u_inf, u_tau);
+    std::cout << "checked VectorXd operation" << std::endl;
 
-    // Jones' modification of the Coles wake factor
-    double pi_j = 0.42;
-    // von karman constant
-    double kappa = 0.41;
-    // boundary layer thickness
-    double delta = 1000.0;
-    // free stream velocity
-    double u_inf = 20.0;
-    // shear / skin friction velocity (s = u_inf / u_tau)
-    double s = 23.6;
-    double u_tau = u_inf / s;
-    // distance of hypothetical smooth wall from actual rough wall z0 = 0.25k_s
-    double z_0 = 0.0;
+    // Check that it works for an AutoDiffScalar
+    // Also provides minimal example of how to get the derivative through the profile
+    typedef Eigen::AutoDiffScalar<Eigen::VectorXd> ADScalar;
+    ADScalar ads_z;
+    ADScalar ads_speed;
+    VectorXd dspeed_dz;
+    dspeed_dz.setZero(n_bins);
+    for (int k = 0; k < n_bins; k++) {
+        ads_z.value() = z[k];
+        ads_z.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the derivative guess each step
+        ads_speed = marusic_jones_speed(ads_z, pi_j, kappa, z_0, delta, u_inf, u_tau);
+        dspeed_dz[k] = ads_speed.derivatives()[0];
+    }
+    std::cout << "checked AutoDiffScalar operation" << std::endl;
 
-    VectorXd eta = (z.array() + z_0) / (delta + z_0);
-    VectorXd eta_cubed = eta.array().cube();
-    VectorXd term1 = eta.array().log() / kappa;
-    VectorXd term2 = (eta_cubed.array() - 1.0) / (3.0 * kappa);
-    VectorXd term3 = 2.0 * pi_j * (1.0 - eta.array().square() * 3.0 + eta_cubed.array() * 2.0) / kappa;
-    VectorXd u_deficit = term2 - term1 + term3;
-    VectorXd u_bar = u_inf - u_deficit.array() * u_tau;
+    // Print useful diagnostics values
+    std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
+    std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
 
     // Print variables to plot comparison with MATLAB based equivalent calculation
     //    std::cout << "pi_j = " << pi_j << ";" << std::endl;
@@ -178,7 +191,6 @@ TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
     //    std::cout << "u_inf = " << u_inf << ";" << std::endl;
     //    std::cout << "z_0 = " << z_0 << ";" << std::endl;
     //    std::cout << "z = [" << z << "];" << std::endl;
-    //    std::cout << "u_bar = [" <<u_bar << "];" << std::endl;
 }
 
 TEST_F(AnalyticalProfileTest, test_r13_profile) {
