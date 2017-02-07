@@ -20,7 +20,6 @@ namespace es {
      * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
      *
      * Power law speed is computed as:
-     *
      * \f{eqnarray*}{\frac{\overline{U}}{\overline{U}_{ref}} & = & \left(\frac{z}{z_{ref}}\right)^{\alpha} \f}
      *
      * @param[in]  z     Height(s) in m at which you want to get speed.
@@ -61,13 +60,16 @@ namespace es {
      */
     template <typename T>
     T most_law_speed(T const & z, const double kappa, const double d, const double z0, const double L){
-
-    /* Compute speed profile according to the MOST law.
-     */
 		std::cout << "MOST Law not implemented yet" << std::endl;
 		T speed;
 		return speed;
     }
+    template <>
+    VectorXd power_law_speed(VectorXd const & z, const double kappa, const double d, const double z0, const double L){
+        std::cout << "MOST Law not implemented yet" << std::endl;
+        T speed;
+        return speed;
+    };
 
     /// Compute speed profile according to Maursic's and Jones' relations.
     /**
@@ -75,11 +77,9 @@ namespace es {
      * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
      *
      * Speed is computed as:
-     *
-     * \f{eqnarray*}{
-        \frac{\overline{U}}{U_{\tau}} & = & \frac{1}{\kappa} \ln \left( \frac{z+z_0}{k_s} \right) + Br + \frac{\Pi_j}{\kappa} W_c[\eta, \Pi_j] \\
-        W_c[\eta, \Pi_j] & = & 2 \eta^2 \left( 3 - 2\eta \right) - \frac{1}{3\Pi_j}\eta^3 \\
-        \eta & = & \frac{z+z_0}{\delta + z_0} \f}
+     * \f{eqnarray*}{\frac{\overline{U}}{U_{\tau}} & = & \frac{1}{\kappa} \ln \left( \frac{z+z_0}{k_s} \right) + Br + \frac{\Pi_j}{\kappa} W_c[\eta, \Pi_j] \\ W_c[\eta, \Pi_j] & = & 2 \eta^2 \left( 3 - 2\eta \right) - \frac{1}{3\Pi_j}\eta^3 \\ \eta & = & \frac{z+z_0}{\delta + z_0} \f}
+     * which reduces to the relation:
+     * \f{eqnarray*}{U_{D}^{*} = \frac{U_\infty-\overline{U}}{U_{\tau}} = -\frac{1}{\kappa} \ln \left( \eta \right) + \frac{1}{3\kappa} \left(\eta^3 - 1 \right) + 2 \frac{\Pi_j}{\kappa} \left(1 - 3\eta^2 + 2\eta^3 \right) \f}
      *
      * @param[in]  z        Height(s) in m at which you want to get speed.
      * @param[in]  pi_j     Jones' modification of the Coles wake factor
