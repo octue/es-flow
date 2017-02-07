@@ -29,12 +29,13 @@ to manage bug reports and feature requests.
    :hidden:
 
    installation
+   license
+   users
    supported_instruments
    file_formats
    examples
    version_history
    bibliography
-   license
 
 
 
