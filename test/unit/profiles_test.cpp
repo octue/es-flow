@@ -91,19 +91,52 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
     std::cout << "derivative: " << dspeed_dz.transpose() << std::endl;
 }
 
-TEST_F(AnalyticalProfileTest, test_most_profile) {
+//TEST_F(AnalyticalProfileTest, test_most_profile) {
 //    // Get analytical values for velocity using log law profile and psi function
-    std::cout << "test_most_profile" << std::endl;
-
+//    std::cout << "test_most_profile" << std::endl;
+//
 //    // von karman constant
 //    double kappa = 0.41;
 //    // zero plane offset distance (e.g. for forest canopies)
 //    double d = 0;
 //    // roughness length
-//    double z0 = 0;
+//    double z0 = 0.5;
 //    // Monin-Obukhov length
-//    double L;
-}
+//    double L = 20.;
+//
+//    // Check that it works for a z value of type double
+//    double z_doub = 1.;
+//    double speed2 = most_law_speed(z_doub, kappa, d, z0, L);
+//    std::cout << "checked scalar double operation (U = " << speed2 << " m/s)" << std::endl;
+//
+//    // Check that it works for a VectorXd input (vertically spaced z)
+//    double low = 1;
+//    double high = 100;
+//    size_t n_bins = 100;
+//    VectorXd z = VectorXd::LinSpaced(n_bins, low, high);
+//    VectorXd speed = most_law_speed(z, kappa, d, z0, L);
+//    std::cout << "checked VectorXd operation" << std::endl;
+//
+//    // Check that it works for an AutoDiffScalar
+//    // Also provides minimal example of how to get the derivative through the profile
+//    typedef Eigen::AutoDiffScalar<Eigen::VectorXd> ADScalar;
+//    ADScalar ads_z;
+//    ADScalar ads_speed;
+//    VectorXd dspeed_dz;
+//    dspeed_dz.setZero(n_bins);
+//    for (int k = 0; k < n_bins; k++) {
+//        ads_z.value() = z[k];
+//        ads_z.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the
+//        // derivative guess each step
+//        ads_speed = most_law_speed(ads_z, kappa, d, z0, L);
+//        dspeed_dz[k] = ads_speed.derivatives()[0];
+//    }
+//    std::cout << "checked AutoDiffScalar operation" << std::endl;
+//
+//    // Print useful diagnostics values
+//    std::cout << "speed:       " << speed.transpose() << std::endl;
+//    std::cout << "derivative: " << dspeed_dz.transpose() << std::endl;
+//}
 
 TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
     // Get analytical values for velocity using law of wall and wake
