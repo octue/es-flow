@@ -18,7 +18,8 @@ namespace es {
 
 	template <typename T>
 	T power_law_speed(T const & z, const double u_ref, const double z_ref, const double alpha){
-		/* Compute speed profile according to the power law.
+		/// Compute speed profile according to the power law.
+        /**
 		 *
 		 * u_ref Reference speed in m/s
 		 * z_ref Reference height in m
@@ -40,6 +41,18 @@ namespace es {
 		VectorXd speed = pow(z_norm.array(), alpha) * u_ref;
 		return speed;
 	};
+
+    template <typename T>
+    T most_speed(T const & z, const double kappa, const double d, const double z0, const double L){
+
+    /* Compute speed profile according to the MOST law.
+     * von karman constant
+     * zero plane offset distance (e.g. for forest canopies)
+     * roughness length
+     * Monin-Obukhov length
+     */
+
+    }
 
 
 	template <typename T>
