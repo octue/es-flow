@@ -35,10 +35,6 @@ set(SOURCE_FILES
         instrument_analysis.h
         relations/velocity.cpp
         relations/velocity.h
-        profiles_spectrum.cpp
-        profiles_spectrum.h
-        profiles_stress.cpp
-        profiles_stress.h
         profile.cpp profile.h
         readers.cpp readers.h
         variable_readers.h
