@@ -57,3 +57,6 @@ profits; or business interruption) however caused and on any theory of
 liability, whether in contract, strict liability, or tort (including negligence
 or otherwise) arising in any way out of the use of this software, even if
 advised of the possibility of such damage.
+
+## eigen
+[Eigen 3.1.2](http://eigen.tuxfamily.org) is licensed under the [Mozilla Pulic License v2](https://www.mozilla.org/en-US/MPL/2.0/).

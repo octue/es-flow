@@ -129,12 +129,27 @@ namespace es {
         return values;
     }
 
+//    template <class ProfileType>
+//    const std::vector<ProfileType> &Profile<ProfileType>::getZDerivative() const {
+//        // Get the first derivative with respect to Z location using Eigen's Autodiff
+//        // Some examples can be found in eigen/unsupported/doc/examples/AutoDiff.cpp
+//
+//
+//        return derivatives;
+//    }
+
     template <class ProfileType>
     ::std::ostream& operator<<(::std::ostream& os, const Profile<ProfileType>& profile) {
         // Represent in logs or ostream
         return os << "debug statement for profile class";
     }
 
+
 } /* namespace es */
+
+
+
+
+
 
 #endif //SOURCE_PROFILE_H

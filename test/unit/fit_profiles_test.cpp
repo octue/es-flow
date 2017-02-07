@@ -42,7 +42,7 @@ protected:
     virtual void TearDown() {
         // Code here will be called immediately after each test (right
         // before the destructor).
-        std::cout << "Tearing down BinTest()..." << std::endl;
+        std::cout << "Tearing down BinTest()..." << std::endl << std::endl;
     }
 
 };
@@ -73,7 +73,7 @@ protected:
     }
 
     virtual void TearDown() {
-        std::cout << "Tearing down ProfileTest()..." << std::endl;
+        std::cout << "Tearing down ProfileTest()..." << std::endl << std::endl;
     }
 
 };
@@ -138,7 +138,7 @@ protected:
     virtual void TearDown() {
         // Code here will be called immediately after each test (right
         // before the destructor).
-        std::cout << std::endl << "Tearing down FitTest()..." << std::endl;
+        std::cout << "Tearing down FitTest()..." << std::endl << std::endl;
     }
 
     // Objects declared here can be used by all tests
