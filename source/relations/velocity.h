@@ -51,7 +51,7 @@ namespace es {
      *
      * TODO
      *
-     * @param[in]  z        Height(s) in m at which you want to get speed.
+     * @param[in]  z        Height value(s) at which you want to get speed (m)
      * @param[in]  kappa    von Karman constant
      * @param[in]  d        Zero plane offset distance (e.g. for forest canopies) (m)
      * @param[in]  z0       Roughness length (m)
@@ -65,9 +65,9 @@ namespace es {
 		return speed;
     }
     template <>
-    VectorXd power_law_speed(VectorXd const & z, const double kappa, const double d, const double z0, const double L){
+    VectorXd most_law_speed(VectorXd const & z, const double kappa, const double d, const double z0, const double L){
         std::cout << "MOST Law not implemented yet" << std::endl;
-        T speed;
+        VectorXd speed;
         return speed;
     };
 
@@ -116,6 +116,96 @@ namespace es {
         VectorXd speed = u_inf - u_deficit.array() * u_tau;
         return speed;
 	};
+
+    /// Compute coles wake parameter
+    /**
+     *
+     * Used by Perry and Marusic 1995.
+     *
+     * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
+     * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
+     *
+     * Translated from MATLAB:
+     * function wc = colesWake(eta, Pi)
+     *     wc = 2*eta.^2.*(3-2*eta) - (1/Pi).*eta.^2.*(1-eta).*(1-2*eta);
+     * end
+     *
+     * @param[in]  eta          Nondimensional height values
+     * @param[in]  capital_pi   The coles wake parameter Pi
+     *
+     */
+    template <typename T>
+    T coles_wake(T const & eta, const double capital_pi){
+        T wc, eta_sqd;
+        eta_sqd = pow(eta, 2.0);
+        wc = 2.0 * eta_sqd * (3.0 - 2.0 * eta)
+            - eta_sqd * (1.0 - eta) * (1.0 - 2.0*eta) / capital_pi;
+        return wc;
+    }
+
+    template <>
+    VectorXd coles_wake(VectorXd const & eta, const double capital_pi){
+        VectorXd wc, eta_sqd;
+        eta_sqd = eta.array().pow(2.0);
+        wc = 2.0 * eta_sqd.array() * (3.0 - 2.0 * eta.array())
+            - eta_sqd.array() * (1.0 - eta.array()) * (1.0 - 2.0*eta.array()) / capital_pi;
+        return wc;
+    };
+
+    /// Compute Lewkowicz (1982) velocity profile
+    /**
+     *
+     * Used by Perry and Marusic 1995 (from eqs 2 and 7)
+     *
+     * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
+     * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
+     *
+     * Translated from MATLAB:
+     * function [f] = getf(eta, Pi, kappa, S)
+     *     f = (-1/kappa)*log(eta) + (Pi/kappa)*colesWake(1,Pi)*ones(size(eta)) - (Pi/kappa)*colesWake(eta,Pi);
+     *     f(isinf(f)) = S;
+     * end
+     *
+     * @param[in]  eta          Nondimentional height values
+     * @param[in]  pi_coles   The coles wake parameter Pi
+     * @param[in]  kappa        von Karman constant
+     * @param[in]  u_inf    Speed of flow at z = delta (m/s)
+     * @param[in]  u_tau    Shear / skin friction velocity (governed by ratio parameter S = u_inf / u_tau)
+     *
+     */
+    template <typename T>
+    T lewkowicz_speed(T const & eta, const double pi_coles, const double kappa, const double u_inf, const double u_tau) {
+        T f, speed;
+        f = pi_coles * coles_wake(1.0, pi_coles) / kappa;
+        f = f - log(eta) / kappa;
+        f = f - pi_coles * coles_wake(eta, pi_coles);
+        // TODO sort this out so it can be template compliant
+        //if (std::isinf(f)) {
+        //    f = u_inf/u_tau;
+        //}
+        speed = u_inf - f*u_tau;
+        return speed;
+    }
+
+    template <>
+    VectorXd lewkowicz_speed(VectorXd const & eta, const double pi_coles, const double kappa, const double u_inf, const double u_tau){
+        VectorXd f, speed;
+        VectorXd term1 = eta.array().log()/(-1.0*kappa);
+//        std::cout << "term 1 = [" << term1.transpose() << "]" << std::endl;
+        double term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
+//        std::cout << "term 2 = [" << term2 << "]" << std::endl;
+        VectorXd term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;
+//        std::cout << "term 3 = [" << term3.transpose() << "]" << std::endl;
+        f = term1.array() + term2 - term3.array();
+        for (int k = 0; k < f.size(); k++) {
+            if (std::isinf(f[k])) {
+                f(k) = u_inf / u_tau;
+                std::cout << "here";
+            }
+        }
+        speed = u_inf - f.array()*u_tau;
+        return speed;
+    };
 
 } /* namespace es */
 
