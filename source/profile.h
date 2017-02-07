@@ -151,7 +151,7 @@ namespace es {
         VelocityProfile();
         virtual ~VelocityProfile();
 
-        VectorXd AutoDiff();
+//        VectorXd AutoDiff();
     };
 
 } /* namespace es */
