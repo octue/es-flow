@@ -236,7 +236,7 @@ TEST_F(AnalyticalProfileTest, test_lewkowicz_profile) {
         ads_eta.value() = eta[k];
         ads_eta.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the derivative guess each step
         ads_speed = lewkowicz_speed(ads_eta, pi_coles, kappa, u_inf, u_tau);
-        dspeed_dz[k] = ads_speed.derivatives()[0];
+        dspeed_dz[k] = ads_speed.derivatives()[0] / delta;
     }
     std::cout << "checked AutoDiffScalar operation" << std::endl;
 
