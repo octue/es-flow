@@ -1,10 +1,18 @@
 cmake_minimum_required(VERSION 3.6)
-project(tg_flow)
+project(es_flow)
+
+# Add cmake modules
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+
+# Set make options
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+# Add directories where third party and other OAS tools exist
+set(THIRD_PARTY_DIR ${CMAKE_SOURCE_DIR}/..)
 
-# Variables used for building mex files, platform dependent
+# Variables used for building mex files, platform independent
+# TODO shift to using find_package for MATLAB MEX https://cmake.org/cmake/help/v3.3/module/FindMatlab.html
 set(MATLAB_LIBS
         -lemlrt
         -lcovrt
@@ -13,7 +21,6 @@ set(MATLAB_LIBS
         -lmex
         -lmat
         -lmwmathutil)
-
 if(${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL ".dylib")
     set(ARCH maci64)
     set(MATLAB_ROOT /Applications/MATLAB_R2016a.app)
@@ -23,7 +30,6 @@ if(${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL ".dylib")
             ${MATLAB_ROOT}/bin/maci64
             ${MATLAB_ROOT}/sys/os/maci64
             )
-
 elseif(${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL ".so")
     set(ARCH linux)
     # TODO set MATLABROOT
@@ -33,7 +39,6 @@ elseif(${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL ".so")
             ${MATLAB_ROOT}/bin/x86_64
             ${MATLAB_ROOT}/sys/os/x86_64
             )
-
 elseif(${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL ".dll")
     set(ARCH win64)
     # TODO set MATLABROOT
@@ -43,11 +48,28 @@ elseif(${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL ".dll")
             ${MATLAB_ROOT}/bin/x86_64
             ${MATLAB_ROOT}/sys/os/x86_64
             )
-
 else()
-    message(ERROR "Cannot identify architecture using system library extension")
-
+    message(ERROR "Cannot identify architecture using system library extension when defining MATLAB libraries")
 endif()
 
-# Add the souce directory
+
+# Build the documentation, if we can find sphinx
+set(DOCS_INSTALL_DIR "share/doc/es-flow" CACHE STRING "es-flow docs install path relative to CMAKE_INSTALL_PREFIX")
+find_package(Sphinx QUIET)
+if (NOT SPHINX_FOUND)
+    message("-- Failed to find Sphinx, disabling build of documentation.")
+else()
+    # Generate the User's Guide (html).
+    # The corresponding target is es_flow_docs, but is included in ALL.
+    message("-- Found Sphinx")
+    add_subdirectory(docs)
+endif()
+
+
+# Add include directories so the test routines can pick up the library contents
+include_directories(source)
+
+
+# Add the souce and test directories
 add_subdirectory(source)
+add_subdirectory(test)

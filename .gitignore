@@ -1,8 +1,38 @@
-# OAS Build directory
-build
+####################### OAS Build directories
+build/
+lib/
+bin/
+cmake-build-debug
+
+####################### Google style lint
+
+cpplint.py
+
+####################### Jetbrains CLion IDE
+
+# User-specific stuff:
+.idea
+
+## Plugin-specific files:
+
+# IntelliJ
+/out/
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+####################### ECLIPSE IDE
 
 .metadata
-bin/
 tmp/
 *.tmp
 *.bak
