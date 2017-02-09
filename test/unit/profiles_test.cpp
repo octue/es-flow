@@ -164,7 +164,7 @@ TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
     VectorXd speed = marusic_jones_speed(z, pi_j, kappa, z_0, delta, u_inf, u_tau);
     std::cout << "checked VectorXd operation" << std::endl;
 
-    // Check that it works for an AutoDiffScalar
+    // Check that it works for an AutoDiffScalar in z
     // Also provides minimal example of how to get the derivative through the profile
     typedef Eigen::AutoDiffScalar<Eigen::VectorXd> ADScalar;
     ADScalar ads_z;
@@ -175,6 +175,7 @@ TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
         ads_z.value() = z[k];
         ads_z.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the derivative guess each step
         ads_speed = marusic_jones_speed(ads_z, pi_j, kappa, z_0, delta, u_inf, u_tau);
+//        std::cout << ads_speed.value() << std::endl;
         dspeed_dz[k] = ads_speed.derivatives()[0];
     }
     std::cout << "checked AutoDiffScalar operation" << std::endl;
@@ -182,6 +183,43 @@ TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
     // Print useful diagnostics values
     std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
     std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
+
+    // Check it works for an AutoDiffScalar in z and pi_j
+    VectorXd partial_dspeed_dz, partial_dspeed_dpi, partial_dspeed_dpi_check;
+    ADScalar ads_pi_j, ads_speed_check1, ads_speed_check2;
+    partial_dspeed_dz.setZero(n_bins);
+    partial_dspeed_dpi.setZero(n_bins);
+    partial_dspeed_dpi_check.setZero(n_bins);
+    for (int k = 0; k < n_bins; k++) {
+
+        // Set the current values
+        ads_z.value() = z[k];
+        ads_pi_j.value() = pi_j;
+
+        // Initialise both derivative terms to unit vectors, telling us which term relates to which derivative
+        ads_z.derivatives() = Eigen::VectorXd::Unit(2,0);
+        ads_pi_j.derivatives() = Eigen::VectorXd::Unit(2,1);
+        ads_speed = marusic_jones_speed(ads_z, ads_pi_j, kappa, z_0, delta, u_inf, u_tau);
+        partial_dspeed_dz[k] = ads_speed.derivatives()[0];
+        partial_dspeed_dpi[k] = ads_speed.derivatives()[1];
+
+        // Run a check with a crude central differencer
+        ads_speed_check1 = marusic_jones_speed(ads_z, pi_j-0.01, kappa, z_0, delta, u_inf, u_tau);
+        ads_speed_check2 = marusic_jones_speed(ads_z, pi_j+0.01, kappa, z_0, delta, u_inf, u_tau);
+        ads_speed_check2 = (ads_speed_check2 - ads_speed_check1) / 0.02;
+        partial_dspeed_dpi_check[k] = ads_speed_check2.value();
+
+    }
+    std::cout << "partial_dspeed_dpi       = [" << partial_dspeed_dpi.transpose() << "];" << std::endl;
+    std::cout << "partial_dspeed_dpi_check = [" << partial_dspeed_dpi_check.transpose() << "];" << std::endl;
+
+
+
+
+
+
+
+
 
     // Print variables to plot comparison with MATLAB based equivalent calculation
     //    std::cout << "pi_j = " << pi_j << ";" << std::endl;

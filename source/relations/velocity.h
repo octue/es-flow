@@ -82,7 +82,7 @@ namespace es {
      * \f{eqnarray*}{U_{D}^{*} = \frac{U_\infty-\overline{U}}{U_{\tau}} = -\frac{1}{\kappa} \ln \left( \eta \right) + \frac{1}{3\kappa} \left(\eta^3 - 1 \right) + 2 \frac{\Pi_j}{\kappa} \left(1 - 3\eta^2 + 2\eta^3 \right) \f}
      *
      * @param[in]  z        Height(s) in m at which you want to get speed.
-     * @param[in]  pi_j     Jones' modification of the Coles wake factor
+     * @param[in]  pi_j     Jones' modification of the Coles wake factor. Double or AutoDiffScalar type acccepted.
      * @param[in]  kappa    von Karman constant
      * @param[in]  z_0       Roughness length - represents distance of hypothetical smooth wall from actual rough wall z0 = 0.25k_s (m)
      * @param[in]  delta    Boundary layer thickness (m)
@@ -90,21 +90,21 @@ namespace es {
      * @param[in]  u_tau    Shear / skin friction velocity (governed by ratio parameter S = u_inf / u_tau)
      *
      */
-	template <typename T>
-	T marusic_jones_speed(T const & z, const double pi_j, const double kappa, const double z_0,
+	template <typename T_z, typename T_pi_j>
+	T_z marusic_jones_speed(T_z const & z, T_pi_j const pi_j, const double kappa, const double z_0,
                           const double delta, const double u_inf, const double u_tau){
-        T eta = (z + z_0) / (delta + z_0);
-        T eta_cubed = pow(eta, 3.0);
-        T term1 = log(eta) / kappa;
-        T term2 = (eta_cubed - 1.0) / (3.0 * kappa);
-        T term3 = 2.0 * pi_j * (1.0 - pow(eta, 2.0) * 3.0 + eta_cubed * 2.0) / kappa;
-        T u_deficit = term2 - term1 + term3;
-        T speed = u_inf - u_deficit * u_tau;
+        T_z eta = (z + z_0) / (delta + z_0);
+        T_z eta_cubed = pow(eta, 3.0);
+        T_z term1 = log(eta) / kappa;
+        T_z term2 = (eta_cubed - 1.0) / (3.0 * kappa);
+        T_z term3 = 2.0 * pi_j * (1.0 - pow(eta, 2.0) * 3.0 + eta_cubed * 2.0) / kappa;
+        T_z u_deficit = term2 - term1 + term3;
+        T_z speed = u_inf - u_deficit * u_tau;
         return speed;
     }
 
-	template <>
-	VectorXd marusic_jones_speed(VectorXd const & z, const double pi_j, const double kappa, const double z_0,
+	template <typename T_pi_j>
+	VectorXd marusic_jones_speed(VectorXd const & z, T_pi_j const pi_j, const double kappa, const double z_0,
                                  const double delta, const double u_inf, const double u_tau){
 		// Template specialisation for VectorXd type
         VectorXd eta = (z.array() + z_0) / (delta + z_0);
