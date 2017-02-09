@@ -314,6 +314,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
             obj.Results.t(i,1)                      = data.t(1);
             obj.Results.d(i,1)                      = d;
             obj.Results.flowDirection(i,1)          = dir;
+            obj.Results.depthAveragedSpeed(i,1)     = sqrt(sum(nanmean(uvwBar(1:2,:,:),2).^2,1));
             obj.Results.bapt_fRange(1:2,i)          = fRange(:);
             obj.Results.bapt_N(1:nBins,i)           = N(:);
             obj.Results.bapt_K(1:nBins,i)           = K(:);
@@ -325,7 +326,6 @@ classdef ADCPAnalysis < InstrumentAnalysis
             obj.Results.lew_deltac(i,1)             = profile.deltac;
             obj.Results.lew_kappa(i,1)              = profile.kappa;
             obj.Results.lew_resnorm(i,1)            = profile.resnorm;
-            
         end
         
         

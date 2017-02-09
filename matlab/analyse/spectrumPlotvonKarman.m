@@ -1,15 +1,19 @@
-function lh = spectrumPlotvonKarman(f, uvwBar, jLi, sigma, varargin)
+function lh = spectrumPlotvonKarman(f, uvwBar, jLi, varargin)
 
-[asdout] = spectrumVonKarmanBasic(jLi, uvwBar, f, sigma);
+if nargin > 3
+    [asdout] = spectrumVonKarmanBasic(jLi, uvwBar, f, varargin{1});
+else
+    [asdout] = spectrumVonKarmanBasic(jLi, uvwBar, f);
+end
 
 % 1 x 3 boolean mask. True plots that column.
 if nargin > 6
-    asdout(:,~varargin{3}) = [];
+    asdout(:,~varargin{4}) = [];
 end
 
 hold on
 if nargin > 5
-    lh = plot(f, bsxfun(@plus,asdout,(varargin{2}(:)').^2));
+    lh = plot(f, bsxfun(@plus,asdout,(varargin{3}(:)').^2));
 else
     lh = plot(f, asdout);
 end
@@ -18,8 +22,8 @@ end
 m = max(asdout(:));
 
 % Add frequency limits
-if (nargin > 4) && ~isempty(varargin{1})
-    flim = varargin{1};
+if (nargin > 4) && ~isempty(varargin{2})
+    flim = varargin{2};
     
     lh2 = plot([flim(1) flim(1)], [0 m],'r--');
     lh3 = plot([flim(2) flim(2)], [0 m],'r--');
