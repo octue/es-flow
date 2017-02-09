@@ -179,18 +179,19 @@ switch opts.filter
         error('MATLAB:InvalidInput','Input ''filter'' parameter set to an unrecognised string. Try ''none'', ''sgolay'' or ''moving''')
 end
 
+dispnow('WARNING FLOWDIRECTION INVALID - PRODUCES DISCONTINUITY')
 direction = atan2d(vFilt, uFilt);
-dispnow('WARNING HACKING FLOWDIRECTION FOR MEYGEN SENTINEL - FIXME')
-if nanmean(uFilt(:)) < 0
-    % Avoid wrapping through the discontinuity caused by the arctan function
-    mask = direction>0;
-    direction(mask) = direction(mask) - 360;
-else
-    
-    % Avoid wrapping through the discontinuity caused by the arctan function
-    mask = direction<0;
-    direction(mask) = direction(mask) + 360;
-end
+% Hacked solution for Meygen Sentinel V:
+% if nanmean(uFilt(:)) < 0
+%     % Avoid wrapping through the discontinuity caused by the arctan function
+%     mask = direction>0;
+%     direction(mask) = direction(mask) - 360;
+% else
+%     
+%     % Avoid wrapping through the discontinuity caused by the arctan function
+%     mask = direction<0;
+%     direction(mask) = direction(mask) + 360;
+% end
 
 
 %% GRAPHICAL OUTPUT
