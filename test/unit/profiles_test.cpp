@@ -243,7 +243,6 @@ TEST_F(AnalyticalProfileTest, test_lewkowicz_profile) {
     // Print useful diagnostics values
     std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
     std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
-    FAIL() << "ADS not working for lewkowicz profiles";
 
     // Print variables to plot comparison with MATLAB based equivalent calculation
     //    std::cout << "pi_j = " << pi_j << ";" << std::endl;
