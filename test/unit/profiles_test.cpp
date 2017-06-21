@@ -25,6 +25,7 @@
 #include "gtest/gtest.h"
 #include "profile.h"
 #include "relations/velocity.h"
+#include "relations/stress.h"
 #include "constants.h"
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -233,6 +234,11 @@ TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
 
 TEST_F(AnalyticalProfileTest, test_r13_profile) {
     // Get an R13 profile from a basic parameter set
+
+    // Test a basic integrator out
+    double arg = 0.0;
+    double res = do_something(arg);
+
     std::cout << "test_r13_profile" << std::endl;
 }
 

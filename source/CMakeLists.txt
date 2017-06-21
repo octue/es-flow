@@ -38,9 +38,9 @@ set(SOURCE_FILES
         profile.cpp profile.h
         readers.cpp readers.h
         variable_readers.h
-        window.cpp window.h)
-add_library(flow STATIC ${SOURCE_FILES})
+        window.cpp window.h utilities/cumtrapz.h)
+add_library(flow STATIC ${SOURCE_FILES} utilities/cumtrapz.h)
 
 # The hello world function which gives an executable target for the library
-add_executable(es_flow main.cpp)
+add_executable(es_flow main.cpp utilities/cumtrapz.h)
 target_link_libraries(es_flow ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${MATIO_LIBRARIES})
