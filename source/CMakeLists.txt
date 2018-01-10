@@ -16,6 +16,12 @@ include_directories(${MKL_INCLUDE_DIRS})
 find_package(MATIO REQUIRED)
 include_directories(${MATIO_INCLUDE_DIRS})
 
+# Add include directories so the test routines can pick up the library contents
+include_directories(relations)
+
+# Add the souce and test directories
+add_subdirectory(relations)
+
 # Add the flow library
 set(SOURCE_FILES
         adem_analysis.cpp
@@ -27,18 +33,14 @@ set(SOURCE_FILES
         fit_profiles.h
         instrument_analysis.cpp
         instrument_analysis.h
-        profiles_velocity.cpp
-        profiles_velocity.h
-        profiles_spectrum.cpp
-        profiles_spectrum.h
-        profiles_stress.cpp
-        profiles_stress.h
+        relations/velocity.cpp
+        relations/velocity.h
         profile.cpp profile.h
         readers.cpp readers.h
         variable_readers.h
-        window.cpp window.h)
-add_library(flow STATIC ${SOURCE_FILES})
+        window.cpp window.h utilities/cumtrapz.h)
+add_library(flow STATIC ${SOURCE_FILES} utilities/cumtrapz.h)
 
 # The hello world function which gives an executable target for the library
-add_executable(es_flow main.cpp)
+add_executable(es_flow main.cpp utilities/cumtrapz.h)
 target_link_libraries(es_flow ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${MATIO_LIBRARIES})

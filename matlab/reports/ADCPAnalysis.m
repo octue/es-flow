@@ -40,6 +40,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
           WindowInds          % 
           WindowDuration
           WindowOffset
+          ResultsFileName
           
     end
     
@@ -54,6 +55,9 @@ classdef ADCPAnalysis < InstrumentAnalysis
             % Call superclass constructor and add the datafile
             obj@InstrumentAnalysis(varargin{:})
             obj.SetDataFiles('files', datafile);
+            
+            % Set the instrument type
+            obj.InstrumentType = 'ADCP';
             
             % Check that the input is a .adcp file
             assert(ischar(obj.DataFiles), 'Single OAS format .adcp file must be used to create an ADCPAnalysis.')
@@ -72,6 +76,7 @@ classdef ADCPAnalysis < InstrumentAnalysis
                 exists = exist(res_file, 'file');
                 ctr = ctr + 1;
             end
+            obj.ResultsFileName = res_file;
             obj.Results = matfile(res_file,'Writable',true);
             
             % This forces creation of the mat file
@@ -127,11 +132,12 @@ classdef ADCPAnalysis < InstrumentAnalysis
             
             % Attach the new file
             obj.Results = newres;
+            obj.ResultsFileName = file;
             
         end
         
         
-        function SetWindowing(obj, overlap, type, len)
+        function SetWindowing(obj, overlap, type, len, maxNWindows)
             
             % Error check the overlap value
             assert(overlap < 1, 'Overlapping of 1 or more creates an infinite series of windows. Recommended overlap is 0 or 0.5')
@@ -171,7 +177,15 @@ classdef ADCPAnalysis < InstrumentAnalysis
             windowStart = 1:obj.WindowOffset:nPoints;
             windowEnd = obj.WindowLength:obj.WindowOffset:nPoints;
             windowStart = windowStart(1:numel(windowEnd));
-            obj.WindowInds = [windowStart(:)';windowEnd(:)'];
+            obj.WindowInds = [windowStart(:)'; windowEnd(:)'];
+            
+            % Limit number of windows. Useful for quick testing.
+            if nargin > 4 && maxNWindows > 0
+                nWindows = min([numel(windowEnd), maxNWindows]);
+            else
+                nWindows = numel(windowEnd);
+            end
+            obj.WindowInds = obj.WindowInds(:, 1:nWindows);
             
         end
         
