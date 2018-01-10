@@ -1,8 +1,11 @@
 
 include(FindPackageHandleStandardArgs)
 
-find_path(CXXOPTS_INCLUDE_DIRS cxxopts.hpp PATHS ${THIRD_PARTY_DIR}/cxxopts/include)
-
+find_path(CXXOPTS_INCLUDE_DIRS cxxopts.hpp HINTS ${THIRD_PARTY_DIR}/cxxopts/include)
+find_path(TBB_INCLUDE_DIRS tbb/tbb.h
+        HINTS ${TBB_INCLUDE_DIR} ${TBB_SEARCH_DIR}
+        PATHS ${TBB_DEFAULT_SEARCH_DIR}
+        PATH_SUFFIXES include)
 # Handle the QUIETLY and REQUIRED arguments and set MATIO_FOUND to TRUE if all listed variables are TRUE
 find_package_handle_standard_args(CXXOPTS DEFAULT_MSG CXXOPTS_INCLUDE_DIRS)
 
