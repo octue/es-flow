@@ -7,6 +7,10 @@ include_directories(${CXXOPTS_INCLUDE_DIRS})
 find_package(Ceres REQUIRED)
 include_directories(${CERES_INCLUDE_DIRS})
 
+# Add argument parsing tool
+find_package(NumericalIntegration REQUIRED)
+include_directories(${NUMINT_INCLUDE_DIRS})
+
 # Add Intel MKL dependency
 set(MKL_MULTI_THREADED "1")
 find_package(MKL REQUIRED)

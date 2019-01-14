@@ -22,17 +22,6 @@ The folder structure is arranged as:
 Code style, includes and project structure should conform to the [Google C++ style guide](https://google.github.io/styleguide/cppguide.html) 
 
 
-## First party dependencies
-
-Other OAS-owned repsitories which are used by es-flow:
-
-**es-instruments-x** Provides ascii and binary file readers for specific instrument types, from given manufacturers.
-
-**utils** Provides utilities for general data processing and management.
-
-**tg-engine** Provides numerical application of the biot savart equation for a collection of line vortices.
-
-
 ## Third party dependencies
  
 We are currently using:
@@ -56,8 +45,6 @@ We are currently using:
 [**sphinx_rtd_theme**](https://github.com/snide/sphinx_rtd_theme) gives us the excellent looking ReadTheDocs theme for our HTML documentation.
 
 We're not yet committed to any of the following, but a range of possibly useful libraries is::
- 
-[**Armadillo**](http://arma.sourceforge.net) provides an extensive linear algebra library with a MATLAB-like API.
 
 [**CppNumericalSolvers**](https://github.com/PatWie/CppNumericalSolvers) provides a directly analagous alternative to MATLAB's `fminsearch()`.
 
