@@ -1,4 +1,4 @@
-function profile = fitMeanProfile(z, Ux, weights, x0, constrained, type)
+function profile = fitSpectralProfile(z, Ux, weights, x0, constrained, type)
 %FITMEANPROFILE Least square fit to find mean boundary layer parameters.
 % Perform a least squares fit to ascertain mean boundary layer parameters, for a
 % range of different analytical profiles.
@@ -230,7 +230,7 @@ end
 
 
 
-function [fx] = lewkowicz(x, xData, kappa, weights, cons)
+function [fx] = perryMarusic(x, kappa, z, f, cons)
 
 % Splice varying values in x with constrained values to make a parameters vector
 params = cons;
@@ -241,9 +241,35 @@ Pi      = params(1);
 S       = params(2);
 deltac  = params(3);
 U1      = params(4);
+zeta    = params(5);
+beta    = params(6);
 
-% Get parameters out of xData
-z = xData(:,1);
+% Run adem for the 6 parameters
+adem(z, Pi, S, deltac, U1, beta, zeta)
+
+% You get the following result
+%
+%     ademResult.z            = z;
+%     ademResult.eta          = eta;
+%     ademResult.lambdaE      = lambdaE;
+%     ademResult.deltac       = deltac;
+%     ademResult.U1           = U1;
+%     ademResult.Pi           = Pi;
+%     ademResult.S            = S;
+%     ademResult.zeta         = zeta;
+%     ademResult.beta       	= beta;
+%     ademResult.Ux           = Ux;
+%     ademResult.eddyTypes    = {'A','B1','B2','B3','B4'};
+%     ademResult.T2wA         = T2wA;
+%     ademResult.T2wB         = T2wB;
+%     ademResult.residualA    = residualA;
+%     ademResult.residualB    = residualB;
+%     ademResult.R            = R;
+%     ademResult.RA           = RA;
+%     ademResult.RB           = RB;
+%     ademResult.Psi          = Psi;
+%     ademResult.PsiA         = PsiA;
+%     ademResult.PsiB         = PsiB;
 
 % Nondimensional wall distance
 eta = z/deltac;

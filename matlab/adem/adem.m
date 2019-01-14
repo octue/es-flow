@@ -1,4 +1,4 @@
-function [ademResult] = adem(deltac, U1, Pi, S, zeta, beta)
+function [ademResult] = adem(deltac, U1, Pi, S, zeta, beta, eddyFile)
 %ADEM Runs the Attached-Detached Eddy Model for given boundary layer parameters
 % Uses the using the Lewkowicz (1982) formulation (Perry and Marusic eq.9) of
 % the Coles wake function to determine U(z), spectra and Reynolds Stresses from
@@ -13,36 +13,45 @@ function [ademResult] = adem(deltac, U1, Pi, S, zeta, beta)
 %       z           [nZ x 1]    Height in m above the wall at which output
 %                               profiles are required
 %       
+%       deltac      [1 x 1]     The boundary layer thickness in m
+%
+%       U1          [1 x 1]     The free stream speed in m/s
+%       
 %   	Pi          [1 x 1]     Coles wake parameter Pi
 %
 %       S           [1 x 1]     Ratio between free stream and friction velocity
 %                               S = U1/Utau
 %
-%       deltac      [1 x 1]     The boundary layer thickness in m
+%       zeta        [1 x 1]     Represents a scaled streamwise derivative of Pi
 %
-%       U1          [1 x 1]     The free stream speed in m/s
-%       
 %       beta        [1 x 1]     The Clauser parameter, representing
 %                               acceleration/decelaration of the boundary layer
 %
-%       zeta        [1 x 1]     Represents a scaled streamwise derivative of Pi
+%       eddyFile    char        Name of the eddy signatures file. If not given,
+%                               use default eddySignatures.mat in the
+%                               repository. If not present, compute
+%                               eddySignatures file.
 %
 % Outputs:
 %
-%       adem        structure   Contains the following fields:
+%       adem        structure   
 %
-%           .Ux         [nZ x 1]    Streamwise velocity in m/s at points
-%                                   corresponding to the heights in z
+%       k1z             [nZ x nK]   Wavenumber used to premultiply the power
+%                                   spectra
+
+%       g               [nZ x nk x 6]
+%                                   g(:,:,page) contains the eddy spectral
+%                                   function gij which is [nZ x nk] in size.
+%                                   Array pages contain gij ordered as:
+%                                       [g11 g12 g13 g22 g23 g33];
 %
-%           .z          [nZ x 1]    Heights above the wall
-%
-%           .Pi         [1 x 1]     As input
-%           .S          [1 x 1]     As input
-%           .deltac     [1 x 1]     As input
-%           .U1         [1 x 1]     As input
-%           .beta       [1 x 1]     As input
-%           .zeta       [1 x 1]     As input
-%
+%       J               [nZ x 6]    Jij contains the eddy intensity
+%                                   function Jij(lambda), which is [nZ x 1] in
+%                                   size. Note that the lower diagonal is not
+%                                   included due to symmetry of the Reynolds
+%                                   Stress Tensor. Array columns contain Jij,
+%                                   ordered as:
+%                                       [J11 J12 J13 J22 J23 J33];
 % Example:
 %   
 %   Replicate the Reynolds Stresses and Spectra from Skare and Krogstad 1994
@@ -71,18 +80,21 @@ function [ademResult] = adem(deltac, U1, Pi, S, zeta, beta)
 %
 % Copyright (c) 2014-2015 Ocean Array Systems, All Rights Reserved.
 
+if nargin < 7
+    % Read by default an 'eddysignatures.mat' file in the adem root directory
+    eddyFile = fullfile(fileparts(which('adem')), 'eddySignatures.mat');
+end
 
-% Establish eddy intensity and spectral functions
-eddyFile = 'eddySignatures.mat';
-path = fileparts(which('adem'));
-if exist(fullfile(path,eddyFile),'file')~=2
+% Compute or load eddy intensity and spectral functions
+if exist(eddyFile,'file')~=2
     [gA,  JA, k1z, lambda]  = getEddySpectra('A');
     [gB1, JB1] = getEddySpectra('B1');
     [gB2, JB2] = getEddySpectra('B2');
     [gB3, JB3] = getEddySpectra('B3');
     [gB4, JB4] = getEddySpectra('B4');
 else
-    s = load(eddyFile);
+    s = load(eddyFile)
+    e = s.eddy(1)
     k1z = s.eddy(1).k1z;
     lambda = s.eddy(1).lambda(:);
     gA = s.eddy(1).g;
@@ -114,16 +126,18 @@ z = eta*deltac;
 [R, RA, RB] = getReynoldsStresses(T2wA, T2wB, JA, JB);
 
 % Determine Spectra by convolution
-[Psi, PsiA, PsiB] = getSpectra(T2wA, T2wB, gA, gB);
+[Psi, PsiA, PsiB] = getSpectra(T2wA, T2wB, gA, gB, U1, S);
 
 % Assemble results into output
 ademResult.z            = z;
 ademResult.eta          = eta;
+ademResult.k1z          = k1z;
 ademResult.lambdaE      = lambdaE;
 ademResult.deltac       = deltac;
 ademResult.U1           = U1;
 ademResult.Pi           = Pi;
 ademResult.S            = S;
+ademResult.Utau         = U1/S
 ademResult.zeta         = zeta;
 ademResult.beta       	= beta;
 ademResult.Ux           = Ux;

@@ -1,4 +1,4 @@
-function [g, J, k1z, lambda, X, Y, Z, U, V, W] = getEddySpectra(varargin)
+function [g, J, k1z, lambda, X, Y, Z, U, V, W, Dx] = getEddySpectra(varargin)
 %GETEDDYSPECTRA Returns eddy spectral functions gij, with i=1:3, j=1:3
 % These are the signatures (in terms of turbulent fluctuations) that an
 % individual structure will contribute to a boundary layer. Also calculates
@@ -58,6 +58,8 @@ function [g, J, k1z, lambda, X, Y, Z, U, V, W] = getEddySpectra(varargin)
 %                                   1, together with its image in the wall (z =
 %                                   0), computed on the regular grid in X,Y,Z.
 %
+%       Dx              [1 x 1]     Physical grid spacing in m on which the
+%                                   wavenumber is based
 %
 % See Also: GETEDDYINTENSITY.M
 %
@@ -133,7 +135,7 @@ newU = zeros(size(U,1), size(U,2), numel(newZVec));
 newV = zeros(size(U,1), size(U,2), numel(newZVec));
 newW = zeros(size(U,1), size(U,2), numel(newZVec));
 dispstat(['Determining type ' type 'eddy spectral function...'],'init','timestamp')
-for i = 1:size(U,1);
+for i = 1:size(U,1)
     dispstat(['Determining type ' type 'eddy spectral function, profile ' num2str(i) ' of ' num2str(size(U,1)) '.'],'timestamp')
     for j = 1:size(U,2)        
         uvec = U(i,j,:);
@@ -168,7 +170,8 @@ Fk = Fk./size(Fi,2);
 Dx = X(1,2,1) - X(1,1,1);
 N = size(X,2);
 k1delta = (0:N-1)*2*pi/Dx;
-
+disp('szk1d')
+size(k1delta)
 % Integrate over the y direction for Gij (eqn 40)
 zVec = reshape(newZVec,[1 1 numel(newZVec)]);
 deltaOnz = repmat(1./zVec, [1 size(Z,2) 1]);

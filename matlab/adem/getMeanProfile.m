@@ -107,7 +107,7 @@ u(eta>=1) = uBar1;
 
 Ux = u;
 
-
+% From viks code - different result?!!
 term1 = log(eta)/kappa;
 term2 = (eta.^3 - 1)/(3*kappa);
 term3 = 2*Pi*(1 - 3*eta.^2 + 2*eta.^3)/kappa;
@@ -117,6 +117,9 @@ u = u_bar;
 
 % Outputs
 ux2 = u;
+
+
+
 
 
 

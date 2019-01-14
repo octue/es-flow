@@ -310,8 +310,9 @@ if nargin == 1
     disp(['         RunMode: ' num2str(RunMode)         ])
     disp(['       GPUParams: [' num2str(GPUParams) ']'  ])
     disp(['        MEX File: ' which('biotSavart')      ])
-    [uind, ~] = biotSavart(startNodes', endNodes', locations', gamma, rcEffSqd, CoreModel, CutOff, RunMode, GPUParams);
-
+    outerLoop = true;
+    
+    uind = biotsavart(startNodes', endNodes', locations', gamma, rcEffSqd, CoreModel, outerLoop);
     % If we wish to save a test case for the biot savart code (it's a useful one
     % becuse of the fine and regular grid - NaNs pop up where the line vortex
     % elements are collinear with grid points. These NaNs are checked for and
