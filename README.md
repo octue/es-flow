@@ -24,13 +24,15 @@ Code style, includes and project structure should conform to the [Google C++ sty
 
 ## Third party dependencies
  
-We are currently using:
+### Currently in use
  
 [**Intel MKL**]() to provide FFT and other performance primitives.
  
 [**ceres-solver**](http://ceres-solver.org/index.html#), a well supported project by Google, is used for nonlinear least squares optimisation.
 
-[**Eigen**](http://eigen.tuxfamily.org/) provides a linear algebra library. It isn't as consistent with MATLAB's API as armadillo, but is used extensively in ceres-solver so might be sensible to use in other areas of development too.
+[**Eigen**](http://eigen.tuxfamily.org/) provides a linear algebra library. It isn't as consistent with MATLAB's API as armadillo, but is used extensively in ceres-solver and elsewhere so is our selected library of choice.
+
+[**NumericalIntegration**](https://github.com/thclark/NumericalIntegration) NB This fork avoids compiling against the GPL licensed MPFRC++ library. Provides a numerical integration module for eigen. It's weird that it's not an unsupported module in eigen ([see this thread](https://bitbucket.org/eigen/eigen/pull-requests/109/numerical-integration-module-for-eigen/diff)) given that NumericalDiff *is* part of eigen.
 
 [**matio**](https://github.com/tbeu/matio) read and write tools for MATLAB .mat format files, including recent v7.3 (HDFS) file formats. Much higher level than writing the HDF5 files ourselves.
 
@@ -44,7 +46,12 @@ We are currently using:
 
 [**sphinx_rtd_theme**](https://github.com/snide/sphinx_rtd_theme) gives us the excellent looking ReadTheDocs theme for our HTML documentation.
 
+
+### For consideration and possible future use
+
 We're not yet committed to any of the following, but a range of possibly useful libraries is::
+
+[**gflags**](https://github.com/gflags/gflags) is an optional alternative to cxxopts, which is more widely supported and already used by ceres (i.e. installed already as part of the build chain). We have an issue open to change over (see #18) to gflags.
 
 [**CppNumericalSolvers**](https://github.com/PatWie/CppNumericalSolvers) provides a directly analagous alternative to MATLAB's `fminsearch()`.
 
@@ -53,6 +60,7 @@ We're not yet committed to any of the following, but a range of possibly useful 
 [**Tino Kluge**](http://kluge.in-chemnitz.de/opensource/spline/) maintains a spline interpolant library with linear extrapolation.
 
 [**eigen-matio**](https://github.com/tesch1/eigen-matio) could be useful for reading and writing eigen matrix types to mat files.
+
 
 ### Third party library installation (OSX)
 
@@ -72,8 +80,16 @@ brew install homebrew/science/ceres-solver
 **cxxopts:**
 Not necessary to install if simply deploying executables, as it's a header only library. To build es-flow, cxxopts must be installed alongside es-flow. From the es-flow root directory:
 ```bash
-cd ..
+cd ../thirdparty
 git clone https://github.com/jarro2783/cxxopts
+```
+Then using cmake to build es-flow will find the headers correctly.
+
+**NumericalIntegration:**
+Not necessary to install if simply deploying executables, as it's a header only library. To build es-flow, NumericalIntegration must be installed alongside es-flow. From the es-flow root directory:
+```bash
+cd ../thirdparty
+git clone https://github.com/thclark/NumericalIntegration
 ```
 Then using cmake to build es-flow will find the headers correctly.
 
@@ -83,6 +99,7 @@ brew install python
 pip install Sphinx
 pip install sphinx_rtd_theme
 ```
+
 
 ### Third party library installation (Linux)
 
@@ -96,10 +113,6 @@ Build process includes MATLAB based mex files for library functionality - requir
 
 ## Application Configuration
 
-### Configuration
-
-A 'default' configuration (app/config/default.py) is included which lists all settings and descriptions.
-
 NOTE: Private access passwords and keys SHOULD NOT BE STORED IN A CODE REPOSITORY. Set your server environment up to define these keys (and other custom settings) via environment variables.
 
 ### Environment Variables
@@ -108,19 +121,13 @@ The following environment variables are required for the app to operate:
 
 | **Name** | **Example** | **Description** |
 | --- | --- | --- |
-| TEST_DATA_DIR| /Users/thc29/Source/OAS/es-flow/test/test_data | The file path (absolute or relative to the application working directory) of the test data directory, WITHOUT trailing slash.|
-### Requirements
+| TEST_DATA_DIR| /Users/thc29/Source/octue/es-flow/test/test_data | The file path (absolute or relative to the application working directory) of the test data directory, WITHOUT a trailing slash.|
 
-The `requirements.txt` file is used to install the app's package dependencies. It is recommended that the versions and packages specified are updated in this file, as upgrades to packages should be considered part of version control, and be unit tested prior to deploymment.
-
-The deployment process (below) describes the use of pip to ensure that the packages/versions actually installed match those in `requirements.txt`.
 
 ## Unit Testing
 
 Unit testing is done with the google test framework and requires the following data files/folders to be installed in the TEST_DATA_DIR directory (see 'Environment Variables'):
 
 - **fake_lidar_basic.mat** (generated by script `make_fake_lidar_basic.m`) which contains example lidar data for a basic lidar data structure (defined within the script). This .mat file is large (assumes high resolution temporal data over a long time). Actual flow profiles are not really valid; it's mostly just randomised data for unit testing purposes."
-
-- **
 
 

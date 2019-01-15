@@ -2,13 +2,15 @@
 # Add argument parsing tool
 find_package(CXXOPTS REQUIRED)
 include_directories(${CXXOPTS_INCLUDE_DIRS})
+#find_package(NUMINT REQUIRED)
+#include_directories(${NUMINT_INCLUDE_DIRS})
 
 # Add ceres-solver dependency
 find_package(Ceres REQUIRED)
 include_directories(${CERES_INCLUDE_DIRS})
 
-# Add argument parsing tool
-find_package(NumericalIntegration REQUIRED)
+# Add numerical integration for eigen
+find_package(NUMINT REQUIRED)
 include_directories(${NUMINT_INCLUDE_DIRS})
 
 # Add Intel MKL dependency
@@ -42,8 +44,10 @@ set(SOURCE_FILES
         profile.cpp profile.h
         readers.cpp readers.h
         variable_readers.h
-        window.cpp window.h utilities/cumtrapz.h)
+        window.cpp window.h
+        utilities/cumtrapz.h)
 add_library(flow STATIC ${SOURCE_FILES} utilities/cumtrapz.h)
+
 
 # The hello world function which gives an executable target for the library
 add_executable(es_flow main.cpp utilities/cumtrapz.h)

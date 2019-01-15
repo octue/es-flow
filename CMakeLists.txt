@@ -26,6 +26,7 @@ set(MATLAB_LIBS
         -lmex
         -lmat
         -lmwmathutil)
+MESSAGE("-- Using dynamic library extension (platform dependent): ${CMAKE_SHARED_LIBRARY_SUFFIX}")
 if(${CMAKE_SHARED_LIBRARY_SUFFIX} STREQUAL ".dylib")
     set(ARCH maci64)
     set(MATLAB_ROOT /Applications/MATLAB_R2016a.app)

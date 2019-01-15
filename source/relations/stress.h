@@ -6,13 +6,12 @@
 #ifndef SOURCE_RELATIONS_STRESS_H_
 #define SOURCE_RELATIONS_STRESS_H_
 
+#include "/Users/thc29/Source/octue/thirdparty/NumericalIntegration/NumericalIntegration.h"
 #include <Eigen/Dense>
 #include <Eigen/Core>
-//#include <NumericalIntegration.h>
 #include "profile.h"
 #include <iostream>
 #include <iomanip>
-#include <unsupported/Eigen/NumericalIntegration>
 
 using namespace Eigen;
 
