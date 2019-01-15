@@ -7,10 +7,10 @@ add_subdirectory(relations)
 
 # Add the flow library
 set(SOURCE_FILES
-        adem_analysis.cpp
-        adem_analysis.h
-        adem_signature.cpp
-        adem_signature.h
+        adem/analysis.cpp
+        adem/analysis.h
+        adem/signature.cpp
+        adem/signature.h
         data_types.h
         fit_profiles.cpp
         fit_profiles.h
