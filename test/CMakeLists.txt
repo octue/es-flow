@@ -1,8 +1,4 @@
 
-# Add ceres-solver dependency
-find_package(Ceres REQUIRED)
-include_directories(${CERES_INCLUDE_DIRS})
-
 # List the unit test files
 set(UNIT_TEST_SOURCE_FILES
         unit/adem_analysis_test.cpp
@@ -11,7 +7,8 @@ set(UNIT_TEST_SOURCE_FILES
         unit/instrument_analysis_test.cpp
         unit/profiles_test.cpp
         unit/window_test.cpp
-        unit/readers_test.cpp ../source/utilities/cumtrapz.h)
+        unit/readers_test.cpp
+        ../source/utilities/cumtrapz.h)
 
 # Include google test
 enable_testing()
@@ -19,7 +16,7 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 # The unit test executable
-add_executable(es_flow_test ${UNIT_TEST_SOURCE_FILES} ../source/utilities/cumtrapz.h)
+add_executable(es_flow_test ${UNIT_TEST_SOURCE_FILES})
 
 # Link the google test libraries
 target_link_libraries(es_flow_test ${GTEST_BOTH_LIBRARIES})
