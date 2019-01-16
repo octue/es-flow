@@ -3,8 +3,8 @@
  *
  */
 
-#ifndef SOURCE_RELATIONS_VELOCITY_H_
-#define SOURCE_RELATIONS_VELOCITY_H_
+#ifndef SOURCE_RELATIONS_VELOCITY_H
+#define SOURCE_RELATIONS_VELOCITY_H
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -209,4 +209,4 @@ namespace es {
 
 } /* namespace es */
 
-#endif /* SOURCE_RELATIONS_VELOCITY_H_ */
+#endif /* SOURCE_RELATIONS_VELOCITY_H */

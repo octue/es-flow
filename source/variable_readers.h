@@ -31,18 +31,31 @@
 #ifndef ES_FLOW_VARIABLE_READERS_H
 #define ES_FLOW_VARIABLE_READERS_H
 
+#include <iostream>
 #include <string>
 #include "matio.h"
 #include <eigen3/Eigen/Core>
+#include <unsupported/Eigen/CXX11/Tensor>
 
 using Eigen::Array;
 using Eigen::ArrayXXd;
 using Eigen::Vector3d;
 using Eigen::VectorXd;
-using Eigen::Dynamic;
+using Eigen::Tensor;
 
 namespace es {
 
+    /** Return the size (i.e. number of elements) in an array variable
+     * Comes from https://coderwall.com/p/nb9ngq/better-getting-array-size-in-c
+     *
+     * Example:
+     *  int arr[] = {1, 2, 3, 4, 5};
+     *  std::cout << array_size(arr) << std::endl;
+     *
+     */
+    template<size_t SIZE, class T> inline size_t array_size(T (&arr)[SIZE]) {
+        return SIZE;
+}
     void checkVariableType(matvar_t *mat_var, int matvar_type) {
 
         // Throw error if the requested data type does not match the saved data type
@@ -53,7 +66,15 @@ namespace es {
 
     }
 
-    matvar_t * getVariable(mat_t *matfp, const std::string var_name, bool print_var = true) {
+    /** Get pointer to a variable and check validity. Optionally print variable and check rank.
+     *
+     * @param matfp
+     * @param var_name
+     * @param print_var
+     * @param max_rank The maximum rank of the variable. Default 2 as everything is an array in MATLAB.
+     * @return
+     */
+    matvar_t * getVariable(mat_t *matfp, const std::string var_name, bool print_var = true, int max_rank = 2) {
 
         // Get the variable's structure pointer and check validity
         matvar_t *mat_var = Mat_VarRead(matfp, var_name.c_str());
@@ -68,9 +89,9 @@ namespace es {
             Mat_VarPrint(mat_var, true);
         }
 
-        // Crap out if rank > 2
-        if (mat_var->rank > 2) {
-            std::string msg = "Rank of variable " + var_name + " exceeds 2";
+        // Check the rank
+        if (mat_var->rank > max_rank) {
+            std::string msg = "Rank of variable " + var_name + " exceeds required rank of " + std::to_string(max_rank) ;
             throw std::invalid_argument(msg);
         }
 
@@ -174,6 +195,44 @@ namespace es {
                 ind = ind+1;
             }
         }
+
+        // Free the data pointer and return the new variable
+        Mat_VarFree(mat_var);
+        return var;
+
+    }
+
+    Tensor<double, 3> readTensor3d(mat_t *matfp, const std::string var_name, bool print_var) {
+
+        // Get the variable's structure pointer and check validity for rank 3
+        matvar_t *mat_var = getVariable(matfp, var_name, print_var, 3);
+
+        // Read an array. We always read as eigen arrays, not matrices, as these are far more flexible.
+        // Can easily cast to matrix type later if linear algebra functionality is needed.
+        long int dim0 = mat_var->dims[0];
+        long int dim1 = mat_var->dims[1];
+        long int dim2 = mat_var->dims[2];
+        Eigen::Tensor<double, 3> var(2, 3, 4);
+//        Tensor<double, 3> var;
+//        var = Tensor<double, 3>(mat_var->dims[0],  mat_var->dims[1], mat_var->dims[2]);
+//
+//        // Copy the data into the native Eigen types. However, we can also map to data already in
+//        // memory which avoids a copy. Read about mapping here:
+//        // http://eigen.tuxfamily.org/dox/group__TutorialMapClass.html
+//        // TODO consider mapping to reduce peak memory overhead
+//        double *var_d = (double *) mat_var->data;
+//        long int i = 0;
+//        long int j = 0;
+//        long int k = 0;
+//        long int ind = 0;
+//        for (k = 0; k < var.dimensions()[2]; k++) {
+//            for (j = 0; j < var.dimensions()[1]; j++) {
+//                for (i = 0; i < var.dimensions()[0]; i++) {
+//                    var(i, j, k) = var_d[ind];
+//                    ind = ind + 1;
+//                }
+//            }
+//        }
 
         // Free the data pointer and return the new variable
         Mat_VarFree(mat_var);

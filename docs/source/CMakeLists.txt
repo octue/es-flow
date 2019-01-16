@@ -11,8 +11,11 @@ install(DIRECTORY ${SPHINX_HTML_DIR}
         PATTERN "${SPHINX_HTML_DIR}/*")
 
 # Building using 'make_docs.py' python script
-#add_custom_target(es_flowdoc ALL ${SPHINX_EXECUTABLE} -b html "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/_build" COMMENT Building documentation)
-
+#
+# NOTE: For this to work, you may need to be running in a virtual environment having done:
+#   pip install sphinx
+#   pip install sphinx-rtd-theme
+#
 add_custom_target(es_flow_docs ALL
         python
         "${CMAKE_SOURCE_DIR}/scripts/make_docs.py"

@@ -7,7 +7,7 @@ set(UNIT_TEST_SOURCE_FILES
         unit/instrument_analysis_test.cpp
         unit/profiles_test.cpp
         unit/window_test.cpp
-        unit/readers_test.cpp
+#        unit/readers_test.cpp
         ../source/utilities/cumtrapz.h)
 
 # Include google test

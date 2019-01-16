@@ -1,5 +1,5 @@
 /*
- * Signature.h
+ * signature.h
  *
  *  Created on: 29 Nov 2016
  *      Author: thc29

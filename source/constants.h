@@ -1,5 +1,5 @@
 /*
- * constants.h Brief overview sentence
+ * constants.h
  *
  * References:
  *
@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef ES_FLOW_CONSTANTS_H
-#define ES_FLOW_CONSTANTS_H
+#ifndef SOURCE_CONSTANTS_H
+#define SOURCE_CONSTANTS_H
 
 // Rotational speed of the world in rad/s
 double omega_world = 7.2921159e-05;
@@ -34,4 +34,4 @@ double omega_world = 7.2921159e-05;
 #define asind(x) (asin(x) * 180 / M_PI)
 #define acosd(x) (acos(x) * 180 / M_PI)
 
-#endif //ES_FLOW_CONSTANTS_H
+#endif //SOURCE_CONSTANTS_H
