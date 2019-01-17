@@ -20,7 +20,6 @@ set(SOURCE_FILES
         profile.cpp profile.h
         readers.cpp readers.h
         variable_readers.h
-        window.cpp window.h
         utilities/cumtrapz.h)
 add_library(flow STATIC ${SOURCE_FILES})
 
