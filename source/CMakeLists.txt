@@ -14,8 +14,6 @@ set(SOURCE_FILES
         data_types.h
         fit_profiles.cpp
         fit_profiles.h
-        instrument_analysis.cpp
-        instrument_analysis.h
         relations/velocity.cpp
         relations/velocity.h
         relations/stress.h
