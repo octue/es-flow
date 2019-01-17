@@ -42,6 +42,7 @@ using Eigen::ArrayXXd;
 using Eigen::Vector3d;
 using Eigen::VectorXd;
 using Eigen::Tensor;
+using Eigen::Dynamic;
 
 namespace es {
 
@@ -55,7 +56,8 @@ namespace es {
      */
     template<size_t SIZE, class T> inline size_t array_size(T (&arr)[SIZE]) {
         return SIZE;
-}
+    }
+
     void checkVariableType(matvar_t *mat_var, int matvar_type) {
 
         // Throw error if the requested data type does not match the saved data type
@@ -207,32 +209,32 @@ namespace es {
         // Get the variable's structure pointer and check validity for rank 3
         matvar_t *mat_var = getVariable(matfp, var_name, print_var, 3);
 
-        // Read an array. We always read as eigen arrays, not matrices, as these are far more flexible.
-        // Can easily cast to matrix type later if linear algebra functionality is needed.
-        long int dim0 = mat_var->dims[0];
-        long int dim1 = mat_var->dims[1];
-        long int dim2 = mat_var->dims[2];
-        Eigen::Tensor<double, 3> var(2, 3, 4);
-//        Tensor<double, 3> var;
-//        var = Tensor<double, 3>(mat_var->dims[0],  mat_var->dims[1], mat_var->dims[2]);
-//
-//        // Copy the data into the native Eigen types. However, we can also map to data already in
-//        // memory which avoids a copy. Read about mapping here:
-//        // http://eigen.tuxfamily.org/dox/group__TutorialMapClass.html
-//        // TODO consider mapping to reduce peak memory overhead
-//        double *var_d = (double *) mat_var->data;
-//        long int i = 0;
-//        long int j = 0;
-//        long int k = 0;
-//        long int ind = 0;
-//        for (k = 0; k < var.dimensions()[2]; k++) {
-//            for (j = 0; j < var.dimensions()[1]; j++) {
-//                for (i = 0; i < var.dimensions()[0]; i++) {
-//                    var(i, j, k) = var_d[ind];
-//                    ind = ind + 1;
-//                }
-//            }
-//        }
+        // Read the tensor
+        // TODO this code typecasts from size_t to long int, meaning possible data loss for very large arrays. Add a check.
+        Eigen::Index dim0 = mat_var->dims[0];
+        Eigen::Index dim1 = mat_var->dims[1];
+        Eigen::Index dim2 = mat_var->dims[2];
+        // std::cout  << "Initialising Tensor of size: " << dim0 << ", " << dim1 << ", "  << dim2 << std::endl;
+        Eigen::Tensor<double, 3> var = Eigen::Tensor<double, 3>(dim0, dim1, dim2);
+        var.setZero();
+
+        // Copy the data into the native Eigen types. However, we can also map to data already in
+        // memory which avoids a copy. Read about mapping here:
+        // http://eigen.tuxfamily.org/dox/group__TutorialMapClass.html
+        // TODO consider mapping to reduce peak memory overhead
+        double *var_d = (double *) mat_var->data;
+        long int i = 0;
+        long int j = 0;
+        long int k = 0;
+        long int ind = 0;
+        for (k = 0; k < var.dimensions()[2]; k++) {
+            for (j = 0; j < var.dimensions()[1]; j++) {
+                for (i = 0; i < var.dimensions()[0]; i++) {
+                    var(i, j, k) = var_d[ind];
+                    ind = ind + 1;
+                }
+            }
+        }
 
         // Free the data pointer and return the new variable
         Mat_VarFree(mat_var);

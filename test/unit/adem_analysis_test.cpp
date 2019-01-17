@@ -55,54 +55,40 @@ protected:
 
 TEST_F(AdemAnalysisTest, test_analysis) {
 
-    // Construct an eddy signature object
-    EddySignature sig = EddySignature();
+    // Ensemble signatures as we load them
+    EddySignature signature_a = EddySignature();
+    signature_a.load(data_path + std::string("/signatures_A.mat"));
+    EddySignature signature_b = EddySignature();
+    signature_b.load(data_path + std::string("/signatures_B1.mat"));
+    EddySignature signature_bx = EddySignature();
+    signature_bx.load(data_path + std::string("/signatures_B2.mat"));
+    signature_b = signature_b + signature_bx;
+    signature_bx.load(data_path + std::string("/signatures_B3.mat"));
+    signature_b = signature_b + signature_bx;
+    signature_bx.load(data_path + std::string("/signatures_B4.mat"));
+    signature_b = signature_b + signature_bx;
 
-    // Load a signature file
-    std::string file_name = data_path + std::string("/signatures_A.mat");
-    sig.load(file_name);
+    // Basic test parameters
+    double pi_coles = 0.42;
+    double kappa = 0.41;
+    double delta_c = 1000.0;
+    double u_inf = 20.0;
+    double shear_ratio = 23.6;
+    double u_tau = u_inf / shear_ratio;
+    double z_0 = 0.0;
+    double beta = 0.0;
+    double zeta = 0.0;
 
-//    std::cout << "test_analysis" << std::endl;
-//
-//    // Basic test parameters
-//    double pi_coles = 0.42;
-//    double kappa = 0.41;
-//    double delta = 1000.0;
-//    double u_inf = 20.0;
-//    double s = 23.6;
-//    double u_tau = u_inf / s;
-//    double z_0 = 0.0;
-//    adem(delta_c, u_inf, pi_coles, s, beta, zeta)
-//    // Check that it works for a z value of type double
-//    double eta_doub = 1.0/delta;
-//    double speed1 = lewkowicz_speed(eta_doub, pi_coles, kappa, u_inf, u_tau);
-//    std::cout << "checked scalar double operation (U = " << speed1 << " m/s)" << std::endl;
-//
-//    // Check that it works for a VectorXd input (vertically spaced z)
-//    double low = 1;
-//    double high = 100;
-//    size_t n_bins = 100;
-//    VectorXd z = VectorXd::LinSpaced(n_bins, low, high);
-//    VectorXd eta = z.array() / delta;
-//    VectorXd speed = lewkowicz_speed(eta, pi_coles, kappa, u_inf, u_tau);
-//    std::cout << "checked VectorXd operation" << std::endl;
-//
-//    // Check that it works for an AutoDiffScalar
-//    // Also provides minimal example of how to get the derivative through the profile
-//    typedef Eigen::AutoDiffScalar<Eigen::VectorXd> ADScalar;
-//    ADScalar ads_eta;
-//    ADScalar ads_speed;
-//    VectorXd dspeed_dz;
-//    dspeed_dz.setZero(n_bins);
-//    for (int k = 0; k < n_bins; k++) {
-//    ads_eta.value() = eta[k];
-//    ads_eta.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the derivative guess each step
-//    ads_speed = lewkowicz_speed(ads_eta, pi_coles, kappa, u_inf, u_tau);
-//    dspeed_dz[k] = ads_speed.derivatives()[0] / delta;
-//    }
-//    std::cout << "checked AutoDiffScalar operation" << std::endl;
-//
-//    // Print useful diagnostics values
+    // Run ADEM for these parameters to get full spectra and stuff
+    AdemData data = adem(beta, delta_c, kappa, pi_coles, shear_ratio, u_inf, zeta, signature_a, signature_b);
+
+    // Load in the verification data (computed with MATLAB)
+//    AdemData check_data = AdemData();
+//    check_data.load(data_path + std::string("/adem_data_check.mat"));
+
+
+
+    // Print useful diagnostics values
 //    std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
 //    std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
 

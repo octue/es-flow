@@ -190,17 +190,16 @@ namespace es {
     template <>
     VectorXd lewkowicz_speed(VectorXd const & eta, const double pi_coles, const double kappa, const double u_inf, const double u_tau){
         VectorXd f, speed;
-        VectorXd term1 = eta.array().log()/(-1.0*kappa);
-//        std::cout << "term 1 = [" << term1.transpose() << "]" << std::endl;
+        VectorXd term1 = eta.array().log() / (-1.0*kappa);
         double term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
-//        std::cout << "term 2 = [" << term2 << "]" << std::endl;
         VectorXd term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;
-//        std::cout << "term 3 = [" << term3.transpose() << "]" << std::endl;
+        // std::cout << "term 1 = [" << term1.transpose() << "]" << std::endl;
+        // std::cout << "term 2 = [" << term2 << "]" << std::endl;
+        // std::cout << "term 3 = [" << term3.transpose() << "]" << std::endl;
         f = term1.array() + term2 - term3.array();
         for (int k = 0; k < f.size(); k++) {
             if (std::isinf(f[k])) {
                 f(k) = u_inf / u_tau;
-                std::cout << "here";
             }
         }
         speed = u_inf - f.array()*u_tau;

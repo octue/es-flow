@@ -36,6 +36,8 @@ include_directories(${MKL_INCLUDE_DIRS})
 find_package(MATIO REQUIRED)
 include_directories(${MATIO_INCLUDE_DIRS})
 
+#Add libboost (mainly for string and path manipulation)
+find_package(Boost REQUIRED)
 
 # Variables used for building mex files, platform independent
 # TODO shift to using find_package for MATLAB MEX https://cmake.org/cmake/help/v3.3/module/FindMatlab.html
