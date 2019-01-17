@@ -24,7 +24,15 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.todo', 'sphinx.ext.mathjax', 'sphinx.ext.ifconfig']
+# Breate and exhale are added as recommended by:
+#   https://exhale.readthedocs.io/en/latest/usage.html#usage-quickstart-guide
+extensions = [
+    'sphinx.ext.todo',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.ifconfig',
+    'breathe',
+    'exhale'
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -84,6 +92,36 @@ pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
+
+# -- Breathe and Exhale Configuration ------------------------------------------
+
+# Setup the breathe extension
+breathe_projects = {
+    "My Project": "./doxyoutput/xml"
+}
+breathe_default_project = "My Project"
+
+# Setup the exhale extension
+exhale_args = {
+    # These arguments are required
+    "containmentFolder":     "./library_api",
+    "rootFileName":          "library_root.rst",
+    "rootFileTitle":         "Library API",
+    "doxygenStripFromPath":  "../../",
+    # Suggested optional arguments
+    "createTreeView":        True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    # "treeViewIsBootstrap": True,
+    "exhaleExecutesDoxygen": True,
+    "exhaleDoxygenStdin":    "INPUT = ../../source ../../source/adem ../../source/relations"
+}
+
+# Tell sphinx what the primary language being documented is
+primary_domain = 'cpp'
+
+# Tell sphinx what the pygments highlight language should be
+highlight_language = 'cpp'
+
 
 # -- Options for HTML output ---------------------------------------------------
 

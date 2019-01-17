@@ -82,3 +82,5 @@ local.properties
 # Code Recommenders
 .recommenders/
 matlab/adem/eddySignatures.mat
+docs/source/doxyoutput/*
+docs/source/library_api/*

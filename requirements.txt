@@ -1,0 +1,6 @@
+
+# Required by the python script for building documentation
+sphinx
+sphinx_rtd_theme
+breathe
+exhale

@@ -29,6 +29,7 @@ to manage bug reports and feature requests.
    :hidden:
 
    installation
+   api/library_root
    license
    users
    supported_instruments
