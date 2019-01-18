@@ -95,7 +95,13 @@ namespace es {
      * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
      *
      * Power law speed is computed as:
-     * \f{eqnarray*}{\frac{\overline{U}}{\overline{U}_{ref}} & = & \left(\frac{z}{z_{ref}}\right)^{\alpha} \f}
+     *
+     * @f[
+     * \begin{eqnarray*}{
+     * {\frac{\overline{U}}{\overline{U}_{ref}} & = & \left(\frac{z}{z_{ref}}\right)^{\alpha}
+     * }
+     * \end{eqnarray*}
+     * @f]
      *
      * @param[in]  z     Height(s) in m at which you want to get speed.
      * @param[in]  u_ref Reference speed in m/s

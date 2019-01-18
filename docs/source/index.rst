@@ -20,7 +20,7 @@ f. Generate artificial flow fields for simulation purposes (fields for FVM/panel
 
 g. Provide an API for accessing artificial flow field properties (e.g. velocity fields) and/or saving the generated fields to OAS standard or industry standard files.
 
-We use the `GitHub Issue Tracker <https://github.com/oceanarraysystems/es-flow>`_
+We use the `GitHub Issue Tracker <https://github.com/octue/es-flow>`_
 to manage bug reports and feature requests.
 
 

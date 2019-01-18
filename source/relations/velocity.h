@@ -77,9 +77,19 @@ namespace es {
      * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
      *
      * Speed is computed as:
-     * \f{eqnarray*}{\frac{\overline{U}}{U_{\tau}} & = & \frac{1}{\kappa} \ln \left( \frac{z+z_0}{k_s} \right) + Br + \frac{\Pi_j}{\kappa} W_c[\eta, \Pi_j] \\ W_c[\eta, \Pi_j] & = & 2 \eta^2 \left( 3 - 2\eta \right) - \frac{1}{3\Pi_j}\eta^3 \\ \eta & = & \frac{z+z_0}{\delta + z_0} \f}
+     * @f[
+     * \begin{eqnarray*}{
+     * {\frac{\overline{U}}{U_{\tau}} & = & \frac{1}{\kappa} \ln \left( \frac{z+z_0}{k_s} \right) + Br + \frac{\Pi_j}{\kappa} W_c[\eta, \Pi_j] \\ W_c[\eta, \Pi_j] & = & 2 \eta^2 \left( 3 - 2\eta \right) - \frac{1}{3\Pi_j}\eta^3 \\ \eta & = & \frac{z+z_0}{\delta + z_0} \f}
+     * }
+     * \end{eqnarray*}
+     * @f]
      * which reduces to the relation:
-     * \f{eqnarray*}{U_{D}^{*} = \frac{U_\infty-\overline{U}}{U_{\tau}} = -\frac{1}{\kappa} \ln \left( \eta \right) + \frac{1}{3\kappa} \left(\eta^3 - 1 \right) + 2 \frac{\Pi_j}{\kappa} \left(1 - 3\eta^2 + 2\eta^3 \right) \f}
+     * @f[
+     * \begin{eqnarray*}{
+     * {U_{D}^{*} = \frac{U_\infty-\overline{U}}{U_{\tau}} = -\frac{1}{\kappa} \ln \left( \eta \right) + \frac{1}{3\kappa} \left(\eta^3 - 1 \right) + 2 \frac{\Pi_j}{\kappa} \left(1 - 3\eta^2 + 2\eta^3 \right) \f}
+     * }
+     * \end{eqnarray*}
+     * @f]
      *
      * @param[in]  z        Height(s) in m at which you want to get speed.
      * @param[in]  pi_j     Jones' modification of the Coles wake factor. Double or AutoDiffScalar type acccepted.
@@ -125,10 +135,20 @@ namespace es {
      * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
      * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
      *
+     * @f[
+     * \begin{eqnarray*}{
+     *
+     * }
+     * \end{eqnarray*}
+     * @f]
+     *
      * Translated from MATLAB:
+     * \code
      * function wc = colesWake(eta, Pi)
      *     wc = 2*eta.^2.*(3-2*eta) - (1/Pi).*eta.^2.*(1-eta).*(1-2*eta);
-     * end
+*    * end
+     * \endcode
+     *
      *
      * @param[in]  eta          Nondimensional height values
      * @param[in]  capital_pi   The coles wake parameter Pi
@@ -161,16 +181,18 @@ namespace es {
      * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
      *
      * Translated from MATLAB:
+     * \code
      * function [f] = getf(eta, Pi, kappa, S)
      *     f = (-1/kappa)*log(eta) + (Pi/kappa)*colesWake(1,Pi)*ones(size(eta)) - (Pi/kappa)*colesWake(eta,Pi);
      *     f(isinf(f)) = S;
      * end
+     * \endcode
      *
-     * @param[in]  eta          Nondimentional height values
-     * @param[in]  pi_coles   The coles wake parameter Pi
-     * @param[in]  kappa        von Karman constant
-     * @param[in]  u_inf    Speed of flow at z = delta (m/s)
-     * @param[in]  u_tau    Shear / skin friction velocity (governed by ratio parameter S = u_inf / u_tau)
+     * @param[in]  eta Nondimensional (eta = z/delta_c) height value or values
+     * @param[in]  pi_coles The coles wake parameter Pi
+     * @param[in]  kappa von Karman constant
+     * @param[in]  u_inf Speed of flow at z = delta (m/s)
+     * @param[in]  u_tau Shear / skin friction velocity (governed by ratio parameter shear_ratio = u_inf / u_tau)
      *
      */
     template <typename T>
