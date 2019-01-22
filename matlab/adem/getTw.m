@@ -128,6 +128,9 @@ J13B = J13B(3:end);
 
 % Deconvolve out the A and B structure contributions to the Reynolds Stresses.
 % NOTE: it's actually -1*T^2w that comes out.
+disp('SIZES')
+disp(size(r13A))
+disp(size(J13A'))
 [T2wA, residualJA] = deconv(r13A, J13A');
 [T2wB, residualJB] = deconv(r13B, J13B');
 

@@ -209,6 +209,7 @@ namespace es {
         e5 = (e1_plus - e1_minus) / (2.0 * d_pi);
         e6 = (e2_plus - e2_minus) / (2.0 * d_pi);
         e7 = f * e5;
+
         // Get A coefficients from equations A2 a-d
         Eigen::ArrayXd a1 = e2 - e3 + shear_ratio * (e4 - e1);
         Eigen::ArrayXd a2 = (-2.0 * e2) + e3 + (shear_ratio * e1);
@@ -223,14 +224,12 @@ namespace es {
         double b4 = a4(eta.rows()-1);
 
         // E1 from (eqn A4). Can't call it E1 due to name conflict with above.
-        const double e1_coeff = 1.0 / (kappa * shear_ratio + 1.0);
+        double e1_coeff = 1.0 / (kappa * shear_ratio + 1.0);
 
         // N from (eqn A5) using central differencing as before
         double wc_minus = get_coles_wake(1.0, pi_coles - d_pi);
         double wc_plus =  get_coles_wake(1.0, pi_coles + d_pi);
-
-        std::cout << "WARNING -> BUG IN reynolds_stress_13. Once validated against MATLAB implementation, correct to n = get_coles_wake(1.0, pi_coles) + pi_coles * (wc_plus - wc_minus) / (2.0 * d_pi);" << std::endl;
-        const double n = get_coles_wake((const double)1.0, pi_coles) + pi_coles * (wc_plus - wc_minus) / 2.0 * d_pi;
+        double n = get_coles_wake(1.0, pi_coles) + pi_coles * (wc_plus - wc_minus) / (2.0 * d_pi);
 
         // Compile f_i terms
         Eigen::ArrayXd f1;

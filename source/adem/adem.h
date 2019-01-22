@@ -15,7 +15,10 @@
 
 #include "variable_readers.h"
 #include "profile.h"
+#include "relations/stress.h"
 #include "relations/velocity.h"
+#include "utilities/filter.h"
+
 
 namespace es {
 
@@ -64,7 +67,7 @@ public:
     /// Vertical coordinates used in the analysis [m].
     Eigen::VectorXd z;
 
-    /// Nondimensionalised vertical coordinates used in the analysis
+    /// Nondimensionalised vertical coordinates used in the analysis @f$ \eta = z/\delta_{c} @f$
     Eigen::VectorXd eta;
 
     /// Parameterised nondimensional vertical coordinates used in the analysis
@@ -167,6 +170,57 @@ public:
 
 };
 
+template<typename T>
+std::string tensor_dims(T &tensor) {
+    std::stringstream dims;
+    for (auto i = tensor.dimensions().begin(); i != tensor.dimensions().end(); ++i) {
+        dims << *i << " x ";
+    }
+    std::string dim_str = dims.str();
+    dim_str.pop_back();
+    dim_str.pop_back();
+    dim_str.pop_back();
+    return dim_str;
+}
+
+/** @brief Print information about the AdemData attributes to ostream using the << operator
+ *
+ * @param os The ostream to print to
+ * @param data The AdemDataclass instance
+ * @return os The same ostream, with the data representation added to the stream
+ */
+std::ostream &operator<<(std::ostream &os, AdemData const &data) {
+    os << "AdemData() with fields:" << std::endl;
+    os << "    eddy_types:        ";
+    for (std::vector<std::string>::const_iterator i = data.eddy_types.begin(); i != data.eddy_types.end(); ++i) {
+        os << *i << ", ";
+    }
+    os << std::endl;
+    os << "    beta:              " << data.beta << std::endl
+       << "    delta_c:           " << data.delta_c << std::endl
+       << "    kappa:             " << data.kappa << std::endl
+       << "    pi_coles:          " << data.pi_coles << std::endl
+       << "    shear_ratio:       " << data.shear_ratio << std::endl
+       << "    u_inf:             " << data.u_inf << std::endl
+       << "    u_tau:             " << data.u_tau << std::endl
+       << "    zeta:              " << data.zeta << std::endl
+       << "    z:                 [" << data.z.size() << " x 1]" << std::endl
+       << "    eta:               [" << data.eta.size() << " x 1]" << std::endl
+       << "    lambda_e:          [" << data.lambda_e.size() << " x 1]" << std::endl
+       << "    u_horizontal:      [" << data.u_horizontal.size() << " x 1]" << std::endl
+       << "    reynolds_stress:   [" << data.reynolds_stress.rows() << " x " << data.reynolds_stress.cols() << "]" << std::endl
+       << "    reynolds_stress_a: [" << data.reynolds_stress_a.rows() << " x " << data.reynolds_stress_a.cols() << "]" << std::endl
+       << "    reynolds_stress_b: [" << data.reynolds_stress_b.rows() << " x " << data.reynolds_stress_b.cols() << "]" << std::endl
+       << "    k1z:               [" << data.k1z.rows() << " x " << data.k1z.cols() << "]" << std::endl
+       << "    psi:               [" << tensor_dims(data.psi) << "]" << std::endl
+       << "    psi_a:             [" << tensor_dims(data.psi_a) << "]" << std::endl
+       << "    psi_b:             [" << tensor_dims(data.psi_b) << "]" << std::endl
+       << "    t2wa:              [" << data.t2wa.size() << " x 1]" << std::endl
+       << "    t2wb:              [" << data.t2wb.size() << " x 1]" << std::endl
+       << "    residual_a:        [" << data.residual_a.size() << " x 1]" << std::endl
+       << "    residual_b:        [" << data.residual_b.size() << " x 1]" << std::endl;
+    return os;
+}
 
 /** @brief Data container for Eddy signature tensors
  *
@@ -194,7 +248,7 @@ public:
      * @param[in] file_name File name (including relative or absolute path)
      * @param[in] print_var Boolean, default true. Print variables as they are read in (not advised except for debugging!)
      */
-    void load(std::string file_name, bool print_var = true) {
+    void load(std::string file_name, bool print_var = false) {
         std::cout << "Reading eddy signature data from file " << file_name << std::endl;
 
         // Open the MAT file for reading
@@ -261,7 +315,61 @@ public:
  * @param[in] signature_a
  * @param[in] signature_b
  */
-void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b) {}
+void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b) {
+
+    // Define a range for lambda_e (lambda_e = ln(delta_c/z) = ln(1/eta))
+    Eigen::ArrayXd lambda_e = Eigen::ArrayXd::LinSpaced(10001, 0, 100);
+
+    // Re-express as eta and flip so that eta ascends (required for the integration in reynolds_stress_13)
+    Eigen::ArrayXd eta;
+    eta = -1.0 * lambda_e; // *-1 inverts 1/eta in the subsequent exp() operator
+    eta = eta.exp();
+    eta.reverseInPlace();
+
+    // Get the Reynolds Stresses and flip back
+    Eigen::ArrayXd r13a;
+    Eigen::ArrayXd r13b;
+    reynolds_stress_13(r13a, r13b, data.beta, eta, data.kappa, data.pi_coles, data.shear_ratio, data.zeta);
+    r13a.reverseInPlace();
+    r13b.reverseInPlace();
+
+    // Extract J13 signature terms and trim so that array sizes match after the deconv
+    auto len = signature_a.j.rows() - 2;
+    Eigen::ArrayXd j13a = signature_a.j.col(3).tail(len);
+    Eigen::ArrayXd j13b = signature_b.j.col(3).tail(len);
+
+    // Deconvolve out the A and B structure contributions to the Reynolds Stresses.
+    // NOTE: it's actually -1*T^2w that comes out.
+    Eigen::ArrayXd minus_t2wa;
+    Eigen::ArrayXd minus_t2wb;
+    deconv(minus_t2wa, r13a, j13a);
+    deconv(minus_t2wb, r13b, j13b);
+
+//    raiseFigure('t2wA')
+//    clf
+//        subplot(1,3,1)
+//    plot(lambdaE,r13A); hold on; plot(lambdaE, r13B)
+//    legend({'R13A'; 'R13B'})
+//    xlabel('\lambda_E')
+//
+//    subplot(1,3,2)
+//    plot(J13A)
+//        % plot(lambda(3:end),J13A)
+//    hold on
+//    plot(J13B)
+//        % plot(lambda(3:end),J13B)
+//    legend({'J13A'; 'J13B'})
+//    xlabel('\lambda')
+//
+//    subplot(1,3,3)
+//    plot(T2wA)
+//    hold on
+//    plot(T2wB)
+//    legend({'T^2\omegaA'; 'T^2\omegaB'})
+
+
+
+}
 
 
 /** @brief Get the mean speed profile and update the data structure with it

@@ -131,10 +131,7 @@ E1 = 1/(kappa*S + 1);
 % N from (eqn A5) using central differencing as before
 wcminus = colesWake(1, Pi-dPi);
 wcplus =  colesWake(1, Pi+dPi);
-
-% TODO bug here! Correct code should bracket the 2dpi term 
-% CORRECT: N = colesWake(1, Pi) + Pi*(wcplus-wcminus)/(2*dPi);
-N = colesWake(1, Pi) + Pi*(wcplus-wcminus)/2*dPi;
+N = colesWake(1, Pi) + Pi*(wcplus-wcminus)/(2*dPi);
 
 % Do the weird adding up thing for fi
 f1 = 1 - A1./(B1 + E1.*B2)...
