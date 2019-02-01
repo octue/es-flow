@@ -19,6 +19,10 @@
 #include "relations/velocity.h"
 #include "utilities/filter.h"
 
+#include "cpplot.h"
+#include <unsupported/Eigen/FFT>
+
+#include <algorithm>
 
 namespace es {
 
@@ -296,6 +300,19 @@ public:
         result.j = (this->j + c.j);
         return result;
     }
+    EddySignature operator/(double denom) const
+    {
+        EddySignature result;
+        result.eddy_type = "(" + this->eddy_type + ")/" + std::to_string(denom);
+        // TODO assert equality of lambda and k1z
+        result.lambda = this->lambda;
+        result.k1z = this->k1z;
+        result.g = this->g;
+        result.j = this->j;
+        result.g = result.g / denom;
+        result.j = result.j / denom;
+        return result;
+    }
 
 };
 
@@ -335,8 +352,8 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
 
     // Extract J13 signature terms and trim so that array sizes match after the deconv
     auto len = signature_a.j.rows() - 2;
-    Eigen::ArrayXd j13a = signature_a.j.col(3).tail(len);
-    Eigen::ArrayXd j13b = signature_b.j.col(3).tail(len);
+    Eigen::ArrayXd j13a = signature_a.j.col(2).tail(len);
+    Eigen::ArrayXd j13b = signature_b.j.col(2).tail(len);
 
     // Deconvolve out the A and B structure contributions to the Reynolds Stresses.
     // NOTE: it's actually -1*T^2w that comes out.
@@ -345,29 +362,51 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     deconv(minus_t2wa, r13a, j13a);
     deconv(minus_t2wb, r13b, j13b);
 
-//    raiseFigure('t2wA')
-//    clf
-//        subplot(1,3,1)
-//    plot(lambdaE,r13A); hold on; plot(lambdaE, r13B)
+    // Store in the data object
+    data.eta = eta;
+    data.lambda_e = lambda_e;
+    data.t2wa = minus_t2wa.matrix();
+    data.t2wb = minus_t2wb.matrix();
+
+    // Plot the Reynolds Stress profiles
+    cpplot::Figure fig = cpplot::Figure();
+    cpplot::ScatterPlot pa = cpplot::ScatterPlot();
+    pa.x = lambda_e.matrix();
+    pa.y = r13a.matrix();
+    fig.add(pa);
+    cpplot::ScatterPlot pb = cpplot::ScatterPlot();
+    pb.x = lambda_e.matrix();
+    pb.y = r13b.matrix();
+    fig.add(pb);
+    fig.write("test_t2w_r13ab.json");
 //    legend({'R13A'; 'R13B'})
 //    xlabel('\lambda_E')
 //
-//    subplot(1,3,2)
-//    plot(J13A)
-//        % plot(lambda(3:end),J13A)
-//    hold on
-//    plot(J13B)
-//        % plot(lambda(3:end),J13B)
+    // Plot the eddy signatures
+    cpplot::Figure fig2 = cpplot::Figure();
+    cpplot::ScatterPlot ja = cpplot::ScatterPlot();
+    ja.x = Eigen::VectorXd::LinSpaced(j13a.rows(), 1, j13a.rows());
+    ja.y = j13a.matrix();
+    fig2.add(ja);
+    cpplot::ScatterPlot jb = cpplot::ScatterPlot();
+    jb.x = ja.x;
+    jb.y = j13b.matrix();
+    fig2.add(jb);
+    fig2.write("test_t2w_j13ab.json");
 //    legend({'J13A'; 'J13B'})
-//    xlabel('\lambda')
-//
-//    subplot(1,3,3)
-//    plot(T2wA)
-//    hold on
-//    plot(T2wB)
+
+
+    cpplot::Figure fig3 = cpplot::Figure();
+    cpplot::ScatterPlot twa = cpplot::ScatterPlot();
+    twa.x = Eigen::VectorXd::LinSpaced(minus_t2wa.rows(), 1, minus_t2wa.rows());
+    twa.y = minus_t2wa.matrix();
+    fig3.add(twa);
+    cpplot::ScatterPlot twb = cpplot::ScatterPlot();
+    twb.x = twa.x;
+    twb.y = minus_t2wb.matrix();
+    fig3.add(twb);
+    fig3.write("test_t2w_t2wab.json");
 //    legend({'T^2\omegaA'; 'T^2\omegaB'})
-
-
 
 }
 
@@ -381,8 +420,35 @@ void get_mean_speed(AdemData& data) {
 }
 
 
+/** @brief Find the next good size for an fft, to pad with minimal number of zeros
+ *
+ * @param N
+ * @return M Optimal length for a zero padded fft
+ */
+template <typename T>
+T fft_next_good_size(const T n) {
+    T result = n;
+    if (n <= 2) {
+        result = 2;
+        return result;
+    }
+    while (TRUE) {
+        T m = result;
+        while ((m % 2) == 0) m = m / 2;
+        while ((m % 3) == 0) m = m / 3;
+        while ((m % 5) == 0) m = m / 5;
+        if (m <= 1) {
+            return (result);
+        }
+        result = result + 1;
+    }
+}
+
+
 /** @brief Get the Reynolds Stress distributions from T2w and J distributions
  *
+ * The ouptut Reynolds Stress matrix is of size
+ *   output_dim_size = input_dim_size - kernel_dim_size + 1 (requires: input_dim_size >= kernel_dim_size).
  * Legacy MATLAB equivalent is:
  * @code
  *      [R, RA, RB] = getReynoldsStresses(T2wA, T2wB, JA, JB);
@@ -390,7 +456,143 @@ void get_mean_speed(AdemData& data) {
  *
  * @param data
  */
-void get_reynolds_stresses(AdemData& data){}
+void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b){
+
+//    // TODO determine whether this convolution, which gives a central range similar but not exactly equivalent to FFT implementation
+
+//    // Map the input signature data to tensors (shared memory)
+//    auto rows = data.t2wa.rows();
+//    auto cols = data.t2wa.cols();
+//    Eigen::TensorMap<Eigen::Tensor<double, 1>> t2wa(data.t2wa.data(), rows);
+//    Eigen::TensorMap<Eigen::Tensor<double, 1>> t2wb(data.t2wb.data(), rows);
+//
+//    auto input_len = signature_a.j.rows() - 2;
+//    auto output_len = data.t2wa.rows() - input_len + 1;
+//    std::cout << "input_len:  " << input_len << std::endl;
+//    std::cout << "output_len: " << output_len << std::endl;
+//
+//    data.reynolds_stress_a = Eigen::ArrayXXd(output_len, 6);
+//    data.reynolds_stress_b = Eigen::ArrayXXd(output_len, 6);
+//
+//    std::cout << "t2wa dimensions[0]: " << t2wa.dimensions()[0] << std::endl;
+//
+//    // For each column of J
+//    for (auto i = 0; i < 6; ++i) {
+//
+//        std::cout << "Column: " << i << std::endl;
+//
+//        // Extract Jij signature as tensor and trim first two elements (required for stability)
+//        Eigen::ArrayXd array_ja = signature_a.j.col(i).bottomRows(input_len);
+//        Eigen::ArrayXd array_jb = signature_b.j.col(i).bottomRows(input_len);
+//        std::cout << "array_ja size: " << array_ja.rows() << " x " << array_ja.cols() << std::endl;
+//        // TODO Optimise this map properly. We can simply map right into the original array with an offset pointer
+//        Eigen::TensorMap<Eigen::Tensor<double, 1>> ja(array_ja.data(), input_len);
+//        Eigen::TensorMap<Eigen::Tensor<double, 1>> jb(array_jb.data(), input_len);
+//        std::cout << "ja dimensions[0]: " << ja.dimensions()[0] << std::endl;
+//        std::cout << "JB (" << i << std::endl;
+//        std::cout << jb <<std::endl;
+//
+//        // Convolve along the first dimension
+//        Eigen::array<ptrdiff_t, 1> dims({0});
+//        Eigen::Tensor<double, 1> output_ra = t2wa.convolve(ja, dims);
+//        Eigen::Tensor<double, 1> output_rb = t2wb.convolve(jb, dims);
+//
+//
+//        rows = output_rb.dimensions()[0];
+//        std::cout << "ACTUAL output dims: " << rows  << std::endl;
+//        Eigen::ArrayXd ra = Eigen::Map<Eigen::ArrayXd>(output_ra.data(), rows);
+//        Eigen::ArrayXd rb = Eigen::Map<Eigen::ArrayXd>(output_rb.data(), rows);
+//
+//        std::cout << "mapped: " << std::endl;
+//        std::cout << "rs size" << data.reynolds_stress_a.rows() << " x " << data.reynolds_stress_a.cols() << std::endl;
+//        data.reynolds_stress_a.col(i) = ra;
+//        data.reynolds_stress_b.col(i) = rb;
+//
+//    }
+
+    // Map the input signature data to tensors (shared memory)
+    auto input_rows = data.t2wa.rows();
+    auto kernel_rows = signature_a.j.rows() - 2; // removes the first two rows of j for stability
+
+    // Compute cumulative length of input and kernel;
+    auto N = input_rows + kernel_rows - 1 ;
+    auto M = fft_next_good_size(N);
+
+    // Allocate the output and set zero
+    data.reynolds_stress_a = Eigen::ArrayXXd(M, 6);
+    data.reynolds_stress_b = Eigen::ArrayXXd(M, 6);
+    data.reynolds_stress_a.setZero();
+    data.reynolds_stress_b.setZero();
+
+    Eigen::FFT<double> fft;
+
+    // Column-wise convolution of T2w with J
+    for (int k = 0; k < 6; k++) {
+        Eigen::VectorXd in_a1(M);
+        Eigen::VectorXd in_a2(M);
+        Eigen::VectorXd in_b1(M);
+        Eigen::VectorXd in_b2(M);
+        in_a1.setZero();
+        in_a2.setZero();
+        in_b1.setZero();
+        in_b2.setZero();
+        in_a1.topRows(input_rows) = data.t2wa.matrix();
+        in_b1.topRows(input_rows) = data.t2wb.matrix();
+        in_a2.topRows(kernel_rows) = signature_a.j.col(k).bottomRows(kernel_rows).matrix();
+        in_b2.topRows(kernel_rows) = signature_b.j.col(k).bottomRows(kernel_rows).matrix();
+
+        // Take the forward ffts
+        Eigen::VectorXcd out_a1(M);
+        Eigen::VectorXcd out_a2(M);
+        Eigen::VectorXcd out_b1(M);
+        Eigen::VectorXcd out_b2(M);
+        fft.fwd(out_a1, in_a1);
+        fft.fwd(out_a2, in_a2);
+        fft.fwd(out_b1, in_b1);
+        fft.fwd(out_b2, in_b2);
+
+        // Convolve by element-wise multiplication
+        Eigen::VectorXcd inter_a = out_a1.array() * out_a2.array();
+        Eigen::VectorXcd inter_b = out_b1.array() * out_b2.array();
+
+        // Inverse FFT to deconvolve
+        Eigen::VectorXd out_a(M);
+        Eigen::VectorXd out_b(M);
+        fft.inv(out_a, inter_a);
+        fft.inv(out_b, inter_b);
+        data.reynolds_stress_a.col(k) = out_a;
+        data.reynolds_stress_b.col(k) = out_b;
+    }
+
+    // Trim the zero-padded ends
+    data.reynolds_stress_a = data.reynolds_stress_a.topRows(data.lambda_e.rows());
+    data.reynolds_stress_b = data.reynolds_stress_b.topRows(data.lambda_e.rows());
+    data.reynolds_stress = data.reynolds_stress_a + data.reynolds_stress_b;
+
+//    // Plot the Reynolds Stress profiles
+//    cpplot::Figure figa = cpplot::Figure();
+//    for (auto i = 0; i < 6; i++) {
+//        cpplot::ScatterPlot p = cpplot::ScatterPlot();
+//        p.x = Eigen::VectorXd::LinSpaced(data.reynolds_stress_a.rows(), 1, data.reynolds_stress_a.rows());
+//        p.y = data.reynolds_stress_a.col(i).matrix();
+//        figa.add(p);
+//    }
+//    figa.write("test_t2w_rij_a.json");
+////    legend({'R13A'; 'R13B'})
+////    xlabel('\lambda_E')
+//
+//    cpplot::Figure figb = cpplot::Figure();
+//    for (auto i = 0; i < 6; i++) {
+//        cpplot::ScatterPlot p = cpplot::ScatterPlot();
+//        p.x = Eigen::VectorXd::LinSpaced(data.reynolds_stress_b.rows(), 1, data.reynolds_stress_b.rows());
+//        p.y = data.reynolds_stress_b.col(i).matrix();
+//        figb.add(p);
+//    }
+//    figb.write("test_t2w_rij_b.json");
+////    legend({'R13A'; 'R13B'})
+////    xlabel('\lambda_E')
+
+}
 
 
 /** @brief Get the premultiplied power spectra
@@ -455,7 +657,7 @@ AdemData adem(const double beta,
     get_mean_speed(data);
 
     // Determine Reynolds Stresses by convolution and add them to the data structure
-    get_reynolds_stresses(data);
+    get_reynolds_stresses(data, signature_a, signature_b);
 
     // Determine Spectra by convolution and add them to the data structure
     get_spectra(data);

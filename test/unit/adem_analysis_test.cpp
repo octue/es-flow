@@ -59,7 +59,7 @@ protected:
 
 TEST_F(AdemAnalysisTest, test_analysis) {
 
-    // Ensemble signatures as we load them
+    // Ensemble signatures as we load them, divide to average the B signatures.
     EddySignature signature_a = EddySignature();
     signature_a.load(data_path + std::string("/signatures_A.mat"));
     EddySignature signature_b = EddySignature();
@@ -71,6 +71,12 @@ TEST_F(AdemAnalysisTest, test_analysis) {
     signature_b = signature_b + signature_bx;
     signature_bx.load(data_path + std::string("/signatures_B4.mat"));
     signature_b = signature_b + signature_bx;
+    signature_b = signature_b / 4.0;
+
+    std::cout << "SIG A" << std::endl;
+    std::cout << signature_a.j << std::endl;
+    std::cout << "SIG B" << std::endl;
+    std::cout << signature_b.j << std::endl;
 
     // Basic test parameters
     double beta = 0.0;
