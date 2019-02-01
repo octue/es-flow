@@ -7,7 +7,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 
 # Set make options
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 
@@ -18,6 +18,10 @@ message("-- Defined THIRD_PARTY_DIR: ${THIRD_PARTY_DIR}")
 # Add argument parsing tool
 find_package(CXXOPTS REQUIRED)
 include_directories(${CXXOPTS_INCLUDE_DIRS})
+
+# Add plotting tool
+find_package(CPPLOT REQUIRED)
+include_directories(${CPPLOT_INCLUDE_DIRS})
 
 # Add ceres-solver dependency
 find_package(Ceres REQUIRED)
