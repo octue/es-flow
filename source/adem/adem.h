@@ -21,8 +21,8 @@
 
 #include "cpplot.h"
 #include <unsupported/Eigen/FFT>
+#include "utilities/conv.h"
 
-#include <algorithm>
 
 namespace es {
 
@@ -420,31 +420,6 @@ void get_mean_speed(AdemData& data) {
 }
 
 
-/** @brief Find the next good size for an fft, to pad with minimal number of zeros
- *
- * @param N
- * @return M Optimal length for a zero padded fft
- */
-template <typename T>
-T fft_next_good_size(const T n) {
-    T result = n;
-    if (n <= 2) {
-        result = 2;
-        return result;
-    }
-    while (TRUE) {
-        T m = result;
-        while ((m % 2) == 0) m = m / 2;
-        while ((m % 3) == 0) m = m / 3;
-        while ((m % 5) == 0) m = m / 5;
-        if (m <= 1) {
-            return (result);
-        }
-        result = result + 1;
-    }
-}
-
-
 /** @brief Get the Reynolds Stress distributions from T2w and J distributions
  *
  * The ouptut Reynolds Stress matrix is of size
@@ -458,7 +433,8 @@ T fft_next_good_size(const T n) {
  */
 void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b){
 
-//    // TODO determine whether this convolution, which gives a central range similar but not exactly equivalent to FFT implementation
+// TODO determine whether this convolution, which gives a central range similar but not exactly equivalent
+//  to the FFT-based implementation, is more accurate.
 
 //    // Map the input signature data to tensors (shared memory)
 //    auto rows = data.t2wa.rows();
@@ -527,6 +503,7 @@ void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, con
     Eigen::FFT<double> fft;
 
     // Column-wise convolution of T2w with J
+    // TODO refactor to use the conv() function
     for (int k = 0; k < 6; k++) {
         Eigen::VectorXd in_a1(M);
         Eigen::VectorXd in_a2(M);
@@ -600,7 +577,77 @@ void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, con
  *      [Psi, PsiA, PsiB] = getSpectra(T2wA, T2wB, gA, gB, U1, S);
  * @param data
  */
-void get_spectra(AdemData& data){}
+void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b){
+
+    // Initialise the output spectrum tensors
+    Eigen::array<Eigen::Index, 3> dims = signature_a.g.dimensions();
+    Eigen::array<Eigen::Index, 3> psi_dims = {data.t2wa.rows(), dims[1], dims[2]};
+    Eigen::Tensor<double, 3> psi_a(psi_dims);
+    Eigen::Tensor<double, 3> psi_b(psi_dims);
+
+    // Get the t2w arrays as vectors, for use with the conv function
+    Eigen::Map<Eigen::VectorXd> t2wa_vec(data.t2wa.data(), data.t2wa.rows());
+    Eigen::Map<Eigen::VectorXd> t2wb_vec(data.t2wb.data(), data.t2wb.rows());
+
+    // For each of the 6 auto / cross spectra terms
+    for (Eigen::Index j = 0; j < dims[2]; j++) {
+
+        auto page_offset_sig = j * dims[0] * dims[1];
+        auto page_offset_psi = j * psi_dims[0] * psi_dims[1];
+
+        // For each of the different heights
+        for (Eigen::Index i = 0; i < dims[1]; i++) {
+
+            auto elements_offset_sig = (page_offset_sig + i * dims[0]);
+            auto elements_offset_psi = (page_offset_psi + i * psi_dims[0]);
+
+            Eigen::Map<Eigen::VectorXd> g_a_vec((double *)signature_a.g.data() + elements_offset_sig, dims[0]);
+            Eigen::Map<Eigen::VectorXd> g_b_vec((double *)signature_b.g.data() + elements_offset_sig, dims[0]);
+
+            Eigen::Map<Eigen::VectorXd> psi_a_vec((double *)psi_a.data() + elements_offset_psi, psi_dims[0]);
+            Eigen::Map<Eigen::VectorXd> psi_b_vec((double *)psi_b.data() + elements_offset_psi, psi_dims[0]);
+
+            psi_a_vec = conv(t2wa_vec, g_a_vec);
+            psi_b_vec = conv(t2wb_vec, g_b_vec);
+
+            // Print out verification to command line, and write one of the profiles to a figure
+            // Eigen::VectorXd psi(9954);
+            // psi = (psi_a_vec + psi_b_vec) * data.u_tau * data.u_tau;
+            // if ((i == 10) && (j == 3)) {
+            //     cpplot::Figure fig = cpplot::Figure();
+            //     cpplot::ScatterPlot p = cpplot::ScatterPlot();
+            //     p.x = Eigen::VectorXd::LinSpaced(psi_dims[0], 1, psi_dims[0]);
+            //     p.y = psi;
+            //     fig.add(p);
+            //     fig.write("test_s13_premult_i10.json");
+            //     std::cout << "i10 j3" << std::endl;
+            //     std::cout << "1: " << psi(0) << std::endl;
+            //     std::cout << "100: " << psi(99) << std::endl;
+            //     std::cout << "9954: " << psi(9953) << std::endl;
+            // }
+            // if ((i == 4) && (j == 5)) {
+            //     std::cout << "i4 j5" << std::endl;
+            //     std::cout << "1: " << psi(0) << std::endl;
+            //     std::cout << "100: " << psi(99) << std::endl;
+            //     std::cout << "9954: " << psi(9953) << std::endl;
+            // }
+            // if ((i == 48) && (j == 2)) {
+            //     std::cout << "i48 j2" << std::endl;
+            //     std::cout << "1: " << psi(0) << std::endl;
+            //     std::cout << "100: " << psi(99) << std::endl;
+            //     std::cout << "9954: " << psi(9953) << std::endl;
+            // }
+        }
+    }
+
+    // Premultiply by the u_tau^2 term (see eq. 43)
+    auto u_tau_sqd = pow(data.u_tau, 2.0);
+
+    // Don't store the sum of the spectra - they're memory hungry and we can always add the two together
+    data.psi_a = u_tau_sqd * psi_a;
+    data.psi_b = u_tau_sqd * psi_b;
+
+}
 
 
 /** @brief Compute full turbulent properties from given Attached-Detached Eddy Model parameters
@@ -641,6 +688,7 @@ AdemData adem(const double beta,
     data.pi_coles = pi_coles;
     data.shear_ratio = shear_ratio;
     data.u_inf = u_inf;
+    data.u_tau = data.u_inf / data.shear_ratio;
     data.zeta = zeta;
 
     // Deconvolve for T^2w and update the data structure with the outputs
@@ -660,7 +708,7 @@ AdemData adem(const double beta,
     get_reynolds_stresses(data, signature_a, signature_b);
 
     // Determine Spectra by convolution and add them to the data structure
-    get_spectra(data);
+    get_spectra(data, signature_a, signature_b);
 
     return data;
 }

@@ -137,7 +137,7 @@ ademResult.deltac       = deltac;
 ademResult.U1           = U1;
 ademResult.Pi           = Pi;
 ademResult.S            = S;
-ademResult.Utau         = U1/S
+ademResult.Utau         = U1/S;
 ademResult.zeta         = zeta;
 ademResult.beta       	= beta;
 ademResult.Ux           = Ux;
@@ -153,8 +153,4 @@ ademResult.Psi          = Psi;
 ademResult.PsiA         = PsiA;
 ademResult.PsiB         = PsiB;
 
-
-
-
 end
-

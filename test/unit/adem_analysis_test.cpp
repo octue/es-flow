@@ -84,24 +84,34 @@ TEST_F(AdemAnalysisTest, test_analysis) {
     double kappa = 0.41;
     double pi_coles = 0.42;
     double shear_ratio = 23.6;
-    double u_inf = 20.0;
+    double u_inf = 2.2;
     double u_tau = u_inf / shear_ratio;
     double z_0 = 0.0;
     double zeta = 0.0;
 
-
     // Run ADEM for these parameters to get full spectra and stuff
     AdemData data = adem(beta, delta_c, kappa, pi_coles, shear_ratio, u_inf, zeta, signature_a, signature_b);
 
-//    // Load in the verification data (computed with MATLAB)
-//    AdemData check_data = AdemData();
-//    std::cout << check_data;
-//    check_data.load(data_path + std::string("/adem_data_check.mat"));
-//    std::cout << check_data;
+    // Verification data
+    Eigen::Tensor<double, 3> psi;
+    psi = data.psi_a + data.psi_b;
+
+    // Verify against data computed with MATLAB
+    ASSERT_NEAR(psi(0, 10, 3), 0, 2e-6);
+    ASSERT_NEAR(psi(99, 10, 3), 0.0086, 0.0001);
+    ASSERT_NEAR(psi(9953, 10, 3),  0.0142, 0.0001);
+
+    ASSERT_NEAR(psi(0, 4, 5),  0, 2e-6);
+    ASSERT_NEAR(psi(99, 4, 5), 0.0038, 0.0001);
+    ASSERT_NEAR(psi(9953, 4, 5),  0.0031, 0.0001);
+
+    ASSERT_NEAR(psi(0, 48, 2), -1.0095e-21, 2e-20);
+    ASSERT_NEAR(psi(99, 48, 2), -1.3117e-04, 1e-05);
+    ASSERT_NEAR(psi(9953, 48, 2),  -6.9840e-05, 1e-06);
 
     // Print useful diagnostics values
-//    std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
-//    std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
+    // std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
+    // std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
 
     // Print variables to plot comparison with MATLAB based equivalent calculation
     //    std::cout << "pi_j = " << pi_j << ";" << std::endl;
