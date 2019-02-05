@@ -355,12 +355,17 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     Eigen::ArrayXd j13a = signature_a.j.col(2).tail(len);
     Eigen::ArrayXd j13b = signature_b.j.col(2).tail(len);
 
-    // Deconvolve out the A and B structure contributions to the Reynolds Stresses.
-    // NOTE: it's actually -1*T^2w that comes out.
+    // Deconvolve out the A and B structure contributions to the Reynolds Stresses
+    // NOTE: it's actually -1*T^2w in this variable
     Eigen::ArrayXd minus_t2wa;
     Eigen::ArrayXd minus_t2wb;
     deconv(minus_t2wa, r13a, j13a);
     deconv(minus_t2wb, r13b, j13b);
+
+    // TODO extend by padding out to the same length as lambda_e. The T^2w distributions converge to a constant at
+    //  high lambda (close to the wall) so padding with the last value in the vector is physically valid. This will
+    //  result in the Reynolds Stresses and Spectra, which are obtained by convolution, having the same number of points
+    //  in the z direction as the axes variables (eta, lambda_e, etc)... very useful!
 
     // Store in the data object
     data.eta = eta;
@@ -368,45 +373,45 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     data.t2wa = minus_t2wa.matrix();
     data.t2wb = minus_t2wb.matrix();
 
-    // Plot the Reynolds Stress profiles
-    cpplot::Figure fig = cpplot::Figure();
-    cpplot::ScatterPlot pa = cpplot::ScatterPlot();
-    pa.x = lambda_e.matrix();
-    pa.y = r13a.matrix();
-    fig.add(pa);
-    cpplot::ScatterPlot pb = cpplot::ScatterPlot();
-    pb.x = lambda_e.matrix();
-    pb.y = r13b.matrix();
-    fig.add(pb);
-    fig.write("test_t2w_r13ab.json");
-//    legend({'R13A'; 'R13B'})
-//    xlabel('\lambda_E')
+//    // Plot the Reynolds Stress profiles
+//    cpplot::Figure fig = cpplot::Figure();
+//    cpplot::ScatterPlot pa = cpplot::ScatterPlot();
+//    pa.x = lambda_e.matrix();
+//    pa.y = r13a.matrix();
+//    fig.add(pa);
+//    cpplot::ScatterPlot pb = cpplot::ScatterPlot();
+//    pb.x = lambda_e.matrix();
+//    pb.y = r13b.matrix();
+//    fig.add(pb);
+//    fig.write("test_t2w_r13ab.json");
+////    legend({'R13A'; 'R13B'})
+////    xlabel('\lambda_E')
+////
+//    // Plot the eddy signatures
+//    cpplot::Figure fig2 = cpplot::Figure();
+//    cpplot::ScatterPlot ja = cpplot::ScatterPlot();
+//    ja.x = Eigen::VectorXd::LinSpaced(j13a.rows(), 1, j13a.rows());
+//    ja.y = j13a.matrix();
+//    fig2.add(ja);
+//    cpplot::ScatterPlot jb = cpplot::ScatterPlot();
+//    jb.x = ja.x;
+//    jb.y = j13b.matrix();
+//    fig2.add(jb);
+//    fig2.write("test_t2w_j13ab.json");
+////    legend({'J13A'; 'J13B'})
 //
-    // Plot the eddy signatures
-    cpplot::Figure fig2 = cpplot::Figure();
-    cpplot::ScatterPlot ja = cpplot::ScatterPlot();
-    ja.x = Eigen::VectorXd::LinSpaced(j13a.rows(), 1, j13a.rows());
-    ja.y = j13a.matrix();
-    fig2.add(ja);
-    cpplot::ScatterPlot jb = cpplot::ScatterPlot();
-    jb.x = ja.x;
-    jb.y = j13b.matrix();
-    fig2.add(jb);
-    fig2.write("test_t2w_j13ab.json");
-//    legend({'J13A'; 'J13B'})
-
-
-    cpplot::Figure fig3 = cpplot::Figure();
-    cpplot::ScatterPlot twa = cpplot::ScatterPlot();
-    twa.x = Eigen::VectorXd::LinSpaced(minus_t2wa.rows(), 1, minus_t2wa.rows());
-    twa.y = minus_t2wa.matrix();
-    fig3.add(twa);
-    cpplot::ScatterPlot twb = cpplot::ScatterPlot();
-    twb.x = twa.x;
-    twb.y = minus_t2wb.matrix();
-    fig3.add(twb);
-    fig3.write("test_t2w_t2wab.json");
-//    legend({'T^2\omegaA'; 'T^2\omegaB'})
+//
+//    cpplot::Figure fig3 = cpplot::Figure();
+//    cpplot::ScatterPlot twa = cpplot::ScatterPlot();
+//    twa.x = Eigen::VectorXd::LinSpaced(minus_t2wa.rows(), 1, minus_t2wa.rows());
+//    twa.y = minus_t2wa.matrix();
+//    fig3.add(twa);
+//    cpplot::ScatterPlot twb = cpplot::ScatterPlot();
+//    twb.x = twa.x;
+//    twb.y = minus_t2wb.matrix();
+//    fig3.add(twb);
+//    fig3.write("test_t2w_t2wab.json");
+////    legend({'T^2\omegaA'; 'T^2\omegaB'})
 
 }
 
@@ -585,7 +590,7 @@ void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySig
     Eigen::Tensor<double, 3> psi_a(psi_dims);
     Eigen::Tensor<double, 3> psi_b(psi_dims);
 
-    // Get the t2w arrays as vectors, for use with the conv function
+    // Map the t2w arrays as vectors, for use with the conv function
     Eigen::Map<Eigen::VectorXd> t2wa_vec(data.t2wa.data(), data.t2wa.rows());
     Eigen::Map<Eigen::VectorXd> t2wb_vec(data.t2wb.data(), data.t2wb.rows());
 

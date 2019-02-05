@@ -71,12 +71,9 @@ TEST_F(AdemAnalysisTest, test_analysis) {
     signature_b = signature_b + signature_bx;
     signature_bx.load(data_path + std::string("/signatures_B4.mat"));
     signature_b = signature_b + signature_bx;
-    signature_b = signature_b / 4.0;
 
-    std::cout << "SIG A" << std::endl;
-    std::cout << signature_a.j << std::endl;
-    std::cout << "SIG B" << std::endl;
-    std::cout << signature_b.j << std::endl;
+    // TODO This divide-by-4 should be in the code somewhere!!!!
+    signature_b = signature_b / 4.0;
 
     // Basic test parameters
     double beta = 0.0;
@@ -97,15 +94,15 @@ TEST_F(AdemAnalysisTest, test_analysis) {
     psi = data.psi_a + data.psi_b;
 
     // Verify against data computed with MATLAB
-    ASSERT_NEAR(psi(0, 10, 3), 0, 2e-6);
-    ASSERT_NEAR(psi(99, 10, 3), 0.0086, 0.0001);
-    ASSERT_NEAR(psi(9953, 10, 3),  0.0142, 0.0001);
+    ASSERT_NEAR(psi(0, 10, 3), 0, 1e-6);
+    ASSERT_NEAR(psi(99, 10, 3), 0.0086, 1e-4);
+    ASSERT_NEAR(psi(9953, 10, 3),  0.0142, 1e-4);
 
-    ASSERT_NEAR(psi(0, 4, 5),  0, 2e-6);
-    ASSERT_NEAR(psi(99, 4, 5), 0.0038, 0.0001);
-    ASSERT_NEAR(psi(9953, 4, 5),  0.0031, 0.0001);
+    ASSERT_NEAR(psi(0, 4, 5),  0, 1e-6);
+    ASSERT_NEAR(psi(99, 4, 5), 0.0038, 1e-4);
+    ASSERT_NEAR(psi(9953, 4, 5),  0.0031, 1e-4);
 
-    ASSERT_NEAR(psi(0, 48, 2), -1.0095e-21, 2e-20);
+    ASSERT_NEAR(psi(0, 48, 2), 0, 1e-6);
     ASSERT_NEAR(psi(99, 48, 2), -1.3117e-04, 1e-05);
     ASSERT_NEAR(psi(9953, 48, 2),  -6.9840e-05, 1e-06);
 
