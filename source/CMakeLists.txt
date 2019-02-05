@@ -20,8 +20,10 @@ set(SOURCE_FILES
         profile.cpp profile.h
         readers.cpp readers.h
         variable_readers.h
+        utilities/conv.h
         utilities/cumtrapz.h
-        utilities/filter.h)
+        utilities/filter.h
+        )
 add_library(flow STATIC ${SOURCE_FILES})
 
 
