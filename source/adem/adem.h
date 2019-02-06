@@ -249,6 +249,9 @@ public:
 
     /** @brief Load data from a *.mat file containing eddy signature data
      *
+     * TODO overload with load(std::vector<std::string> file_names, bool print_var = false){} to load and average
+     * multiple signature files
+     *
      * @param[in] file_name File name (including relative or absolute path)
      * @param[in] print_var Boolean, default true. Print variables as they are read in (not advised except for debugging!)
      */
