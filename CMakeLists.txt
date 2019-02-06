@@ -90,7 +90,7 @@ endif()
 set(DOCS_INSTALL_DIR "share/doc/es-flow" CACHE STRING "es-flow docs install path relative to CMAKE_INSTALL_PREFIX")
 find_package(Sphinx QUIET)
 if (NOT SPHINX_FOUND)
-    message("-- Failed to find Sphinx, disabling build of documentation.")
+    message(WARNING "-- Failed to find Sphinx, disabling build of documentation.")
 else()
     # Generate the User's Guide (html).
     # The corresponding target is es_flow_docs, but is included in ALL.

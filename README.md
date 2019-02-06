@@ -24,8 +24,10 @@ Code style, includes and project structure should conform to the [Google C++ sty
 
 
 ## Third party dependencies
- 
+
 ### Currently in use
+
+See documentation
  
 [**Intel MKL**]() to provide FFT and other performance primitives, enhancing Eigen.
  
@@ -41,11 +43,10 @@ Code style, includes and project structure should conform to the [Google C++ sty
  
 [**glog**](https://github.com/google/glog) google's asynchronous logging library, used for logging to file.
  
-[**bib2reSTcitation**](https://github.com/cykustcc/bib2reSTcitation) is a tool for converting .bib files to .txt files formatted as ReStructured Text references (useful for document generation compatible with sphinx).
-
 [**sphinx**](http://www.sphinx-doc.org/en/1.5.1/) is the document generator; it'll take the .rst documentation files and turn them into formatted documentation, in either latex or HTML form.
 
 [**sphinx_rtd_theme**](https://github.com/snide/sphinx_rtd_theme) gives us the excellent looking ReadTheDocs theme for our HTML documentation.
+
 
 
 ### For consideration and possible future use
@@ -63,59 +64,52 @@ We're not yet committed to any of the following, but a range of possibly useful 
 [**eigen-matio**](https://github.com/tesch1/eigen-matio) could be useful for reading and writing eigen matrix types to mat files.
 
 
-### Third party library installation (OSX)
-
-**Intel MKL:**
-Download the Intel MKL library packages. Click on the icon and follow installation instructions. You'll need the administrator password. The tools are installed in `/opt/intel/`.
-The `include` directory is `/opt/intel/include`.
-
-**matio:**
-Whatever you do, don't try to fork and build from source - the autoconf is complex and not suitable for OSX. Luckily there's a brew formula:
-```bash
-brew install homebrew/science/libmatio --with-hdf5
-```
-**ceres-solver including eigen and glog dependencies:**
-```bash
-brew install homebrew/science/ceres-solver
-```
-**cxxopts:**
-Not necessary to install if simply deploying executables, as it's a header only library. To build es-flow, cxxopts must be installed alongside es-flow. From the es-flow root directory:
-```bash
-cd ../thirdparty
-git clone https://github.com/jarro2783/cxxopts
-```
-Then using cmake to build es-flow will find the headers correctly.
-
-**NumericalIntegration:**
-Not necessary to install if simply deploying executables, as it's a header only library. To build es-flow, NumericalIntegration must be installed alongside es-flow. From the es-flow root directory:
-```bash
-cd ../thirdparty
-git clone https://github.com/thclark/NumericalIntegration
-```
-Then using cmake to build es-flow will find the headers correctly.
-
-**Sphinx and sphinx_rtd_theme**
-
-Note that if the following doesn't work, create a virtual environment to run this in (in which case the cmake build will have to be executed with that virtualenv activated)
-```bash
-brew install python
-pip install Sphinx
-pip install sphinx_rtd_theme
-```
-
-### Third party library installation (Linux)
-
-TODO
-
-### Third party library installation (Windows)
-
-TODO. Maybe.
-
 ## Compilation
 
 A cross-platform compilation file is provided using cmake.
 
-Build process includes MATLAB based mex files for library functionality - requiring MATLAB to be installed on the build machine for linking purposes.
+### MATLAB MEX
+**DEPRECATION WARNING:** *MATLAB mex files are almost completely platform- and matlab-version- dependent. So you basically have to recompile for every MATLAB release, on every platform, clearly a nightmare. MATLAB does however allow you to invoke C library functions directly (see `loadlibrary` in the MATLAB help) so we may consider writing a header exposing C-style library API for use with MATLAB, to allow us to continue supporting MATLAB in a practical way.*
+
+The CMake build process includes MATLAB based mex files for library functionality - requiring MATLAB to be installed on the build machine for linking purposes. This is unsupported as of January 2019.
+
+
+## Documentation
+
+Documentation resides in the `./docs` directory, as `*.rst` files. The instruction manual includes an automatically generated subfolder of .rst files detailing the API of the library.
+
+### Creating the bibliography
+
+For sphinx to create a bibliography, the `bibliography.rst` file needs to contain, in RestructuredText format, the references used.
+
+However, these commonly must be converted from better known citation formats - the most common of which is BibTeX. To do this, you can use [**bib2reSTcitation**](https://github.com/cykustcc/bib2reSTcitation), a tool for converting `.bib` files to `.rst` files.
+
+### Building documentation
+
+The build steps are as follows:
+
+- Do any conversions of reference formats that you need to, ensuring `bibliography.rst` is up to date with all references.
+- Use `breathe` to parse the library and generate `doxygen` files (in `xml` form)
+- Use `exhale` to convert doxygen `xml` files to `rst` documentation
+- Use `sphinx` (with `mathjax` to convert AMS LaTeX to rendered equations and `sphinx-rtd-theme` for prettiness) to convert all the `rst` files to `html`.
+
+### Build Environment
+
+*TODO - the below build script is platform dependent (to the author's machine). Make independent, then spin up a server to build on a github hook.**
+
+The build scripts are in python 2.7, because sphinx hasn't been fully moved to python 3 yet. Sigh!
+
+On OSX, use pyenv to set up a virtual environment running python 2.7. Call it `doc-build-2.7`. 
+
+You also need to add a shim to pyenv so that sphinx calls the right python installation. Copy `scripts/sphinx-build` to the pyenv shim directory, in my case its `/Users/thc29/.pyenv/shims/`, and edit the last two lines to your settings.
+
+```
+pyenv activate doc-build-2.7
+pip install requirements.txt
+export ES_FLOW_ROOT=/Users/thc29/Source/octue/es-flow
+cd $ES_FLOW_ROOT/cmake-build-debug/docs/source
+python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT $ES_FLOW_ROOT/cmake-build-debug/docs /Users/thc29/.pyenv/shims/sphinx-build
+```
 
 
 ## Unit Testing
@@ -125,7 +119,7 @@ Unit testing is done with the google test framework and requires the following d
 - **fake_lidar_basic.mat** (generated by script `make_fake_lidar_basic.m`) which contains example lidar data for a basic lidar data structure (defined within the script). This .mat file is large (assumes high resolution temporal data over a long time). Actual flow profiles are not really valid; it's mostly just randomised data for unit testing purposes.
 
 
-### Environment Variables
+### Test Environment
 
 The following environment variables are required for the app to operate:
 
