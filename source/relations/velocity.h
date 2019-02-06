@@ -1,7 +1,12 @@
 /*
- * velocity.h
+ * velocity.h Atmospheric Boundary Layer velocity profile relations
+ *
+ * Author:              Tom Clark  (thclark @ github)
+ *
+ * Copyright (c) 2013-9 Octue Ltd. All Rights Reserved.
  *
  */
+
 
 #ifndef SOURCE_RELATIONS_VELOCITY_H
 #define SOURCE_RELATIONS_VELOCITY_H

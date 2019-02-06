@@ -1,7 +1,7 @@
 /*
  * conv.h Matlab-like convolution
- * 
- * Author:              Tom Clark  (thclark@github)
+ *
+ * Author:              Tom Clark  (thclark @ github)
  *
  * Copyright (c) 2019 Octue Ltd. All Rights Reserved.
  *

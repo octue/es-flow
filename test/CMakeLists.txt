@@ -8,7 +8,7 @@ set(UNIT_TEST_SOURCE_FILES
         #        unit/readers_test.cpp
         unit/utilities_cumtrapz_test.cpp
         unit/utilities_trapz_test.cpp
-        unit/window_test.cpp)
+        )
 
 # Include google test
 enable_testing()

@@ -15,16 +15,9 @@
  *
  *   [2] More elegant implementation based on type, or possibly use of eigen-matio (ref [3])
  *
- * Author:                   T. Clark
- * Work address:             Ocean Array Systems Ltd
- *                           Hauser Forum
- *                           3 Charles Babbage Road
- *                           Cambridge
- *                           CB3 0GT
- * Email:                    tom.clark@oceanarraysystems.com
- * Website:                  www.oceanarraysystems.com
+ * Author:                   Tom Clark (thclark @ github)
  *
- * Copyright (c) 2017 Ocean Array Systems. All Rights Reserved.
+ * Copyright (c) 2019 Octue Ltd. All Rights Reserved.
  *
  */
 

@@ -1,7 +1,11 @@
-//
-// Created by Thomas Clark on 20/12/2016.
-//
-
+/*
+ * readers.h File readers for timeseries instrument data
+ *
+ * Author:                   Tom Clark (thclark @ github)
+ *
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
+ *
+ */
 #ifndef ES_FLOW_READERS_H
 #define ES_FLOW_READERS_H
 

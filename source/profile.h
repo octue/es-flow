@@ -3,26 +3,12 @@
  *
  * Function definitions are included here, rather than the cpp file, because of the templating constraint. See http://stackoverflow.com/questions/495021/why-can-templates-only-be-implemented-in-the-header-file
  *
- * References:
+ * Author:                   Tom Clark (thclark @ github)
  *
- *   [1]
- *
- * Future Improvements:
- *
- *   [1]
- *
- * Author:                   T. Clark
- * Work address:             Ocean Array Systems Ltd
- *                           Hauser Forum
- *                           3 Charles Babbage Road
- *                           Cambridge
- *                           CB3 0GT
- * Email:                    tom.clark@oceanarraysystems.com
- * Website:                  www.oceanarraysystems.com
- *
- * Copyright (c) 2016 Ocean Array Systems. All Rights Reserved.
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
  *
  */
+
 #ifndef SOURCE_PROFILE_H
 #define SOURCE_PROFILE_H
 

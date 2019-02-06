@@ -1,8 +1,10 @@
 /*
  * Signature_test.cpp
  *
- *  Created on: 29 Nov 2016
- *      Author: thc29
+ * Author:                   Tom Clark (thclark @ github)
+ *
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
+ *
  */
 
 //#include "Signature.h"

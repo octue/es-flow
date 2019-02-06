@@ -1,9 +1,9 @@
 /*
  * filter.h One-dimensional polynomial based digital filter for eigen arrayXd
  *
- * Author:              Tom Clark  (thclark@github)
+ * Author:              Tom Clark  (thclark @ github)
  *
- * Copyright (c) 2010 Octue Ltd. All Rights Reserved.
+ * Copyright (c) 2019 Octue Ltd. All Rights Reserved.
  *
  */
 

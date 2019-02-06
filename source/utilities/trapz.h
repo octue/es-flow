@@ -1,11 +1,9 @@
 /*
  * trapz.h Trapezoidal Numerical Integration for Eigen
  *
- * Author:                   T. Clark
- * Email:                    tom@octue.com
- * Website:                  www.octue.com
+ * Author:              Tom Clark  (thclark @ github)
  *
- * Copyright (c) 2019 Octue Ltd
+ * Copyright (c) 2019 Octue Ltd. All Rights Reserved.
  *
  */
 

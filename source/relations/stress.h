@@ -1,5 +1,9 @@
 /*
- * velocity.h
+ * stress.h Atmospheric Boundary Layer Reynolds Stress relations
+ *
+ * Author:              Tom Clark  (thclark @ github)
+ *
+ * Copyright (c) 2019 Octue Ltd. All Rights Reserved.
  *
  */
 

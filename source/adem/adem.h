@@ -1,5 +1,9 @@
 /*
- * adem.h
+ * adem.h Implementation of the Attached-Detached Eddy Method
+ *
+ * Author:              Tom Clark  (thclark @ github)
+ *
+ * Copyright (c) 2019 Octue Ltd. All Rights Reserved.
  *
  */
 
@@ -12,16 +16,18 @@
 #include <Eigen/Core>
 #include <stdexcept>
 #include <unsupported/Eigen/CXX11/Tensor>
-
-#include "variable_readers.h"
-#include "profile.h"
-#include "relations/stress.h"
-#include "relations/velocity.h"
-#include "utilities/filter.h"
+#include <unsupported/Eigen/FFT>
 
 #include "cpplot.h"
-#include <unsupported/Eigen/FFT>
+
+#include "adem/signature.h"
+#include "profile.h"
+#include "variable_readers.h"
+#include "relations/stress.h"
+#include "relations/velocity.h"
 #include "utilities/conv.h"
+#include "utilities/filter.h"
+#include "utilities/tensors.h"
 
 
 namespace es {
@@ -174,18 +180,6 @@ public:
 
 };
 
-template<typename T>
-std::string tensor_dims(T &tensor) {
-    std::stringstream dims;
-    for (auto i = tensor.dimensions().begin(); i != tensor.dimensions().end(); ++i) {
-        dims << *i << " x ";
-    }
-    std::string dim_str = dims.str();
-    dim_str.pop_back();
-    dim_str.pop_back();
-    dim_str.pop_back();
-    return dim_str;
-}
 
 /** @brief Print information about the AdemData attributes to ostream using the << operator
  *
@@ -225,99 +219,6 @@ std::ostream &operator<<(std::ostream &os, AdemData const &data) {
        << "    residual_b:        [" << data.residual_b.size() << " x 1]" << std::endl;
     return os;
 }
-
-/** @brief Data container for Eddy signature tensors
- *
- */
-class EddySignature {
-public:
-
-    /// Eddy types used to create the results
-    std::string eddy_type;
-
-    /// Mapped vertical coordinates used in the analysis (e.g. 1 x 50)
-    Eigen::VectorXd lambda;
-
-    /// Wavenumber (wavenumber space for each vertical coord, e.g. 50 x 801)
-    Eigen::ArrayXXd k1z;
-
-    /// g (6 coefficients at each vertical coord and wavenumber, e.g 50 x 801 x 6)
-    Eigen::Tensor<double, 3> g;
-
-    /// J (6 coefficients at each vertical coord, e.g 50 x 6)
-    Eigen::ArrayXXd j;
-
-    /** @brief Load data from a *.mat file containing eddy signature data
-     *
-     * TODO overload with load(std::vector<std::string> file_names, bool print_var = false){} to load and average
-     * multiple signature files
-     *
-     * @param[in] file_name File name (including relative or absolute path)
-     * @param[in] print_var Boolean, default true. Print variables as they are read in (not advised except for debugging!)
-     */
-    void load(std::string file_name, bool print_var = false) {
-        std::cout << "Reading eddy signature data from file " << file_name << std::endl;
-
-        // Open the MAT file for reading
-        mat_t *matfp = Mat_Open(file_name.c_str(), MAT_ACC_RDONLY);
-        if (matfp == NULL) {
-            std::string msg = "Error reading MAT file: ";
-            throw std::invalid_argument(msg + file_name);
-        }
-
-        // Use the variable readers to assist
-        eddy_type = readString(matfp, "type", print_var);
-        lambda = readVectorXd(matfp, "lambda", print_var);
-        k1z = readArrayXXd(matfp, "k1z", print_var);
-        g = readTensor3d(matfp, "g", print_var);
-        j = readArrayXXd(matfp, "J", print_var);
-
-        // Close the file
-        Mat_Close(matfp);
-        std::cout << "Finished reading eddy signature (Type " + eddy_type + ")" << std::endl;
-    }
-
-    /** @brief Save eddy signature data to a *.mat file
-     *
-     * @note NOT IMPLEMENTED YET
-     *
-     * @param[in] filename File name (including relative or absolute path)
-     */
-    void save(std::string filename) {
-        std::cout << "Writing signature data..." << std::endl;
-        throw std::invalid_argument("Error writing mat file - function not implemented");
-    }
-
-    /** @brief Define overloaded + (plus) operator for eddy signatures
-     * @param[in] c The EddySignature to add.
-     * @return A new EddySignature() with combined signatures of the two eddy types.
-     */
-    EddySignature operator+(const EddySignature& c) const
-    {
-        EddySignature result;
-        result.eddy_type = this->eddy_type + "+" + c.eddy_type;
-        // TODO assert equality of lambda and k1z
-        result.lambda = this->lambda;
-        result.k1z = this->k1z;
-        result.g = (this->g + c.g);
-        result.j = (this->j + c.j);
-        return result;
-    }
-    EddySignature operator/(double denom) const
-    {
-        EddySignature result;
-        result.eddy_type = "(" + this->eddy_type + ")/" + std::to_string(denom);
-        // TODO assert equality of lambda and k1z
-        result.lambda = this->lambda;
-        result.k1z = this->k1z;
-        result.g = this->g;
-        result.j = this->j;
-        result.g = result.g / denom;
-        result.j = result.j / denom;
-        return result;
-    }
-
-};
 
 
 /** @brief Get the T^2w distributions from the eddy signatures by deconvolution
@@ -440,59 +341,6 @@ void get_mean_speed(AdemData& data) {
  * @param data
  */
 void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b){
-
-// TODO determine whether this convolution, which gives a central range similar but not exactly equivalent
-//  to the FFT-based implementation, is more accurate.
-
-//    // Map the input signature data to tensors (shared memory)
-//    auto rows = data.t2wa.rows();
-//    auto cols = data.t2wa.cols();
-//    Eigen::TensorMap<Eigen::Tensor<double, 1>> t2wa(data.t2wa.data(), rows);
-//    Eigen::TensorMap<Eigen::Tensor<double, 1>> t2wb(data.t2wb.data(), rows);
-//
-//    auto input_len = signature_a.j.rows() - 2;
-//    auto output_len = data.t2wa.rows() - input_len + 1;
-//    std::cout << "input_len:  " << input_len << std::endl;
-//    std::cout << "output_len: " << output_len << std::endl;
-//
-//    data.reynolds_stress_a = Eigen::ArrayXXd(output_len, 6);
-//    data.reynolds_stress_b = Eigen::ArrayXXd(output_len, 6);
-//
-//    std::cout << "t2wa dimensions[0]: " << t2wa.dimensions()[0] << std::endl;
-//
-//    // For each column of J
-//    for (auto i = 0; i < 6; ++i) {
-//
-//        std::cout << "Column: " << i << std::endl;
-//
-//        // Extract Jij signature as tensor and trim first two elements (required for stability)
-//        Eigen::ArrayXd array_ja = signature_a.j.col(i).bottomRows(input_len);
-//        Eigen::ArrayXd array_jb = signature_b.j.col(i).bottomRows(input_len);
-//        std::cout << "array_ja size: " << array_ja.rows() << " x " << array_ja.cols() << std::endl;
-//        // TODO Optimise this map properly. We can simply map right into the original array with an offset pointer
-//        Eigen::TensorMap<Eigen::Tensor<double, 1>> ja(array_ja.data(), input_len);
-//        Eigen::TensorMap<Eigen::Tensor<double, 1>> jb(array_jb.data(), input_len);
-//        std::cout << "ja dimensions[0]: " << ja.dimensions()[0] << std::endl;
-//        std::cout << "JB (" << i << std::endl;
-//        std::cout << jb <<std::endl;
-//
-//        // Convolve along the first dimension
-//        Eigen::array<ptrdiff_t, 1> dims({0});
-//        Eigen::Tensor<double, 1> output_ra = t2wa.convolve(ja, dims);
-//        Eigen::Tensor<double, 1> output_rb = t2wb.convolve(jb, dims);
-//
-//
-//        rows = output_rb.dimensions()[0];
-//        std::cout << "ACTUAL output dims: " << rows  << std::endl;
-//        Eigen::ArrayXd ra = Eigen::Map<Eigen::ArrayXd>(output_ra.data(), rows);
-//        Eigen::ArrayXd rb = Eigen::Map<Eigen::ArrayXd>(output_rb.data(), rows);
-//
-//        std::cout << "mapped: " << std::endl;
-//        std::cout << "rs size" << data.reynolds_stress_a.rows() << " x " << data.reynolds_stress_a.cols() << std::endl;
-//        data.reynolds_stress_a.col(i) = ra;
-//        data.reynolds_stress_b.col(i) = rb;
-//
-//    }
 
     // Map the input signature data to tensors (shared memory)
     auto input_rows = data.t2wa.rows();
@@ -618,33 +466,6 @@ void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySig
             psi_a_vec = conv(t2wa_vec, g_a_vec);
             psi_b_vec = conv(t2wb_vec, g_b_vec);
 
-            // Print out verification to command line, and write one of the profiles to a figure
-            // Eigen::VectorXd psi(9954);
-            // psi = (psi_a_vec + psi_b_vec) * data.u_tau * data.u_tau;
-            // if ((i == 10) && (j == 3)) {
-            //     cpplot::Figure fig = cpplot::Figure();
-            //     cpplot::ScatterPlot p = cpplot::ScatterPlot();
-            //     p.x = Eigen::VectorXd::LinSpaced(psi_dims[0], 1, psi_dims[0]);
-            //     p.y = psi;
-            //     fig.add(p);
-            //     fig.write("test_s13_premult_i10.json");
-            //     std::cout << "i10 j3" << std::endl;
-            //     std::cout << "1: " << psi(0) << std::endl;
-            //     std::cout << "100: " << psi(99) << std::endl;
-            //     std::cout << "9954: " << psi(9953) << std::endl;
-            // }
-            // if ((i == 4) && (j == 5)) {
-            //     std::cout << "i4 j5" << std::endl;
-            //     std::cout << "1: " << psi(0) << std::endl;
-            //     std::cout << "100: " << psi(99) << std::endl;
-            //     std::cout << "9954: " << psi(9953) << std::endl;
-            // }
-            // if ((i == 48) && (j == 2)) {
-            //     std::cout << "i48 j2" << std::endl;
-            //     std::cout << "1: " << psi(0) << std::endl;
-            //     std::cout << "100: " << psi(99) << std::endl;
-            //     std::cout << "9954: " << psi(9953) << std::endl;
-            // }
         }
     }
 
@@ -719,6 +540,7 @@ AdemData adem(const double beta,
     get_spectra(data, signature_a, signature_b);
 
     return data;
+
 }
 
 

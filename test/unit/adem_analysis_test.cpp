@@ -1,19 +1,9 @@
 /*
  * adem_analysis_test.cpp Test fixtures for running adem analysis
  *
- * References:
+ * Author:                   Tom Clark (thclark @ github)
  *
- *   [1]
- *
- * Future Improvements:
- *
- *   [1]
- *
- * Author:                   T. Clark
- * Email:                    tom@octue.com
- * Website:                  www.octue.com
- *
- * Copyright (c) 2019 Octue Ltd, All Rights Reserved.
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
  *
  */
 

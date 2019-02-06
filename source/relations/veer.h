@@ -1,5 +1,9 @@
 /*
- * veer.h
+ * veer.h Atmospheric Boundary Layer Veer relations
+ *
+ * Author:              Tom Clark  (thclark @ github)
+ *
+ * Copyright (c) 2015-9 Octue Ltd. All Rights Reserved.
  *
  */
 

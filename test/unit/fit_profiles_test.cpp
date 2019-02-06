@@ -1,25 +1,9 @@
 /*
- * FIT_PROFILES_TEST.CPP Test fixtures for bins, profiles and profile fitting methods.
+ * FIT_PROFILES_TEST.CPP Test fixtures for bins, profiles and profile fitting methods
  *
- * References:
+ * Author:                   Tom Clark (thclark @ github)
  *
- *   [1]
- *
- * Future Improvements:
- *
- *   [1] Possibly useful to parameterise tests. To see how, check out minute 9 onward in
- *   https://www.youtube.com/watch?v=16FI1-d2P4E&t=20s
- *
- * Author:                   T. Clark
- * Work address:             Ocean Array Systems Ltd
- *                           Hauser Forum
- *                           3 Charles Babbage Road
- *                           Cambridge
- *                           CB3 0GT
- * Email:                    tom.clark@oceanarraysystems.com
- * Website:                  www.oceanarraysystems.com
- *
- * Copyright (c) 2016-17 Ocean Array Systems, All Rights Reserved.
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
  *
  */
 

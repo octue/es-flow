@@ -1,24 +1,9 @@
 /*
  * PROFILES_TEST.CPP Test fixtures for analytical profiles
  *
- * References:
+ * Author:                   Tom Clark (thclark @ github)
  *
- *   [1]
- *
- * Future Improvements:
- *
- *   [1]
- *
- * Author:                   T. Clark
- * Work address:             Ocean Array Systems Ltd
- *                           Hauser Forum
- *                           3 Charles Babbage Road
- *                           Cambridge
- *                           CB3 0GT
- * Email:                    tom.clark@oceanarraysystems.com
- * Website:                  www.oceanarraysystems.com
- *
- * Copyright (c) 2016-17 Ocean Array Systems, All Rights Reserved.
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
  *
  */
 
@@ -26,7 +11,7 @@
 #include "profile.h"
 #include "relations/velocity.h"
 #include "relations/stress.h"
-#include "constants.h"
+#include "definitions.h"
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <unsupported/Eigen/AutoDiff>

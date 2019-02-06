@@ -1,3 +1,12 @@
+/*
+ * main.cpp Command line executable for es-flow
+ *
+ * Author:              Tom Clark  (thclark @ github)
+ *
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
+ *
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -11,7 +20,6 @@
 #include <Eigen/Core>
 #include <unsupported/Eigen/FFT>
 
-//using namespace Eigen;
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;

@@ -1,24 +1,9 @@
 /*
- * data_types.h Header defining data structures and validation methods
+ * data_types.h Definitions for different input data types
  *
- * References:
+ * Author:              Tom Clark  (thclark @ github)
  *
- *   [1]
- *
- * Future Improvements:
- *
- *   [1] 
- *
- * Author:                   T. Clark
- * Work address:             Ocean Array Systems Ltd
- *                           Hauser Forum
- *                           3 Charles Babbage Road
- *                           Cambridge
- *                           CB3 0GT
- * Email:                    tom.clark@oceanarraysystems.com
- * Website:                  www.oceanarraysystems.com
- *
- * Copyright (c) 2016 Ocean Array Systems. All Rights Reserved.
+ * Copyright (c) 2019 Octue Ltd. All Rights Reserved.
  *
  */
 

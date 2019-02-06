@@ -1,16 +1,17 @@
-
+/*
+ * profile.cpp Profile handling for (e.g.) Velocity, Reynolds Stress and Spectral Tensor Profile management
+ *
+ * Function definitions are included in the .h file, because of the templating constraint. See http://stackoverflow.com/questions/495021/why-can-templates-only-be-implemented-in-the-header-file
+ *
+ * Author:                   Tom Clark (thclark @ github)
+ *
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
+ *
+ */
 #include "profile.h"
 #include "math.h"
+#include "definitions.h"
 
-// TODO move out to general purpose libraries
-double sind(double angle) {
-    double angle_radians = angle * M_PI / 180.0f;
-    return sin(angle_radians) * M_PI / 180.0f;
-}
-double tand(double angle) {
-    double angle_radians = angle * M_PI / 180.0f;
-    return tan(angle_radians) * M_PI / 180.0f;
-}
 
 namespace es {
 
