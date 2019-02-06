@@ -7,30 +7,35 @@ EnvironmentSTUDIO flow (**es-flow** for short) is a library for analysing and mo
 While **es-flow** can be used for any turbulent boundary layer analysis, its main focus is for
 wind and tidal site characterisation - generating the 'best fit' of analytical models to measured velocity data.
 
+A key strength of **es-flow** is the :doc:`adem`. This extremely robust method allows users to:
+
+    - determine detailed turbulence information from instruments like LiDAR
+    - characterise turbulence and shear beyond tip height of even the biggest offshore wind turbines
+    - characterise **coherent structure** in turbulence, crucially important for fatigue loading in wind turbines.
+
+
 Aims
 ====
 
-The goal is to provide: [#f1]_
+The **es-flow** library provides: [#f1]_
 
-a. Profiles (for given input parameters) of
+#. **Parameterised profiles**
     - Mean Velocity (using power law, logarithmic law, MOST or Lewkowicz relations)
     - Mean Veer (Using Monin-Obukhov approach)
     - Reynolds Stress ``u'w'`` (using Lewkowicz relations)
     - Reynolds Stress ``u'u'``, ``u'v'``, ``u'w'``, ``v'v'``, ``v'w'``, ``w'w'`` (using the :doc:`adem`)
     - Spectra ``Sij`` (using Kaimal, von Karman)
-    - Spectra ``Sij`` (using Attached-Detached Eddy Method)
-    - Integral turbulent intensity and lengthscale ``I``, ``l``.
+    - Spectra ``Sij`` (using :doc:`adem`)
+    - Integral turbulent intensity and lengthscale ``I``, ``l``
+#. **Best fit parameter sets**
+    - To describe the above profiles analytically (given measured velocity data from an instrument).
 
-b. Best fit parameter sets (
-    - given measured profiles from an instrument), to describe the above quantities analytically.
-
-In future, generation of artificial flow fields for simulation purposes (eg ``.wnd`` fields for FVM/panel/BEM models,
-inlets to DES, etc.) might be considered.
-
-We use the `GitHub Issue Tracker <https://github.com/octue/es-flow>`_ to manage bug reports and feature requests.
+In future, generation of artificial flow fields for simulation purposes might be considered. This would overlap with - or replace - utilities like TurbSim to produce, for example:
+    - ``.wnd`` fields input to BEM or FVM models like Bladed, FAST and TurbineGRID
+    - Inlet boundary conditions for DES or LES codes
 
 
-Users
+Uses
 =====
 
 At `Octue <http://www.octue.com>`_, **es-flow** is used to:
@@ -41,6 +46,9 @@ At `Octue <http://www.octue.com>`_, **es-flow** is used to:
   * Generate load cases for FAST, Bladed and our own TurbineGRID aerodynamic wind turbine analysis tools.
 
 We'd like to hear about your use case. Please get in touch!
+
+We use the `GitHub Issue Tracker <https://github.com/octue/es-flow>`_ to manage bug reports and feature requests.
+
 
 
 .. toctree::
