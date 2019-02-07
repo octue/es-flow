@@ -1,17 +1,9 @@
 /*
- * main_test.cpp - The main unit test runner, with a test case printer utility which gives you a stacktrace output.
+ * main_test.cpp - The main unit test runner, with a test case printer utility which gives you a stacktrace output
  *
- * References:
+ * Author:                   Tom Clark (thclark @ github)
  *
- *   [1]
- *
- * Future Improvements:
- *
- *   [1]
- *
- * Author:              Tom Clark  (thclark@github)
- *
- * Copyright (c) 2017-8 T Clark. All Rights Reserved.
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
  *
  */
 
@@ -63,7 +55,6 @@ class TestCasePrinter : public ::testing::EmptyTestEventListener {
     }
 
 };
-
 
 
 int main(int argc, char **argv) {
