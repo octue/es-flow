@@ -41,8 +41,8 @@ T power_law_speed(T const & z, const double u_ref, const double z_ref, const dou
 template <>
 Eigen::VectorXd power_law_speed(Eigen::VectorXd const & z, const double u_ref, const double z_ref, const double alpha) {
     // Template specialisation for VectorXd type
-    VectorXd z_norm = z / z_ref;
-    VectorXd speed = pow(z_norm.array(), alpha) * u_ref;
+    Eigen::VectorXd z_norm = z / z_ref;
+    Eigen::VectorXd speed = pow(z_norm.array(), alpha) * u_ref;
     return speed;
 }
 
@@ -69,9 +69,9 @@ T most_law_speed(T const & z, const double kappa, const double d, const double z
     return speed;
 }
 template <>
-VectorXd most_law_speed(VectorXd const & z, const double kappa, const double d, const double z0, const double L){
+Eigen::VectorXd most_law_speed(Eigen::VectorXd const & z, const double kappa, const double d, const double z0, const double L){
     std::cout << "MOST Law not implemented yet" << std::endl;
-    VectorXd speed;
+    Eigen::VectorXd speed;
     return speed;
 };
 
@@ -118,16 +118,16 @@ T_z marusic_jones_speed(T_z const & z, T_pi_j const pi_j, const double kappa, co
 }
 
 template <typename T_pi_j>
-VectorXd marusic_jones_speed(VectorXd const & z, T_pi_j const pi_j, const double kappa, const double z_0,
+Eigen::VectorXd marusic_jones_speed(Eigen::VectorXd const & z, T_pi_j const pi_j, const double kappa, const double z_0,
                              const double delta, const double u_inf, const double u_tau){
     // Template specialisation for VectorXd type
-    VectorXd eta = (z.array() + z_0) / (delta + z_0);
-    VectorXd eta_cubed = eta.array().cube();
-    VectorXd term1 = eta.array().log() / kappa;
-    VectorXd term2 = (eta_cubed.array() - 1.0) / (3.0 * kappa);
-    VectorXd term3 = 2.0 * pi_j * (1.0 - eta.array().square() * 3.0 + eta_cubed.array() * 2.0) / kappa;
-    VectorXd u_deficit = term2 - term1 + term3;
-    VectorXd speed = u_inf - u_deficit.array() * u_tau;
+    Eigen::VectorXd eta = (z.array() + z_0) / (delta + z_0);
+    Eigen::VectorXd eta_cubed = eta.array().cube();
+    Eigen::VectorXd term1 = eta.array().log() / kappa;
+    Eigen::VectorXd term2 = (eta_cubed.array() - 1.0) / (3.0 * kappa);
+    Eigen::VectorXd term3 = 2.0 * pi_j * (1.0 - eta.array().square() * 3.0 + eta_cubed.array() * 2.0) / kappa;
+    Eigen::VectorXd u_deficit = term2 - term1 + term3;
+    Eigen::VectorXd speed = u_inf - u_deficit.array() * u_tau;
     return speed;
 };
 
@@ -168,8 +168,8 @@ T coles_wake(T const & eta, const double capital_pi){
 }
 
 template <>
-VectorXd coles_wake(VectorXd const & eta, const double capital_pi){
-    VectorXd wc, eta_sqd;
+Eigen::VectorXd coles_wake(Eigen::VectorXd const & eta, const double capital_pi){
+    Eigen::VectorXd wc, eta_sqd;
     eta_sqd = eta.array().pow(2.0);
     wc = 2.0 * eta_sqd.array() * (3.0 - 2.0 * eta.array())
         - eta_sqd.array() * (1.0 - eta.array()) * (1.0 - 2.0*eta.array()) / capital_pi;
@@ -214,11 +214,11 @@ T lewkowicz_speed(T const & eta, const double pi_coles, const double kappa, cons
 }
 
 template <>
-VectorXd lewkowicz_speed(VectorXd const & eta, const double pi_coles, const double kappa, const double u_inf, const double u_tau){
-    VectorXd f, speed;
-    VectorXd term1 = eta.array().log() / (-1.0*kappa);
+Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & eta, const double pi_coles, const double kappa, const double u_inf, const double u_tau){
+    Eigen::VectorXd f, speed;
+    Eigen::VectorXd term1 = eta.array().log() / (-1.0*kappa);
     double term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
-    VectorXd term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;
+    Eigen::VectorXd term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;
     // std::cout << "term 1 = [" << term1.transpose() << "]" << std::endl;
     // std::cout << "term 2 = [" << term2 << "]" << std::endl;
     // std::cout << "term 3 = [" << term3.transpose() << "]" << std::endl;
