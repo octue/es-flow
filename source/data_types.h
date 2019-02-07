@@ -15,22 +15,19 @@
 #include <eigen3/Eigen/Core>
 #include "variable_readers.h"
 
-using Eigen::Array;
-using Eigen::Vector3d;
-using Eigen::VectorXd;
-using Eigen::Dynamic;
 
 namespace es {
+
 
 class BasicLidar {
 public:
     const std::string type = "lidar_basic";
     VectorXd t;
     VectorXd z;
-    Array<double, Dynamic, Dynamic> u;
-    Array<double, Dynamic, Dynamic> v;
-    Array<double, Dynamic, Dynamic> w;
-    Vector3d position;
+    Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> u;
+    Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> v;
+    Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> w;
+    Eigen::Vector3d position;
     double half_angle;
     struct {
         std::string t;
@@ -54,7 +51,7 @@ public:
 
         // Handle initialisation of position as a two element vector, zero padded (elevation = 0) and as a three
         // element vector.
-        VectorXd pos = readVectorXd(matfp, "position", print_var);
+        Eigen::VectorXd pos = readVectorXd(matfp, "position", print_var);
         if (pos.size() == 2) {
             position = Vector3d(pos(0), pos(1), 0.0);
         }else {
@@ -67,6 +64,6 @@ public:
 
 };
 
-} /* end namespace */
+} /* namespace es */
 
 #endif //ES_FLOW_DATA_TYPES_H

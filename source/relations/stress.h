@@ -20,8 +20,11 @@
 #include "utilities/trapz.h"
 #include "utilities/cumtrapz.h"
 
+using namespace utilities;
+
 
 namespace es {
+
 
 /** @brief Get the Coles wake distribution @f$ w_{c} @f$ from the wake parameter @f$ \Pi @f$
  *

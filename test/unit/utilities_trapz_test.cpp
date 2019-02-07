@@ -14,7 +14,7 @@
 #include "utilities/trapz.h"
 
 
-using namespace es;
+using namespace utilities;
 
 
 class TrapzTest : public ::testing::Test {

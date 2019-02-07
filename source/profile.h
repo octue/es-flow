@@ -18,7 +18,9 @@
 #include <string>
 #include <stdexcept>
 
+
 namespace es {
+
 
 class Bins {
 public:

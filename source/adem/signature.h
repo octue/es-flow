@@ -28,6 +28,8 @@
 #include "utilities/conv.h"
 #include "utilities/tensors.h"
 
+using namespace utilities;
+
 
 namespace es {
 
@@ -109,6 +111,11 @@ public:
         result.j = (this->j + c.j);
         return result;
     }
+
+    /** @brief Define overloaded / (divide) operator for eddy signatures
+     * @param[in] denom A number to divide by
+     * @return A new EddySignature() whose signature (g, j) is element-wise divided by input denom.
+     */
     EddySignature operator/(double denom) const
     {
         EddySignature result;
@@ -124,8 +131,6 @@ public:
     }
 
 };
-
-
 
 } /* namespace es */
 

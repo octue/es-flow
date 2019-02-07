@@ -19,6 +19,7 @@
 
 using namespace es;
 using namespace Eigen;
+using namespace utilities;
 
 
 class AdemAnalysisTest : public ::testing::Test {

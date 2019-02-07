@@ -29,6 +29,8 @@
 #include "utilities/filter.h"
 #include "utilities/tensors.h"
 
+using namespace utilities;
+
 
 namespace es {
 

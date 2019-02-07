@@ -28,13 +28,9 @@
 #include <eigen3/Eigen/Core>
 #include "data_types.h"
 
-using Eigen::Array;
-using Eigen::ArrayXXd;
-using Eigen::Vector3d;
-using Eigen::VectorXd;
-using Eigen::Dynamic;
 
 namespace es {
+
 
 // Level of data validation applied to timeseries. Exception is thrown if checks fail
 enum timeseries_check_level {

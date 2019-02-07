@@ -13,6 +13,8 @@
 #include <string>
 
 
+namespace utilities {
+
 /** @brief Return a string representation of tensor dimensions
  *
  * @param tensor An Eigen::Tensor
@@ -31,5 +33,6 @@ std::string tensor_dims(T &tensor) {
     return dim_str;
 }
 
+} /* namespace utilities */
 
 #endif //ES_FLOW_TENSORS_H

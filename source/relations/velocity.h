@@ -15,9 +15,9 @@
 #include <Eigen/Core>
 #include "profile.h"
 
-using namespace Eigen;
 
 namespace es {
+
 
 /// Compute speed profile according to the power law.
 /**
@@ -38,14 +38,13 @@ T power_law_speed(T const & z, const double u_ref, const double z_ref, const dou
     T speed = pow(z_norm, alpha) * u_ref;
     return speed;
 }
-
 template <>
-VectorXd power_law_speed(VectorXd const & z, const double u_ref, const double z_ref, const double alpha) {
+Eigen::VectorXd power_law_speed(Eigen::VectorXd const & z, const double u_ref, const double z_ref, const double alpha) {
     // Template specialisation for VectorXd type
     VectorXd z_norm = z / z_ref;
     VectorXd speed = pow(z_norm.array(), alpha) * u_ref;
     return speed;
-};
+}
 
 /// Compute speed profile according to the MOST law.
 /**

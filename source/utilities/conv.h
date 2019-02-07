@@ -10,10 +10,12 @@
 #ifndef ES_FLOW_CONV_H
 #define ES_FLOW_CONV_H
 
-
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <unsupported/Eigen/FFT>
+
+
+namespace utilities {
 
 
 /** @brief Find the next good size for an fft, to pad with minimal number of zeros
@@ -21,7 +23,7 @@
  * @param N Length of a signal
  * @return M Length to pad the signal to, for optimal FFT performance
  */
-template <typename T>
+template<typename T>
 T fft_next_good_size(const T n) {
     T result = n;
     if (n <= 2) {
@@ -40,7 +42,6 @@ T fft_next_good_size(const T n) {
     }
 }
 
-
 /** @brief Convolve an input vector with a kernel, returning an output of the same length as the input
  *
  * Uses zero-padded fft based output
@@ -56,7 +57,7 @@ Eigen::VectorXd conv(const Eigen::VectorXd &input, const Eigen::VectorXd &kernel
     auto kernel_len = kernel.rows();
 
     // Compute cumulative length of input and kernel;
-    auto N = input_len + kernel_len - 1 ;
+    auto N = input_len + kernel_len - 1;
     auto M = fft_next_good_size(N);
 
     // Create padded FFT inputs
@@ -85,7 +86,8 @@ Eigen::VectorXd conv(const Eigen::VectorXd &input, const Eigen::VectorXd &kernel
     // Crop to the size of the input vector
     out = out.topRows(input_len);
     return out;
-
 }
+
+}  /* namespace utilities */
 
 #endif //ES_FLOW_CONV_H

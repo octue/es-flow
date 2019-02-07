@@ -13,9 +13,9 @@
 #include <Eigen/Dense>
 #include <stdexcept>
 
-namespace es {
 
-using namespace Eigen;
+namespace utilities {
+
 
 /** @brief Trapezoidal numerical integration with unit spacing.
  *
@@ -27,10 +27,10 @@ using namespace Eigen;
  * @param in The input (integrand) array
  */
 template<typename Derived, typename OtherDerived>
-EIGEN_STRONG_INLINE void trapz(ArrayBase<OtherDerived> const & out, const ArrayBase<Derived>& in)
+EIGEN_STRONG_INLINE void trapz(Eigen::ArrayBase<OtherDerived> const & out, const Eigen::ArrayBase<Derived>& in)
 {
-    ArrayBase<OtherDerived>& out_ = const_cast< ArrayBase<OtherDerived>& >(out);
-    Array<typename ArrayBase<Derived>::Scalar, ArrayBase<Derived>::RowsAtCompileTime, ArrayBase<Derived>::ColsAtCompileTime> inter;
+    Eigen::ArrayBase<OtherDerived>& out_ = const_cast< Eigen::ArrayBase<OtherDerived>& >(out);
+    Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eigen::ArrayBase<Derived>::RowsAtCompileTime, Eigen::ArrayBase<Derived>::ColsAtCompileTime> inter;
 
     if (in.rows() == 1) {
         out_.derived().setZero(1, in.cols());
@@ -38,18 +38,18 @@ EIGEN_STRONG_INLINE void trapz(ArrayBase<OtherDerived> const & out, const ArrayB
         inter = (in.topRows(in.rows()-1) + in.bottomRows(in.rows()-1)) * 0.5;
         out_.derived() = inter.colwise().sum();
     }
-};
+}
 
 /*
  * Overload method to return result by value.
  */
 template<typename Derived>
-EIGEN_STRONG_INLINE Array<typename ArrayBase<Derived>::Scalar, ArrayBase<Derived>::RowsAtCompileTime, ArrayBase<Derived>::ColsAtCompileTime> trapz(const ArrayBase<Derived>& y)
+EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eigen::ArrayBase<Derived>::RowsAtCompileTime, Eigen::ArrayBase<Derived>::ColsAtCompileTime> trapz(const Eigen::ArrayBase<Derived>& y)
 {
-    Array<typename ArrayBase<Derived>::Scalar, ArrayBase<Derived>::RowsAtCompileTime, ArrayBase<Derived>::ColsAtCompileTime> z;
+    Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eigen::ArrayBase<Derived>::RowsAtCompileTime, Eigen::ArrayBase<Derived>::ColsAtCompileTime> z;
     trapz(z,y);
     return z;
-};
+}
 
 /** @brief Trapezoidal numerical integration with non-unit spacing
  *
@@ -66,19 +66,19 @@ EIGEN_STRONG_INLINE Array<typename ArrayBase<Derived>::Scalar, ArrayBase<Derived
  * @param in_y The input (integrand) array
  */
 template<typename DerivedX, typename DerivedY, typename DerivedOut>
-EIGEN_STRONG_INLINE void trapz(ArrayBase<DerivedOut> const & out, const ArrayBase<DerivedX>& in_x, const ArrayBase<DerivedY>& in_y)
+EIGEN_STRONG_INLINE void trapz(Eigen::ArrayBase<DerivedOut> const & out, const Eigen::ArrayBase<DerivedX>& in_x, const Eigen::ArrayBase<DerivedY>& in_y)
 {
     // Input size check
     eigen_assert(in_x.rows() == in_y.rows());
     eigen_assert(in_x.cols() == 1);
 
     // Get dx for each piece of the integration
-    Array<typename ArrayBase<DerivedX>::Scalar, ArrayBase<DerivedX>::RowsAtCompileTime, ArrayBase<DerivedX>::ColsAtCompileTime> dx;
+    Eigen::Array<typename Eigen::ArrayBase<DerivedX>::Scalar, Eigen::ArrayBase<DerivedX>::RowsAtCompileTime, Eigen::ArrayBase<DerivedX>::ColsAtCompileTime> dx;
     dx = (in_x.bottomRows(in_x.rows()-1) - in_x.topRows(in_x.rows()-1));
 
 
     // Get the average heights of the trapezoids
-    Array<typename ArrayBase<DerivedY>::Scalar, ArrayBase<DerivedY>::RowsAtCompileTime, ArrayBase<DerivedY>::ColsAtCompileTime> inter;
+    Eigen::Array<typename Eigen::ArrayBase<DerivedY>::Scalar, Eigen::ArrayBase<DerivedY>::RowsAtCompileTime, Eigen::ArrayBase<DerivedY>::ColsAtCompileTime> inter;
     inter = (in_y.topRows(in_y.rows()-1) + in_y.bottomRows(in_y.rows()-1)) * 0.5;
 
     // Multiply by trapezoid widths. NB Broadcasting with *= only works for arrayX types, not arrayXX types like dx
@@ -92,25 +92,25 @@ EIGEN_STRONG_INLINE void trapz(ArrayBase<DerivedOut> const & out, const ArrayBas
     }
 
     // Initialise output
-    ArrayBase<DerivedOut>& out_ = const_cast< ArrayBase<DerivedOut>& >(out);
+    Eigen::ArrayBase<DerivedOut>& out_ = const_cast< Eigen::ArrayBase<DerivedOut>& >(out);
     out_.derived().setZero(1, in_y.cols());
 
     // Output the column-wise sum
     out_.derived() = inter.colwise().sum();
-};
+}
 
 /*
  * Overload method to return result by value.
  */
 template<typename DerivedX, typename DerivedY, typename DerivedOut>
-EIGEN_STRONG_INLINE Array<typename ArrayBase<DerivedOut>::Scalar, ArrayBase<DerivedOut>::RowsAtCompileTime, ArrayBase<DerivedOut>::ColsAtCompileTime> trapz(const ArrayBase<DerivedX>& x, const ArrayBase<DerivedY>& y)
+EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<DerivedOut>::Scalar, Eigen::ArrayBase<DerivedOut>::RowsAtCompileTime, Eigen::ArrayBase<DerivedOut>::ColsAtCompileTime> trapz(const Eigen::ArrayBase<DerivedX>& x, const Eigen::ArrayBase<DerivedY>& y)
 {
-    Array<typename ArrayBase<DerivedOut>::Scalar, ArrayBase<DerivedOut>::RowsAtCompileTime, ArrayBase<DerivedOut>::ColsAtCompileTime> z;
+    Eigen::Array<typename Eigen::ArrayBase<DerivedOut>::Scalar, Eigen::ArrayBase<DerivedOut>::RowsAtCompileTime, Eigen::ArrayBase<DerivedOut>::ColsAtCompileTime> z;
     trapz(z, x, y);
     return z;
-};
+}
 
-};
+}  /* namespace utilities */
 
 #endif //ES_FLOW_TRAPZ_H
 

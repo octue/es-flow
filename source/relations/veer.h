@@ -15,10 +15,9 @@
 #include "definitions.h"
 #include "profile.h"
 
-using namespace Eigen;
-
 
 namespace es {
+
 
 /// Computes the left hand side of the veer relations given u(z) or v(z)
 /**
