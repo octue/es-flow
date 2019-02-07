@@ -10,6 +10,8 @@
  */
 
 
+// Remove template specialisation from doc (causes duplicate) @cond
+
 /***********************************************************************************************************************
  * HOW TO INTEGRATE USING THE NUMERICALINTEGRATION LIBRARY
  **********************************************************************************************************************/
@@ -274,4 +276,26 @@ void my_rs_plotting_func() {
 
 }
 
+/***********************************************************************************************************************
+ * HOW TO DO MAT FILE READ WRITE
+ **********************************************************************************************************************/
 
+#include "matio.h"
+
+// Create the output file
+mat_t *matfp;
+matfp = Mat_CreateVer(options["o"].as<std::string>().c_str(), NULL, MAT_FT_MAT73);
+if ( NULL == matfp ) {
+std::string msg = "Error creating MAT file: ";
+throw  msg + options["o"].as<std::string>();
+}
+
+// We haven't written any data - just close the file
+Mat_Close(matfp);
+
+std::cout << "MATIO TEST COMPLETE" << std::endl;
+
+
+
+
+// @endcond

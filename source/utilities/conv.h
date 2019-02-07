@@ -18,7 +18,7 @@
 namespace utilities {
 
 
-/** @brief Find the next good size for an fft, to pad with minimal number of zeros
+/** @brief Find the next good size for an fft, to pad with minimal number of zeros.
  *
  * @param N Length of a signal
  * @return M Length to pad the signal to, for optimal FFT performance
@@ -42,7 +42,8 @@ T fft_next_good_size(const T n) {
     }
 }
 
-/** @brief Convolve an input vector with a kernel, returning an output of the same length as the input
+
+/** @brief Convolve an input vector with a kernel, returning an output of the same length as the input.
  *
  * Uses zero-padded fft based output
  *

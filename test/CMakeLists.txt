@@ -5,7 +5,7 @@ set(UNIT_TEST_SOURCE_FILES
         unit/adem_analysis_test.cpp
         unit/adem_signature_test.cpp
         unit/fit_profiles_test.cpp
-        #        unit/profiles_test.cpp
+        unit/profiles_test.cpp
         #        unit/readers_test.cpp
         unit/utilities_cumtrapz_test.cpp
         unit/utilities_trapz_test.cpp

@@ -34,7 +34,7 @@ using namespace utilities;
 namespace es {
 
 
-/** @brief Data container for Eddy signature tensors
+/** @brief Data container for Eddy signature tensors.
  *
  */
 class EddySignature {
@@ -55,7 +55,7 @@ public:
     /// J (6 coefficients at each vertical coord, e.g 50 x 6)
     Eigen::ArrayXXd j;
 
-    /** @brief Load data from a *.mat file containing eddy signature data
+    /** @brief Load data from a *.mat file containing eddy signature data.
      *
      * TODO overload with load(std::vector<std::string> file_names, bool print_var = false){} to load and average
      * multiple signature files
@@ -85,7 +85,7 @@ public:
         std::cout << "Finished reading eddy signature (Type " + eddy_type + ")" << std::endl;
     }
 
-    /** @brief Save eddy signature data to a *.mat file
+    /** @brief Save eddy signature data to a *.mat file.
      *
      * @note NOT IMPLEMENTED YET
      *
@@ -96,7 +96,8 @@ public:
         throw std::invalid_argument("Error writing mat file - function not implemented");
     }
 
-    /** @brief Define overloaded + (plus) operator for eddy signatures
+    /** @brief Define overloaded + (plus) operator for eddy signatures.
+     *
      * @param[in] c The EddySignature to add.
      * @return A new EddySignature() with combined signatures of the two eddy types.
      */
@@ -112,7 +113,8 @@ public:
         return result;
     }
 
-    /** @brief Define overloaded / (divide) operator for eddy signatures
+    /** @brief Define overloaded / (divide) operator for eddy signatures.
+     *
      * @param[in] denom A number to divide by
      * @return A new EddySignature() whose signature (g, j) is element-wise divided by input denom.
      */

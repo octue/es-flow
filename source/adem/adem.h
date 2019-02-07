@@ -35,7 +35,7 @@ using namespace utilities;
 namespace es {
 
 
-/** @brief Data container for ADEM input parameters and results
+/** @brief Data container for ADEM input parameters and results.
  *
  * # Upcoming refactor
  *
@@ -121,7 +121,7 @@ public:
     /// Fit residuals from the deconvolution of `t2wb`
     Eigen::VectorXd residual_b;
 
-    /** @brief Load data from a *.mat file containing eddy signature data
+    /** @brief Load data from a *.mat file containing eddy signature data.
      *
      * @param[in] file_name File name (including relative or absolute path)
      * @param[in] print_var Boolean, default true. Print variables as they are read in (not advised except for debugging!)
@@ -171,7 +171,7 @@ public:
         std::cout << "Finished reading adem data" << std::endl;
     }
 
-    /** @brief Save eddy signature data to a *.mat file
+    /** @brief Save eddy signature data to a *.mat file.
      *
      * @param[in] filename File name (including relative or absolute path)
      */
@@ -183,7 +183,7 @@ public:
 };
 
 
-/** @brief Print information about the AdemData attributes to ostream using the << operator
+/** @brief Print information about the AdemData attributes to ostream using the << operator.
  *
  * @param os The ostream to print to
  * @param data The AdemDataclass instance
@@ -223,7 +223,7 @@ std::ostream &operator<<(std::ostream &os, AdemData const &data) {
 }
 
 
-/** @brief Get the T^2w distributions from the eddy signatures by deconvolution
+/** @brief Get the T^2w distributions from the eddy signatures by deconvolution.
  *
  * These distributions are used for calculation of Spectra and Stress terms.
  *
@@ -282,7 +282,7 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
 }
 
 
-/** @brief Get the mean speed profile and update the data structure with it
+/** @brief Get the mean speed profile and update the data structure with it.
  *
  * @param data
  */
@@ -291,7 +291,7 @@ void get_mean_speed(AdemData& data) {
 }
 
 
-/** @brief Get the Reynolds Stress distributions from T2w and J distributions
+/** @brief Get the Reynolds Stress distributions from T2w and J distributions.
  *
  * The ouptut Reynolds Stress matrix is of size
  *   output_dim_size = input_dim_size - kernel_dim_size + 1 (requires: input_dim_size >= kernel_dim_size).
@@ -367,9 +367,12 @@ void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, con
 }
 
 
-/** @brief Get the premultiplied power spectra
- * Matlab equivalent is:
+/** @brief Get the premultiplied power spectra.
+ *
+ * Legacy MATLAB equivalent is:
+ * @code
  *      [Psi, PsiA, PsiB] = getSpectra(T2wA, T2wB, gA, gB, U1, S);
+ * @endcode
  * @param data
  */
 void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b){
@@ -418,7 +421,7 @@ void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySig
 }
 
 
-/** @brief Compute full turbulent properties from given Attached-Detached Eddy Model parameters
+/** @brief Compute full turbulent properties from given Attached-Detached Eddy Model parameters.
  *
  * Uses the using the Lewkowicz (1982) formulation (Perry and Marusic eq.9) of the Coles wake function
  * to determine u_h(z), spectra and Reynolds Stresses from input parameters.

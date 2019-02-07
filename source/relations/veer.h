@@ -19,19 +19,13 @@
 namespace es {
 
 
-/// Computes the left hand side of the veer relations given u(z) or v(z)
-/**
+/** @brief Computes the left hand side of the veer relations given u(z) or v(z).
+ *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of u values.
  *
  * The veer relations are:
- * @f[
- * \begin{eqnarray*}{
- *      2 |\mathbf{\Omega}| sin(\phi) (\overline{v}_g - \overline{v}) & = & \frac{\partial}{\partial z} \bigg( \nu\frac{\partial\overline{u}}{\partial z} - \overline{u'w'}\bigg)\\
- *      2 |\mathbf{\Omega}| sin(\phi) (\overline{u}_g - \overline{u}) & = & \frac{\partial}{\partial z} \bigg(\nu\frac{\partial\overline{v}}{\partial z} - \overline{v'w'}\bigg)
- * }
- * \end{eqnarray*}
- * @f]
+ * @f[ 2 |\mathbf{\Omega}| sin(\phi) (\overline{v}_g - \overline{v}) & = & \frac{\partial}{\partial z} \bigg( \nu\frac{\partial\overline{u}}{\partial z} - \overline{u'w'}\bigg) \\ 2 |\mathbf{\Omega}| sin(\phi) (\overline{u}_g - \overline{u}) & = & \frac{\partial}{\partial z} \bigg(\nu\frac{\partial\overline{v}}{\partial z} - \overline{v'w'}\bigg) @f]
  *
  * @param[in]  ui       Mean velocity component at a given height (m/s)
  * @param[in]  ui_g     Mean geostrophic velocity component outside the atmospheric boundary layer (m/s)
@@ -43,19 +37,13 @@ T veer_lhs(T const & ui, const double ui_g, const double phi){
     return lhs;
 }
 
-/// Computes the right hand side of the veer relations given u(z) or v(z)
-/**
+
+/** @brief Computes the right hand side of the veer relations given u(z) or v(z).
+ *
+ * See `veer_lhs()` for the full relation.
+ *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of u values.
- *
- * The veer relations are:
- * @f[
- * \begin{eqnarray*}{
- *      2 |\mathbf{\Omega}| sin(\phi) (\overline{v}_g - \overline{v}) & = & \frac{\partial}{\partial z} \bigg( \nu\frac{\partial\overline{u}}{\partial z} - \overline{u'w'}\bigg)\\
- *      2 |\mathbf{\Omega}| sin(\phi) (\overline{u}_g - \overline{u}) & = & \frac{\partial}{\partial z} \bigg(\nu\frac{\partial\overline{v}}{\partial z} - \overline{v'w'}\bigg)
- * }
- * \end{eqnarray*}
- * @f]
  *
  * @param[in]  ui       Mean velocity component at a given height (m/s){
  * @param[in]  uiu3_bar Mean cross term of unsteady velocity components \f$ \overline{u_i'u_3'}} \f$ (m^2/s^2)

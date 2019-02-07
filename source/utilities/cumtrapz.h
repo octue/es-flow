@@ -16,7 +16,7 @@
 namespace es {
 
 
-/** @brief Columnwise cumulative sum of elements
+/** @brief Columnwise cumulative sum of elements.
  *
  * @tparam Derived Type of the input array
  * @tparam OtherDerived Type of the output array
@@ -36,10 +36,7 @@ EIGEN_STRONG_INLINE void cumsum(Eigen::ArrayBase<OtherDerived> const & out, cons
         }
     }
 }
-
-/*
- * Overload method to return result by value.
- */
+// Remove template specialisation from doc (causes duplicate) @cond
 template<typename Derived>
 EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eigen::ArrayBase<Derived>::RowsAtCompileTime, Eigen::ArrayBase<Derived>::ColsAtCompileTime> cumsum(const Eigen::ArrayBase<Derived>& y)
 {
@@ -47,6 +44,8 @@ EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eig
     cumsum(z,y);
     return z;
 }
+// @endcond
+
 
 /** @brief Trapezoidal numerical integration with unit spacing.Cumulative trapezoidal numerical integration with unit spacing.
  *
@@ -64,10 +63,7 @@ EIGEN_STRONG_INLINE void cumtrapz(Eigen::ArrayBase<OtherDerived> const & out, co
     out_.derived().setZero(in.rows(), in.cols());
     cumsum(out_.bottomRows(out_.rows()-1), (in.topRows(in.rows()-1) + in.bottomRows(in.rows()-1)) * 0.5);
 }
-
-/*
- * Overload method to return result by value.
- */
+// Remove template specialisation from doc (causes duplicate) @cond
 template<typename Derived>
 EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eigen::ArrayBase<Derived>::RowsAtCompileTime, Eigen::ArrayBase<Derived>::ColsAtCompileTime> cumtrapz(const Eigen::ArrayBase<Derived>& y)
 {
@@ -75,6 +71,8 @@ EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eig
     cumtrapz(z,y);
     return z;
 }
+// @endcond
+
 
 /** @brief Cumulative trapezoidal numerical integration with non-unit spacing.
  *
@@ -123,10 +121,7 @@ EIGEN_STRONG_INLINE void cumtrapz(Eigen::ArrayBase<DerivedOut> const & out, cons
     // Perform the cumulative sum down the columns
     cumsum(out_.bottomRows(out_.rows()-1), inter);
 }
-
-/*
- * Overload method to return result by value.
- */
+// Remove template specialisation from doc (causes duplicate) @cond
 template<typename DerivedX, typename DerivedY, typename DerivedOut>
 EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<DerivedOut>::Scalar, Eigen::ArrayBase<DerivedOut>::RowsAtCompileTime, Eigen::ArrayBase<DerivedOut>::ColsAtCompileTime> cumtrapz(const Eigen::ArrayBase<DerivedX>& x, const Eigen::ArrayBase<DerivedY>& y)
 {

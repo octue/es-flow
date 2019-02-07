@@ -26,7 +26,7 @@ using namespace utilities;
 namespace es {
 
 
-/** @brief Get the Coles wake distribution @f$ w_{c} @f$ from the wake parameter @f$ \Pi @f$
+/** @brief Get the Coles wake distribution @f$ w_{c} @f$ from the wake parameter @f$ \Pi @f$.
  *
  */
 template<typename T>
@@ -37,6 +37,8 @@ T get_coles_wake(const T eta, const double pi_coles) {
     wc -= (1.0 / pi_coles) * eta_pow_2 * (1.0 - eta) * (1.0 - (2.0 * eta));
     return wc;
 }
+
+// Remove template specialisation from doc (causes duplicate) @cond
 Eigen::ArrayXd get_coles_wake(const Eigen::ArrayXd &eta, const double pi_coles) {
     Eigen::ArrayXd wc;
     Eigen::ArrayXd eta_pow_2;
@@ -45,11 +47,12 @@ Eigen::ArrayXd get_coles_wake(const Eigen::ArrayXd &eta, const double pi_coles) 
     wc -= (1.0 / pi_coles) * eta_pow_2 * (1.0 - eta) * (1.0 - (2.0 * eta));
     return wc;
 }
+// @endcond
 
 
-/** @brief Get the integrand @f$ f @f$ used in computation of @f$ R_{13} @f$ in the modified Lewkowicz method
+/** @brief Get the integrand @f$ f @f$ used in computation of @f$ R_{13} @f$ in the modified Lewkowicz method.
  *
- * Uses equations 2 and 7 Perry and Marusic 1995 Part 1
+ * Uses equations 2 and 7 Perry and Marusic 1995 Part 1.
  *
  */
 Eigen::ArrayXd get_f_integrand(const Eigen::ArrayXd eta, const double kappa, const double pi_coles, const double shear_ratio) {
@@ -70,7 +73,7 @@ Eigen::ArrayXd get_f_integrand(const Eigen::ArrayXd eta, const double kappa, con
 }
 
 
-/** @brief Compute Horizontal-vertical Reynolds Stress R13 profile using modified Lewkowicz formulation
+/** @brief Compute Horizontal-vertical Reynolds Stress R13 profile using modified Lewkowicz formulation.
  *
  * Gets Reynolds Stress profiles due to Type A and B eddies. Adopts the approach of Perry and Marusic 1995,
  * using the modified Lewkowicz formulation (Perry and Marusic eq.51).

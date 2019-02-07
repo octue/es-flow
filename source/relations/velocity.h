@@ -19,13 +19,13 @@
 namespace es {
 
 
-/// Compute speed profile according to the power law.
-/**
+/** Compute speed profile according to the power law.
+ *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
  *
  * Power law speed is computed as:
- * \f{eqnarray*}{\frac{\overline{U}}{\overline{U}_{ref}} & = & \left(\frac{z}{z_{ref}}\right)^{\alpha} \f}
+ * \f[ \frac{\overline{U}}{\overline{U}_{ref}} = \left(\frac{z}{z_{ref}}\right)^{\alpha} \f]
  *
  * @param[in]  z     Height(s) in m at which you want to get speed.
  * @param[in]  u_ref Reference speed in m/s
@@ -38,6 +38,7 @@ T power_law_speed(T const & z, const double u_ref, const double z_ref, const dou
     T speed = pow(z_norm, alpha) * u_ref;
     return speed;
 }
+// Remove template specialisation from doc (causes duplicate) @cond
 template <>
 Eigen::VectorXd power_law_speed(Eigen::VectorXd const & z, const double u_ref, const double z_ref, const double alpha) {
     // Template specialisation for VectorXd type
@@ -45,9 +46,11 @@ Eigen::VectorXd power_law_speed(Eigen::VectorXd const & z, const double u_ref, c
     Eigen::VectorXd speed = pow(z_norm.array(), alpha) * u_ref;
     return speed;
 }
+// @endcond
 
-/// Compute speed profile according to the MOST law.
-/**
+
+/** Compute speed profile according to the MOST law.
+ *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
  *
@@ -68,37 +71,31 @@ T most_law_speed(T const & z, const double kappa, const double d, const double z
     T speed;
     return speed;
 }
+// Remove template specialisation from doc (causes duplicate) @cond
 template <>
 Eigen::VectorXd most_law_speed(Eigen::VectorXd const & z, const double kappa, const double d, const double z0, const double L){
     std::cout << "MOST Law not implemented yet" << std::endl;
     Eigen::VectorXd speed;
     return speed;
-};
+}
+// @endcond
 
-/// Compute speed profile according to Maursic's and Jones' relations.
-/**
+
+/** @brief Compute speed profile according to Marusic and Jones' relations.
+ *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
  *
  * Speed is computed as:
- * @f[
- * \begin{eqnarray*}{
- * {\frac{\overline{U}}{U_{\tau}} & = & \frac{1}{\kappa} \ln \left( \frac{z+z_0}{k_s} \right) + Br + \frac{\Pi_j}{\kappa} W_c[\eta, \Pi_j] \\ W_c[\eta, \Pi_j] & = & 2 \eta^2 \left( 3 - 2\eta \right) - \frac{1}{3\Pi_j}\eta^3 \\ \eta & = & \frac{z+z_0}{\delta + z_0} \f}
- * }
- * \end{eqnarray*}
- * @f]
- * which reduces to the relation:
- * @f[
- * \begin{eqnarray*}{
- * {U_{D}^{*} = \frac{U_\infty-\overline{U}}{U_{\tau}} = -\frac{1}{\kappa} \ln \left( \eta \right) + \frac{1}{3\kappa} \left(\eta^3 - 1 \right) + 2 \frac{\Pi_j}{\kappa} \left(1 - 3\eta^2 + 2\eta^3 \right) \f}
- * }
- * \end{eqnarray*}
- * @f]
+ * @f[ \frac{\overline{U}}{U_{\tau}} & = & \frac{1}{\kappa} \ln \left( \frac{z+z_0}{k_s} \right) + Br + \frac{\Pi_j}{\kappa} W_c[\eta, \Pi_j] \\ W_c[\eta, \Pi_j] & = & 2 \eta^2 \left( 3 - 2\eta \right) - \frac{1}{3\Pi_j}\eta^3 \\ \eta & = & \frac{z+z_0}{\delta + z_0} @f]
+ *
+ * which reduces to the defecit relation:
+ * @f[ U_{D}^{*} = \frac{U_\infty-\overline{U}}{U_{\tau}} = -\frac{1}{\kappa} \ln \left( \eta \right) + \frac{1}{3\kappa} \left(\eta^3 - 1 \right) + 2 \frac{\Pi_j}{\kappa} \left(1 - 3\eta^2 + 2\eta^3 \right) @f]
  *
  * @param[in]  z        Height(s) in m at which you want to get speed.
  * @param[in]  pi_j     Jones' modification of the Coles wake factor. Double or AutoDiffScalar type acccepted.
  * @param[in]  kappa    von Karman constant
- * @param[in]  z_0       Roughness length - represents distance of hypothetical smooth wall from actual rough wall z0 = 0.25k_s (m)
+ * @param[in]  z_0      Roughness length - represents distance of hypothetical smooth wall from actual rough wall z0 = 0.25k_s (m)
  * @param[in]  delta    Boundary layer thickness (m)
  * @param[in]  u_inf    Speed of flow at z = delta (m/s)
  * @param[in]  u_tau    Shear / skin friction velocity (governed by ratio parameter S = u_inf / u_tau)
@@ -116,7 +113,7 @@ T_z marusic_jones_speed(T_z const & z, T_pi_j const pi_j, const double kappa, co
     T_z speed = u_inf - u_deficit * u_tau;
     return speed;
 }
-
+// Remove template specialisation from doc (causes duplicate) @cond
 template <typename T_pi_j>
 Eigen::VectorXd marusic_jones_speed(Eigen::VectorXd const & z, T_pi_j const pi_j, const double kappa, const double z_0,
                              const double delta, const double u_inf, const double u_tau){
@@ -129,22 +126,18 @@ Eigen::VectorXd marusic_jones_speed(Eigen::VectorXd const & z, T_pi_j const pi_j
     Eigen::VectorXd u_deficit = term2 - term1 + term3;
     Eigen::VectorXd speed = u_inf - u_deficit.array() * u_tau;
     return speed;
-};
+}
+//@endcond
 
-/// Compute coles wake parameter
-/**
+
+/** @brief Compute coles wake parameter.
  *
  * Used by Perry and Marusic 1995.
  *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
  *
- * @f[
- * \begin{eqnarray*}{
- *
- * }
- * \end{eqnarray*}
- * @f]
+ * @f[ W_c[\eta, \Pi_j] & = & 2 \eta^2 \left( 3 - 2\eta \right) - \frac{1}{3\Pi_j}\eta^3 \\ \eta & = & \frac{z+z_0}{\delta + z_0} @f]
  *
  * Translated from MATLAB:
  * \code
@@ -152,7 +145,6 @@ Eigen::VectorXd marusic_jones_speed(Eigen::VectorXd const & z, T_pi_j const pi_j
  *     wc = 2*eta.^2.*(3-2*eta) - (1/Pi).*eta.^2.*(1-eta).*(1-2*eta);
  * end
  * \endcode
- *
  *
  * @param[in]  eta          Nondimensional height values
  * @param[in]  capital_pi   The coles wake parameter Pi
@@ -166,7 +158,7 @@ T coles_wake(T const & eta, const double capital_pi){
         - eta_sqd * (1.0 - eta) * (1.0 - 2.0*eta) / capital_pi;
     return wc;
 }
-
+// Remove template specialisation from doc (causes duplicate) @cond
 template <>
 Eigen::VectorXd coles_wake(Eigen::VectorXd const & eta, const double capital_pi){
     Eigen::VectorXd wc, eta_sqd;
@@ -174,12 +166,13 @@ Eigen::VectorXd coles_wake(Eigen::VectorXd const & eta, const double capital_pi)
     wc = 2.0 * eta_sqd.array() * (3.0 - 2.0 * eta.array())
         - eta_sqd.array() * (1.0 - eta.array()) * (1.0 - 2.0*eta.array()) / capital_pi;
     return wc;
-};
+}
+//@endcond
 
-/// Compute Lewkowicz (1982) velocity profile
-/**
+
+/** Compute Lewkowicz (1982) velocity profile.
  *
- * Used by Perry and Marusic 1995 (from eqs 2 and 7)
+ * Used by Perry and Marusic 1995 (from eqs 2 and 7).
  *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
@@ -212,7 +205,7 @@ T lewkowicz_speed(T const & eta, const double pi_coles, const double kappa, cons
     speed = u_inf - f*u_tau;
     return speed;
 }
-
+// Remove template specialisation from doc (causes duplicate) @cond
 template <>
 Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & eta, const double pi_coles, const double kappa, const double u_inf, const double u_tau){
     Eigen::VectorXd f, speed;
@@ -230,8 +223,11 @@ Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & eta, const double pi_col
     }
     speed = u_inf - f.array()*u_tau;
     return speed;
-};
+}
+// endcond
+
 
 } /* namespace es */
+
 
 #endif /* SOURCE_RELATIONS_VELOCITY_H */
