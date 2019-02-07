@@ -277,46 +277,6 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     data.t2wa = minus_t2wa.matrix();
     data.t2wb = minus_t2wb.matrix();
 
-//    // Plot the Reynolds Stress profiles
-//    cpplot::Figure fig = cpplot::Figure();
-//    cpplot::ScatterPlot pa = cpplot::ScatterPlot();
-//    pa.x = lambda_e.matrix();
-//    pa.y = r13a.matrix();
-//    fig.add(pa);
-//    cpplot::ScatterPlot pb = cpplot::ScatterPlot();
-//    pb.x = lambda_e.matrix();
-//    pb.y = r13b.matrix();
-//    fig.add(pb);
-//    fig.write("test_t2w_r13ab.json");
-////    legend({'R13A'; 'R13B'})
-////    xlabel('\lambda_E')
-////
-//    // Plot the eddy signatures
-//    cpplot::Figure fig2 = cpplot::Figure();
-//    cpplot::ScatterPlot ja = cpplot::ScatterPlot();
-//    ja.x = Eigen::VectorXd::LinSpaced(j13a.rows(), 1, j13a.rows());
-//    ja.y = j13a.matrix();
-//    fig2.add(ja);
-//    cpplot::ScatterPlot jb = cpplot::ScatterPlot();
-//    jb.x = ja.x;
-//    jb.y = j13b.matrix();
-//    fig2.add(jb);
-//    fig2.write("test_t2w_j13ab.json");
-////    legend({'J13A'; 'J13B'})
-//
-//
-//    cpplot::Figure fig3 = cpplot::Figure();
-//    cpplot::ScatterPlot twa = cpplot::ScatterPlot();
-//    twa.x = Eigen::VectorXd::LinSpaced(minus_t2wa.rows(), 1, minus_t2wa.rows());
-//    twa.y = minus_t2wa.matrix();
-//    fig3.add(twa);
-//    cpplot::ScatterPlot twb = cpplot::ScatterPlot();
-//    twb.x = twa.x;
-//    twb.y = minus_t2wb.matrix();
-//    fig3.add(twb);
-//    fig3.write("test_t2w_t2wab.json");
-////    legend({'T^2\omegaA'; 'T^2\omegaB'})
-
 }
 
 
@@ -401,29 +361,6 @@ void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, con
     data.reynolds_stress_a = data.reynolds_stress_a.topRows(data.lambda_e.rows());
     data.reynolds_stress_b = data.reynolds_stress_b.topRows(data.lambda_e.rows());
     data.reynolds_stress = data.reynolds_stress_a + data.reynolds_stress_b;
-
-//    // Plot the Reynolds Stress profiles
-//    cpplot::Figure figa = cpplot::Figure();
-//    for (auto i = 0; i < 6; i++) {
-//        cpplot::ScatterPlot p = cpplot::ScatterPlot();
-//        p.x = Eigen::VectorXd::LinSpaced(data.reynolds_stress_a.rows(), 1, data.reynolds_stress_a.rows());
-//        p.y = data.reynolds_stress_a.col(i).matrix();
-//        figa.add(p);
-//    }
-//    figa.write("test_t2w_rij_a.json");
-////    legend({'R13A'; 'R13B'})
-////    xlabel('\lambda_E')
-//
-//    cpplot::Figure figb = cpplot::Figure();
-//    for (auto i = 0; i < 6; i++) {
-//        cpplot::ScatterPlot p = cpplot::ScatterPlot();
-//        p.x = Eigen::VectorXd::LinSpaced(data.reynolds_stress_b.rows(), 1, data.reynolds_stress_b.rows());
-//        p.y = data.reynolds_stress_b.col(i).matrix();
-//        figb.add(p);
-//    }
-//    figb.write("test_t2w_rij_b.json");
-////    legend({'R13A'; 'R13B'})
-////    xlabel('\lambda_E')
 
 }
 
@@ -542,7 +479,6 @@ AdemData adem(const double beta,
     return data;
 
 }
-
 
 } /* namespace es */
 

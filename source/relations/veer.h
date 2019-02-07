@@ -12,6 +12,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
+#include "definitions.h"
 #include "profile.h"
 
 using namespace Eigen;

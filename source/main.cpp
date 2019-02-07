@@ -14,7 +14,6 @@
 #include "matio.h"
 #include "ceres/ceres.h"
 #include "glog/logging.h"
-#include "mkl_dfti.h"
 #include "cxxopts.hpp"
 
 #include <Eigen/Core>
@@ -121,24 +120,6 @@ int main(int argc, char* argv[]) {
         std::cout << summary.BriefReport() << "\n";
         std::cout << "x : " << initial_x << " -> " << x << "\n";
 
-//        // Run an example FFT
-//
-//        // Make meaningless data and a size vector
-//        float xf[200][100];
-//        MKL_LONG len[2] = {200, 100};
-//
-//        // Create a decriptor, which is a pattern for what operation an FFT will undertake
-//        DFTI_DESCRIPTOR_HANDLE fft;
-//        DftiCreateDescriptor ( &fft, DFTI_SINGLE, DFTI_REAL, 2, len );
-//        DftiCommitDescriptor ( fft );
-//
-//        // Compute a forward transform, in-place on the data
-//        DftiComputeForward ( fft, xf );
-//
-//        // Free the descriptor
-//        DftiFreeDescriptor ( &fft );
-//
-//        std::cout << "FFT COMPLETE\n";
 
         size_t dim_x = 28, dim_y = 126;
         Eigen::FFT<float> fft;
