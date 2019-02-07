@@ -12,8 +12,7 @@
 
 #include <Eigen/Dense>
 
-namespace es
-{
+namespace es {
 
 using namespace Eigen;
 

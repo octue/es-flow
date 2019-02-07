@@ -13,8 +13,7 @@
 #include <Eigen/Dense>
 #include <stdexcept>
 
-namespace es
-{
+namespace es {
 
 using namespace Eigen;
 
