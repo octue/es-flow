@@ -1,5 +1,5 @@
 /*
- * Signature_test.cpp
+ * adem_signature_test.cpp
  *
  * Author:                   Tom Clark (thclark @ github)
  *
@@ -7,8 +7,3 @@
  *
  */
 
-//#include "Signature.h"
-
-namespace es {
-
-} /* namespace es */

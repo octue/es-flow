@@ -1,28 +1,9 @@
 /*
- * utilities_cumtrapz_test.cpp Brief overview sentence
+ * utilities_cumtrapz_test.cpp Test fixtures for the cumtrapz function
  *
- * References:
+ * Author:                   Tom Clark (thclark @ github)
  *
- *   [1]
- *
- * Future Improvements:
- *
- *   [1] 
- *
- * 
- * Author:              Tom Clark  (thclark@github)
- *
- * From BTK Core - see LICENSE.txt
- *
- */
-/*
- * utilities_trapz_test.cpp Test fixtures for the trapz function
- *
- * Author:                   T. Clark
- * Email:                    tom@octue.com
- * Website:                  www.octue.com
- *
- * Copyright (c) 2019 Octue Ltd
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
  *
  */
 
@@ -34,19 +15,8 @@
 using namespace es;
 
 
-class CumtrapzTest : public ::testing::Test {
+class CumtrapzTest : public ::testing::Test {};
 
-protected:
-
-    virtual void SetUp() {
-        std::cout << std::endl << "Setting up CumtrapzTest()..." << std::endl;
-    }
-
-    virtual void TearDown() {
-        std::cout << "Tearing down CumtrapzTest()..." << std::endl << std::endl;
-    }
-
-};
 
 TEST_F(CumtrapzTest, test_colwise_cumtrapz_1_row) {
 
@@ -58,7 +28,8 @@ TEST_F(CumtrapzTest, test_colwise_cumtrapz_1_row) {
     Eigen::ArrayXXf integral = cumtrapz(integrand);
     EXPECT_EQ(integral.matrix(), integral_correct.matrix());
 
-};
+}
+
 
 TEST_F(CumtrapzTest, test_colwise_cumtrapz_2_rows) {
 
@@ -71,7 +42,8 @@ TEST_F(CumtrapzTest, test_colwise_cumtrapz_2_rows) {
     Eigen::ArrayXXf integral = cumtrapz(integrand);
     EXPECT_EQ(integral.matrix(), integral_correct.matrix());
 
-};
+}
+
 
 TEST_F(CumtrapzTest, test_colwise_cumtrapz_6_rows) {
 
@@ -84,7 +56,7 @@ TEST_F(CumtrapzTest, test_colwise_cumtrapz_6_rows) {
     Eigen::ArrayXXf integral = cumtrapz(integrand);
     EXPECT_EQ(integral.matrix(), integral_correct.matrix());
 
-};
+}
 
 
 TEST_F(CumtrapzTest, test_colwise_nonuniform_cumtrapz) {
@@ -106,4 +78,4 @@ TEST_F(CumtrapzTest, test_colwise_nonuniform_cumtrapz) {
     cumtrapz(integral, spacing, integrand);
     EXPECT_EQ(integral.matrix(), integral_correct.matrix());
 
-};
+}

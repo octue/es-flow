@@ -17,9 +17,13 @@
 #include "relations/stress.h"
 #include "utilities/filter.h"
 
+
 using namespace es;
 using namespace Eigen;
 using namespace utilities;
+
+// Add the test environment
+extern ::testing::Environment* const environment;
 
 
 class AdemAnalysisTest : public ::testing::Test {
@@ -30,7 +34,6 @@ public:
 protected:
 
     virtual void SetUp() {
-        std::cout << std::endl << "Setting up AdemAnalysisTest..." << std::endl;
 
         // Get the test data directory path from the environment variable
         if(const char* env_p = std::getenv("TEST_DATA_DIR")) {
@@ -39,10 +42,6 @@ protected:
         } else {
             throw std::invalid_argument("Invalid environment variable 'TEST_DATA_DIR'");
         }
-    }
-
-    virtual void TearDown() {
-        std::cout << "Tearing down AdemAnalysisTest..." << std::endl << std::endl;
     }
 
 };
@@ -111,6 +110,7 @@ TEST_F(AdemAnalysisTest, test_analysis) {
     //    std::cout << "z = [" << z << "];" << std::endl;
 }
 
+
 TEST_F(AdemAnalysisTest, test_get_reynolds_stress_13) {
 
     // Results obtained and validated against MATLAB implementation:
@@ -151,7 +151,7 @@ TEST_F(AdemAnalysisTest, test_get_reynolds_stress_13) {
     ASSERT_TRUE(r13_a.isApprox(r13_a_correct));
     ASSERT_TRUE(r13_b.isApprox(r13_b_correct));
 
-    }
+}
 
 
 TEST_F(AdemAnalysisTest, test_filter_and_deconv) {
@@ -188,4 +188,3 @@ TEST_F(AdemAnalysisTest, test_filter_and_deconv) {
     ASSERT_TRUE(z.isApprox(z_correct));
 
 }
-

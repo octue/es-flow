@@ -10,26 +10,13 @@
 #include "gtest/gtest.h"
 #include "profile.h"
 
+
 using namespace es;
 
+
 // Test fixture for the Bin class
-class BinTest : public ::testing::Test {
+class BinTest : public ::testing::Test {};
 
-protected:
-
-    virtual void SetUp() {
-        // Code here will be called immediately after the constructor (right
-        // before each test).
-        std::cout << std::endl << "Setting up BinTest()..." << std::endl;
-    }
-
-    virtual void TearDown() {
-        // Code here will be called immediately after each test (right
-        // before the destructor).
-        std::cout << "Tearing down BinTest()..." << std::endl << std::endl;
-    }
-
-};
 
 // Unit tests for the Bin class
 TEST_F(BinTest, test_construct_bins){
@@ -49,17 +36,6 @@ TEST_F(BinTest, test_construct_bins){
 
 // Test fixture for the Profile class
 class ProfileTest : public ::testing::Test {
-
-protected:
-
-    virtual void SetUp() {
-        std::cout << std::endl << "Setting up ProfileTest()..." << std::endl;
-    }
-
-    virtual void TearDown() {
-        std::cout << "Tearing down ProfileTest()..." << std::endl << std::endl;
-    }
-
 };
 
 // Unit tests for the profile class
@@ -97,39 +73,8 @@ TEST_F(ProfileTest, test_construct_double_profile){
 
 // Test fixture for the fitting process
 class FitTest : public ::testing::Test {
-
-protected:
-
-    // TODO remove any or all of the following functions if bodies are empty
-
-    FitTest() {
-        // You can do set-up work for each test here.
-    }
-
-    virtual ~FitTest() {
-        // You can do clean-up work that doesn't throw exceptions here.
-    }
-
-    // If the constructor and destructor are not enough for setting up
-    // and cleaning up each test, you can define the following methods:
-
-    virtual void SetUp() {
-        // Code here will be called immediately after the constructor (right
-        // before each test).
-        std::cout << std::endl << "Setting up FitTest()..." << std::endl;
-    }
-
-    virtual void TearDown() {
-        // Code here will be called immediately after each test (right
-        // before the destructor).
-        std::cout << "Tearing down FitTest()..." << std::endl << std::endl;
-    }
-
-    // Objects declared here can be used by all tests
-    int a= 11;
 };
 
 // Unit tests for fitting routines
 TEST_F(FitTest, test_fit){
-
 }

@@ -13,7 +13,9 @@
 #include "readers.h"
 #include "data_types.h"
 
+
 using namespace es;
+
 
 class ReaderTest : public ::testing::Test {
 public:
@@ -23,12 +25,9 @@ public:
 protected:
 
     virtual void SetUp() {
-        // Code here will be called immediately after the constructor (right
-        // before each test).
 
-        // Get the test data directory path from the environmnet variable
+        // Get the test data directory path from the environment variable
         if(const char* env_p = std::getenv("TEST_DATA_DIR")) {
-            std::cout << std::endl << "Setting up ReaderTest" <<std::endl;
             std::cout << "TEST_DATA_DIR = " << env_p << std::endl;
             data_path = env_p;
         } else {
@@ -36,13 +35,8 @@ protected:
         }
     }
 
-    virtual void TearDown() {
-        // Code here will be called immediately after each test (right
-        // before the destructor).
-        std::cout << "Tearing down ReaderTest()..." << std::endl << std::endl;
-    }
-
 };
+
 
 TEST_F(ReaderTest, test_lidar_basic){
 
@@ -65,35 +59,7 @@ TEST_F(ReaderTest, test_lidar_basic){
     lr.setWindowDuration(window_duration);
 //    lr.setWindowOverlap(window_overlap);
 
-
     // Ensure that the printing operator does not error
     std::cout << lr << std::endl;
 
-
-}
-
-class AnalysisTest : public ::testing::Test {
-
-protected:
-
-    virtual void SetUp() {
-        std::cout << std::endl << "Setting up AnalysisTest()..." << std::endl;
-    }
-
-    virtual void TearDown() {
-        std::cout << "Tearing down AnalysisTest()..." << std::endl << std::endl;
-    }
-
-};
-
-TEST_F(AnalysisTest, test_construct_double_profile){
-
-
-
-
-}
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

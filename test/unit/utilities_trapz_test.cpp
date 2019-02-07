@@ -1,11 +1,9 @@
 /*
  * utilities_trapz_test.cpp Test fixtures for the trapz function
  *
- * Author:                   T. Clark
- * Email:                    tom@octue.com
- * Website:                  www.octue.com
+ * Author:                   Tom Clark (thclark @ github)
  *
- * Copyright (c) 2019 Octue Ltd
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
  *
  */
 
@@ -17,19 +15,8 @@
 using namespace utilities;
 
 
-class TrapzTest : public ::testing::Test {
+class TrapzTest : public ::testing::Test {};
 
-protected:
-
-    virtual void SetUp() {
-        std::cout << std::endl << "Setting up TrapzTest()..." << std::endl;
-    }
-
-    virtual void TearDown() {
-        std::cout << "Tearing down TrapzTest()..." << std::endl << std::endl;
-    }
-
-};
 
 TEST_F(TrapzTest, test_colwise_trapz_1_row) {
 
@@ -41,7 +28,8 @@ TEST_F(TrapzTest, test_colwise_trapz_1_row) {
     Eigen::ArrayXXf integral = trapz(integrand);
     EXPECT_EQ(integral.matrix(), integral_correct.matrix());
 
-};
+}
+
 
 TEST_F(TrapzTest, test_colwise_trapz_2_rows) {
 
@@ -54,7 +42,8 @@ TEST_F(TrapzTest, test_colwise_trapz_2_rows) {
     Eigen::ArrayXXf integral = trapz(integrand);
     EXPECT_EQ(integral.matrix(), integral_correct.matrix());
 
-};
+}
+
 
 TEST_F(TrapzTest, test_colwise_trapz_3_rows) {
 
@@ -68,7 +57,8 @@ TEST_F(TrapzTest, test_colwise_trapz_3_rows) {
     Eigen::ArrayXXf integral = trapz(integrand);
     EXPECT_EQ(integral.matrix(), integral_correct.matrix());
 
-};
+}
+
 
 TEST_F(TrapzTest, test_colwise_nonuniform_trapz) {
 
@@ -87,4 +77,4 @@ TEST_F(TrapzTest, test_colwise_nonuniform_trapz) {
     trapz(integral, spacing, integrand);
     EXPECT_EQ(integral.matrix(), integral_correct.matrix());
 
-};
+}

@@ -28,6 +28,7 @@
  *
  *  The integrator expects the user to provide a functor as shown below.
  */
+
 template<typename Scalar>
 class IntegrandExampleFunctor
 {
@@ -50,7 +51,6 @@ public:
 private:
     Scalar m_alpha;
 };
-
 
 double do_something(const double arg)
 {
@@ -85,6 +85,14 @@ double do_something(const double arg)
     std::cout<<"actual error    = "<<std::setprecision(outputPrecision)<<(expected-result)<<std::endl;
 
     return 0.0;
+}
+
+TEST_F(MyTest, test_integrator_example) {
+
+// Test a basic integrator out
+double arg = 0.0;
+double res = do_something(arg);
+
 }
 
 

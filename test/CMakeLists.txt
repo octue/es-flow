@@ -1,6 +1,7 @@
 
 # List the unit test files
 set(UNIT_TEST_SOURCE_FILES
+        main_test.cpp
         unit/adem_analysis_test.cpp
         unit/adem_signature_test.cpp
         unit/fit_profiles_test.cpp

@@ -16,23 +16,14 @@
 #include <Eigen/Core>
 #include <unsupported/Eigen/AutoDiff>
 
+
 using namespace es;
 using namespace Eigen;
 
+
 // Test fixture for generating analytical profiles
-class AnalyticalProfileTest : public ::testing::Test {
+class AnalyticalProfileTest : public ::testing::Test {};
 
-protected:
-
-    virtual void SetUp() {
-        std::cout << std::endl << "Setting up AnalyticalProfileTest()..." << std::endl;
-    }
-
-    virtual void TearDown() {
-        std::cout << "Tearing down AnalyticalProfileTest()..." << std::endl << std::endl;
-    }
-
-};
 
 TEST_F(AnalyticalProfileTest, test_power_law_profile) {
     // Get analytical values for velocity using power law profile
@@ -76,6 +67,7 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
     std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
     std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
 }
+
 
 //TEST_F(AnalyticalProfileTest, test_most_profile) {
 //    // Get analytical values for velocity using log law profile and psi function
@@ -123,6 +115,7 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
 //    std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
 //    std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
 //}
+
 
 TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
     // Get analytical values for velocity using law of wall and wake
@@ -198,34 +191,8 @@ TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
     }
     std::cout << "partial_dspeed_dpi       = [" << partial_dspeed_dpi.transpose() << "];" << std::endl;
     std::cout << "partial_dspeed_dpi_check = [" << partial_dspeed_dpi_check.transpose() << "];" << std::endl;
-
-
-
-
-
-
-
-
-
-    // Print variables to plot comparison with MATLAB based equivalent calculation
-    //    std::cout << "pi_j = " << pi_j << ";" << std::endl;
-    //    std::cout << "kappa = " << kappa << ";" << std::endl;
-    //    std::cout << "delta = " << delta << ";" << std::endl;
-    //    std::cout << "s = " << s << ";" << std::endl;
-    //    std::cout << "u_inf = " << u_inf << ";" << std::endl;
-    //    std::cout << "z_0 = " << z_0 << ";" << std::endl;
-    //    std::cout << "z = [" << z << "];" << std::endl;
 }
 
-TEST_F(AnalyticalProfileTest, test_r13_profile) {
-    // Get an R13 profile from a basic parameter set
-
-    // Test a basic integrator out
-    double arg = 0.0;
-    double res = do_something(arg);
-
-    std::cout << "test_r13_profile" << std::endl;
-}
 
 TEST_F(AnalyticalProfileTest, test_lewkowicz_profile) {
     // Get analytical values for velocity using lewkowicz law of wall and wake
