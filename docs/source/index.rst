@@ -56,7 +56,7 @@ We use the `GitHub Issue Tracker <https://github.com/octue/es-flow>`_ to manage 
    :hidden:
 
    self
-   adem
+   models
    examples
    file_formats
    installation
