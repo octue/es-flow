@@ -12,6 +12,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
+
 #include "definitions.h"
 #include "profile.h"
 
@@ -33,7 +34,7 @@ namespace es {
  */
 template <typename T>
 T veer_lhs(T const & ui, const double ui_g, const double phi){
-    T lhs = 2.0*omega_world*sind(phi)*(u_g - u);
+    T lhs = 2.0*omega_world*sind(phi)*(ui_g - ui);
     return lhs;
 }
 
@@ -51,7 +52,7 @@ T veer_lhs(T const & ui, const double ui_g, const double phi){
  */
 template <typename T>
 T veer_rhs(T & ui, T & uiu3_bar, const double nu){
-    T lhs, mixing_term;
+    T rhs, mixing_term;
     mixing_term = nu*ui.getZDerivative() + uiu3_bar;
     rhs = mixing_term.getZDerivative();
     return rhs;

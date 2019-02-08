@@ -8,6 +8,7 @@
  */
 
 #include "gtest/gtest.h"
+
 #include "profile.h"
 
 
@@ -69,12 +70,4 @@ TEST_F(ProfileTest, test_construct_double_profile){
         FAIL() << "Expected std::out_of_range - exception of another type found";
     }
 
-}
-
-// Test fixture for the fitting process
-class FitTest : public ::testing::Test {
-};
-
-// Unit tests for fitting routines
-TEST_F(FitTest, test_fit){
 }

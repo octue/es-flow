@@ -4,16 +4,20 @@ set(SOURCE_FILES
         adem/adem.h
         adem/signature.h
         data_types.h
+        definitions.h
         fit.h
         relations/velocity.h
         relations/stress.h
-        profile.cpp profile.h
+        profile.cpp
+        profile.h
         readers.h
         variable_readers.h
         utilities/conv.h
         utilities/cumtrapz.h
         utilities/filter.h
         utilities/tensors.h
+        relations/spectra.cpp
+        relations/spectra.h
         )
 add_library(flow STATIC ${SOURCE_FILES})
 

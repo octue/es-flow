@@ -1,5 +1,5 @@
 /*
- * PROFILES_TEST.CPP Test fixtures for analytical profiles
+ * VELOCITY_RELATIONS_TEST.CPP Test fixtures for analytical profiles
  *
  * Author:                   Tom Clark (thclark @ github)
  *
@@ -7,14 +7,15 @@
  *
  */
 
-#include "gtest/gtest.h"
-#include "profile.h"
-#include "relations/velocity.h"
-#include "relations/stress.h"
-#include "definitions.h"
 #include <Eigen/Dense>
 #include <Eigen/Core>
+#include "gtest/gtest.h"
 #include <unsupported/Eigen/AutoDiff>
+
+#include "definitions.h"
+#include "relations/stress.h"
+#include "relations/veer.h"
+#include "relations/velocity.h"
 
 
 using namespace es;
@@ -22,12 +23,10 @@ using namespace Eigen;
 
 
 // Test fixture for generating analytical profiles
-class AnalyticalProfileTest : public ::testing::Test {};
+class VelocityRelationsTest : public ::testing::Test {};
 
 
-TEST_F(AnalyticalProfileTest, test_power_law_profile) {
-    // Get analytical values for velocity using power law profile
-    std::cout << "test_power_law_profile" << std::endl;
+TEST_F(VelocityRelationsTest, test_power_law_profile) {
 
     // Basic test parameters
     double z_ref = 60;
@@ -69,9 +68,7 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
 }
 
 
-//TEST_F(AnalyticalProfileTest, test_most_profile) {
-//    // Get analytical values for velocity using log law profile and psi function
-//    std::cout << "test_most_profile" << std::endl;
+//TEST_F(VelocityRelationsTest, test_most_profile) {
 //
 //    // von karman constant
 //    double kappa = 0.41;
@@ -117,9 +114,7 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
 //}
 
 
-TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
-    // Get analytical values for velocity using law of wall and wake
-    std::cout << "test_marusic_jones_profile" << std::endl;
+TEST_F(VelocityRelationsTest, test_marusic_jones_profile) {
 
     // Basic test parameters
     double pi_j = 0.42;
@@ -194,9 +189,7 @@ TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
 }
 
 
-TEST_F(AnalyticalProfileTest, test_lewkowicz_profile) {
-    // Get analytical values for velocity using lewkowicz law of wall and wake
-    std::cout << "test_lewkowicz_profile" << std::endl;
+TEST_F(VelocityRelationsTest, test_lewkowicz_profile) {
 
     // Basic test parameters
     double pi_coles = 0.42;
@@ -248,11 +241,14 @@ TEST_F(AnalyticalProfileTest, test_lewkowicz_profile) {
     //    std::cout << "u_inf = " << u_inf << ";" << std::endl;
     //    std::cout << "z_0 = " << z_0 << ";" << std::endl;
     //    std::cout << "z = [" << z << "];" << std::endl;
+
 }
 
 
-TEST_F(AnalyticalProfileTest, test_veer_profile) {
-    std::cout << "test_veer_profile" << std::endl;
+class VeerRelationsTest : public ::testing::Test {};
+
+
+TEST_F(VeerRelationsTest, test_veer_profile) {
 
 //    // Elevation of site in degrees latitude
 //    double phi_latitude = 52;
@@ -263,53 +259,6 @@ TEST_F(AnalyticalProfileTest, test_veer_profile) {
 //    VectorXd v_bar;
 //    v_bar << 10., 3.;
 
-
     // Assume homogeneous, isotropic turbulence such that R13 = R23. Not valid, but OK for the sake of the unit test.
-
-
-
-//        size_t dim_x = 28, dim_y = 126;
-//    Eigen::FFT<float> fft;
-//    Eigen::MatrixXf in = Eigen::MatrixXf::Random(dim_x, dim_y);
-//    Eigen::MatrixXcf out;
-//    out.setZero(dim_x, dim_y);
-//
-//    for (int k = 0; k < in.rows(); k++) {
-//        Eigen::VectorXcf tmpOut(dim_x);
-//        fft.fwd(tmpOut, in.row(k));
-//        out.row(k) = tmpOut;
-//    }
-//
-//    for (int k = 0; k < in.cols(); k++) {
-//        Eigen::VectorXcf tmpOut(dim_y);
-//        fft.fwd(tmpOut, out.col(k));
-//        out.col(k) = tmpOut;
-//    }
-
-    /*
-
-    Profile<double> p1(bins);
-    Profile<double> p2(bins, 10.1, 0.2, 0.1);
-
-// Ensure that the printing operator does not error (before values are assigned)
-    std::cout << p1 << std::endl;
-
-// Assign values (init as zeros, the value doesn't matter here)
-    std::vector<double> vals(100);
-    p1.setValues(vals);
-
-// This should crap out due to incorrect number of bins
-    vals.push_back(0.0);
-    try {
-        p1.setValues(vals);
-        FAIL() << "Expected std::out_of_range exception";
-    }
-    catch(std::out_of_range const & err) {
-        EXPECT_EQ(err.what(), std::string("size of vector 'values' does not equal the number of bins for this profile"));
-    }
-    catch(...) {
-        FAIL() << "Expected std::out_of_range - exception of another type found";
-    }
-*/
 
 }

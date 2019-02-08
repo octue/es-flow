@@ -1,5 +1,5 @@
 /*
- * adem_analysis_test.cpp Test fixtures for running adem analysis
+ * adem_test.cpp Test fixtures for running adem analysis
  *
  * Author:                   Tom Clark (thclark @ github)
  *
@@ -9,12 +9,10 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
+#include "gtest/gtest.h"
 #include <unsupported/Eigen/AutoDiff>
 
-#include "gtest/gtest.h"
-
 #include "adem/adem.h"
-#include "relations/stress.h"
 #include "utilities/filter.h"
 
 
@@ -26,7 +24,7 @@ using namespace utilities;
 extern ::testing::Environment* const environment;
 
 
-class AdemAnalysisTest : public ::testing::Test {
+class AdemTest : public ::testing::Test {
 public:
 
     std::string data_path;
@@ -47,7 +45,7 @@ protected:
 };
 
 
-TEST_F(AdemAnalysisTest, test_analysis) {
+TEST_F(AdemTest, test_analysis) {
 
     // Ensemble signatures as we load them, divide to average the B signatures.
     EddySignature signature_a = EddySignature();
@@ -111,7 +109,7 @@ TEST_F(AdemAnalysisTest, test_analysis) {
 }
 
 
-TEST_F(AdemAnalysisTest, test_get_reynolds_stress_13) {
+TEST_F(AdemTest, test_get_reynolds_stress_13) {
 
     // Results obtained and validated against MATLAB implementation:
     /* eta = [0.001, 0.1, 0.3, 0.6, 1.0];
@@ -154,7 +152,7 @@ TEST_F(AdemAnalysisTest, test_get_reynolds_stress_13) {
 }
 
 
-TEST_F(AdemAnalysisTest, test_filter_and_deconv) {
+TEST_F(AdemTest, test_filter_and_deconv) {
 
     Eigen::ArrayXd a(5);
     Eigen::ArrayXd b(6);

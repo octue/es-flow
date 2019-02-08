@@ -9,6 +9,7 @@
 
 #include "gtest/gtest.h"
 #include <Eigen/Dense>
+
 #include "utilities/cumtrapz.h"
 
 
