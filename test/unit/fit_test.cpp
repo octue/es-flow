@@ -14,6 +14,7 @@
 
 #include "fit.h"
 #include "relations/velocity.h"
+#include "definitions.h"
 
 #include "cpplot.h"
 
@@ -30,7 +31,7 @@ class FitTest : public ::testing::Test {
 };
 
 // Unit tests for fitting routines
-TEST_F(FitTest, test_fit){
+TEST_F(FitTest, test_fit_power_law_speed){
 
     // Basic profile parameters
     double z_ref = 60;
@@ -72,5 +73,54 @@ TEST_F(FitTest, test_fit){
     // Check that the fit worked
     // TODO use a known seed for the random noise which is added to avoid occasional failure here
     ASSERT_NEAR(alpha_fitted,  alpha_true, 0.15);
+}
+
+
+// Unit tests for fitting routines
+TEST_F(FitTest, test_fit_lewkowicz_speed){
+
+    // Basic profile parameters
+    double pi_coles = 0.7;
+    double kappa = KAPPA_VON_KARMAN;
+    double u_inf = 10;
+    double shear_ratio = 17.2;
+    double u_tau = u_inf / shear_ratio;
+    double delta_c = 1000;
+
+    // Create a `correct` distribution with random noise added
+    Eigen::ArrayXd z = Eigen::ArrayXd::LinSpaced(40, 1, 400);
+    Eigen::ArrayXd u_original(40);
+    Eigen::ArrayXd u_noisy(40);
+    Eigen::ArrayXd u_fitted(40);
+    u_original = lewkowicz_speed(z, pi_coles, kappa, u_inf, u_tau, delta_c);
+    u_noisy = u_original + ArrayXd::Random(40) / 5;
+
+    // Fit to find the value of alpha
+    Eigen::Array<double, 5, 1> fitted = fit_lewkowicz_speed(z, u_noisy);
+    u_fitted = lewkowicz_speed(z, fitted(0), fitted(1), fitted(2), fitted(3), fitted(4));
+
+    // Display original, noisy and fitted profiles on scatter plot
+    cpplot::Figure fig = cpplot::Figure();
+    cpplot::ScatterPlot p_original = cpplot::ScatterPlot();
+    cpplot::ScatterPlot p_noisy = cpplot::ScatterPlot();
+    cpplot::ScatterPlot p_fitted = cpplot::ScatterPlot();
+
+    p_original.y = z.matrix();
+    p_noisy.y = z.matrix();
+    p_fitted.y = z.matrix();
+
+    p_original.x = u_original;
+    p_noisy.x = u_noisy;
+    p_fitted.x = u_fitted;
+
+    fig.add(p_original);
+    fig.add(p_noisy);
+    fig.add(p_fitted);
+
+    fig.write("test_fit_lewkowicz_speed.json");
+
+    // Check that the fit worked
+    // TODO use a known seed for the random noise which is added to avoid occasional failure here
+//    ASSERT_NEAR(alpha_fitted,  alpha_true, 0.15);
 }
 

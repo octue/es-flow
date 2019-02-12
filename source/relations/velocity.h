@@ -117,16 +117,15 @@ T_z marusic_jones_speed(T_z const & z, T_pi_j const pi_j, const double kappa, co
 };
 // Remove template specialisation from doc (causes duplicate) @cond
 template <typename T_pi_j>
-Eigen::VectorXd marusic_jones_speed(Eigen::VectorXd const & z, T_pi_j const pi_j, const double kappa, const double z_0,
+Eigen::ArrayXd marusic_jones_speed(Eigen::ArrayXd const & z, T_pi_j const pi_j, const double kappa, const double z_0,
                              const double delta, const double u_inf, const double u_tau){
-    // Template specialisation for VectorXd type
-    Eigen::VectorXd eta = (z.array() + z_0) / (delta + z_0);
-    Eigen::VectorXd eta_cubed = eta.array().cube();
-    Eigen::VectorXd term1 = eta.array().log() / kappa;
-    Eigen::VectorXd term2 = (eta_cubed.array() - 1.0) / (3.0 * kappa);
-    Eigen::VectorXd term3 = 2.0 * pi_j * (1.0 - eta.array().square() * 3.0 + eta_cubed.array() * 2.0) / kappa;
-    Eigen::VectorXd u_deficit = term2 - term1 + term3;
-    Eigen::VectorXd speed = u_inf - u_deficit.array() * u_tau;
+    Eigen::ArrayXd eta = (z + z_0) / (delta + z_0);
+    Eigen::ArrayXd eta_cubed = eta.cube();
+    Eigen::ArrayXd term1 = eta.log() / kappa;
+    Eigen::ArrayXd term2 = (eta_cubed - 1.0) / (3.0 * kappa);
+    Eigen::ArrayXd term3 = 2.0 * pi_j * (1.0 - eta.square() * 3.0 + eta_cubed * 2.0) / kappa;
+    Eigen::ArrayXd u_deficit = term2 - term1 + term3;
+    Eigen::ArrayXd speed = u_inf - u_deficit * u_tau;
     return speed;
 };
 //@endcond
@@ -149,24 +148,23 @@ Eigen::VectorXd marusic_jones_speed(Eigen::VectorXd const & z, T_pi_j const pi_j
  * \endcode
  *
  * @param[in]  eta          Nondimensional height values
- * @param[in]  capital_pi   The coles wake parameter Pi
+ * @param[in]  pi_coles     The coles wake parameter Pi
  *
  */
 template <typename T>
-T coles_wake(T const & eta, const double capital_pi){
+T coles_wake(T const & eta, T const & pi_coles){
     T wc, eta_sqd;
     eta_sqd = pow(eta, 2.0);
     wc = 2.0 * eta_sqd * (3.0 - 2.0 * eta)
-        - eta_sqd * (1.0 - eta) * (1.0 - 2.0*eta) / capital_pi;
+        - eta_sqd * (1.0 - eta) * (1.0 - 2.0*eta) / pi_coles;
     return wc;
 };
 // Remove template specialisation from doc (causes duplicate) @cond
-template <>
-Eigen::VectorXd coles_wake(Eigen::VectorXd const & eta, const double capital_pi){
-    Eigen::VectorXd wc, eta_sqd;
-    eta_sqd = eta.array().pow(2.0);
-    wc = 2.0 * eta_sqd.array() * (3.0 - 2.0 * eta.array())
-        - eta_sqd.array() * (1.0 - eta.array()) * (1.0 - 2.0*eta.array()) / capital_pi;
+Eigen::ArrayXd coles_wake(Eigen::ArrayXd const & eta, const double pi_coles){
+    Eigen::ArrayXd wc, eta_sqd;
+    eta_sqd = eta.pow(2.0);
+    wc = 2.0 * eta_sqd * (3.0 - 2.0 * eta)
+        - eta_sqd * (1.0 - eta) * (1.0 - 2.0*eta) / pi_coles;
     return wc;
 };
 //@endcond
@@ -187,17 +185,19 @@ Eigen::VectorXd coles_wake(Eigen::VectorXd const & eta, const double capital_pi)
  * end
  * \endcode
  *
- * @param[in]  eta Nondimensional (eta = z/delta_c) height value or values
+ * @param[in]  z height in m (or Nondimensional heights (eta = z/delta_c) where delta_c = 1.0)
  * @param[in]  pi_coles The coles wake parameter Pi
  * @param[in]  kappa von Karman constant
  * @param[in]  u_inf Speed of flow at z = delta (m/s)
  * @param[in]  u_tau Shear / skin friction velocity (governed by ratio parameter shear_ratio = u_inf / u_tau)
+ * @param[in]  delta_c Boundary layer thickness in m, used to normalise z. Defaults to 1.0.
  *
  */
 template <typename T>
-T lewkowicz_speed(T const & eta, const double pi_coles, const double kappa, const double u_inf, const double u_tau) {
-    T f, speed;
-    f = pi_coles * coles_wake(1.0, pi_coles) / kappa;
+T lewkowicz_speed(T const & z, T const & pi_coles, T const & kappa, T const & u_inf, T const & u_tau, T const &delta_c=1.0) {
+    T f, speed, eta;
+    eta = z / delta_c;
+    f = pi_coles * coles_wake(T(1.0), pi_coles) / kappa;
     f = f - log(eta) / kappa;
     f = f - pi_coles * coles_wake(eta, pi_coles);
     // TODO sort this out so it can be template compliant
@@ -208,22 +208,34 @@ T lewkowicz_speed(T const & eta, const double pi_coles, const double kappa, cons
     return speed;
 };
 // Remove template specialisation from doc (causes duplicate) @cond
-template <>
-Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & eta, const double pi_coles, const double kappa, const double u_inf, const double u_tau){
-    Eigen::VectorXd f, speed;
-    Eigen::VectorXd term1 = eta.array().log() / (-1.0*kappa);
+// TODO template specialisation to autodiff only on z coordinate
+//template <typename T>
+//    T lewkowicz_speed(T const & z, const double pi_coles, const double kappa, const double u_inf, const double u_tau, const double delta_c=1.0) {
+//    T f, speed, eta;
+//    eta = z / delta_c;
+//    f = pi_coles * coles_wake(1.0, pi_coles) / kappa;
+//    f = f - log(eta) / kappa;
+//    f = f - pi_coles * coles_wake(eta, pi_coles);
+//    // TODO sort this out so it can be template compliant
+//    //if (std::isinf(f)) {
+//    //    f = u_inf/u_tau;
+//    //}
+//    speed = u_inf - f*u_tau;
+//    return speed;
+//};
+Eigen::ArrayXd lewkowicz_speed(Eigen::ArrayXd const & z, const double pi_coles, const double kappa, const double u_inf, const double u_tau, const double delta_c=1.0){
+    Eigen::ArrayXd f, speed, eta;
+    eta = z / delta_c;
+    Eigen::ArrayXd term1 = eta.log() / (-1.0*kappa);
     double term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
-    Eigen::VectorXd term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;
-    // std::cout << "term 1 = [" << term1.transpose() << "]" << std::endl;
-    // std::cout << "term 2 = [" << term2 << "]" << std::endl;
-    // std::cout << "term 3 = [" << term3.transpose() << "]" << std::endl;
-    f = term1.array() + term2 - term3.array();
+    Eigen::ArrayXd term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;
+    f = term1 + term2 - term3;
     for (int k = 0; k < f.size(); k++) {
         if (std::isinf(f[k])) {
             f(k) = u_inf / u_tau;
         }
     }
-    speed = u_inf - f.array()*u_tau;
+    speed = u_inf - f*u_tau;
     return speed;
 };
 // @endcond

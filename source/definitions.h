@@ -11,7 +11,10 @@
 #define SOURCE_DEFINITIONS_H
 
 // Rotational speed of the world in rad/s
-double omega_world = 7.2921159e-05;
+#define OMEGA_WORLD 7.2921159e-05
+
+// von Karman constant
+#define KAPPA_VON_KARMAN 0.41
 
 // Degrees based trigonometry
 #define sind(x) (sin(fmod((x), 360.0) * M_PI / 180.0))
