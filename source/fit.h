@@ -34,8 +34,8 @@ namespace es {
 struct PowerLawSpeedResidual {
 	PowerLawSpeedResidual(double z, double u, double z_ref=1.0, double u_ref=1.0) : z_(z), u_(u), u_ref_(u_ref), z_ref_(z_ref) {}
 	template <typename T> bool operator()(const T* const alpha, T* residual) const {
-//		T z_norm = z_ / z_ref_;
-		residual[0] = u_ - pow((z_ / z_ref_), alpha[0]) * u_ref_;
+
+		residual[0] = u_ - power_law_speed(T(z_), u_ref_, z_ref_, alpha[0]);
 		return true;
 	}
 private:

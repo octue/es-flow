@@ -21,7 +21,8 @@ namespace es {
 /** @brief Compute speed profile according to the power law.
  *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
- * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
+ * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values (to obtain shear profile
+ * u/dz) and/or alpha values (to obtain variational jacobean for fitting parameter alpha).
  *
  * Power law speed is computed as:
  * \f[ \frac{\overline{U}}{\overline{U}_{ref}} = \left(\frac{z}{z_{ref}}\right)^{\alpha} \f]
@@ -29,21 +30,20 @@ namespace es {
  * @param[in]  z     Height(s) in m at which you want to get speed.
  * @param[in]  u_ref Reference speed in m/s
  * @param[in]  z_ref Reference height in m
- * @param[in]  alpha Power law exponent
+ * @param[in]  alpha Power law exponent. Must be of same type as input z (allows autodifferentiation).
  */
 template <typename T>
-T power_law_speed(T const & z, const double u_ref, const double z_ref, const double alpha){
+T power_law_speed(T const & z, const double u_ref, const double z_ref, T const & alpha){
     T z_norm = z / z_ref;
     T speed = pow(z_norm, alpha) * u_ref;
     return speed;
 };
 
 // Remove template specialisations from doc (causes duplicate) @cond
-template <>
-Eigen::VectorXd power_law_speed(Eigen::VectorXd const & z, const double u_ref, const double z_ref, const double alpha) {
-    // Template specialisation for VectorXd type
-    Eigen::VectorXd z_norm = z / z_ref;
-    Eigen::VectorXd speed = pow(z_norm.array(), alpha) * u_ref;
+Eigen::ArrayXd power_law_speed(Eigen::ArrayXd const & z, const double u_ref, const double z_ref, const double alpha) {
+    // Template specialisation for ArrayXd type
+    Eigen::ArrayXd z_norm = z / z_ref;
+    Eigen::ArrayXd speed = pow(z_norm.array(), alpha) * u_ref;
     return speed;
 };
 // @endcond
