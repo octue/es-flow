@@ -7,9 +7,8 @@
  *
  */
 
-
-#ifndef SOURCE_RELATIONS_VELOCITY_H
-#define SOURCE_RELATIONS_VELOCITY_H
+#ifndef SOURCE_RELATIONS_VELOCITY_H_
+#define SOURCE_RELATIONS_VELOCITY_H_
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -19,7 +18,7 @@
 namespace es {
 
 
-/** Compute speed profile according to the power law.
+/** @brief Compute speed profile according to the power law.
  *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
@@ -37,19 +36,20 @@ T power_law_speed(T const & z, const double u_ref, const double z_ref, const dou
     T z_norm = z / z_ref;
     T speed = pow(z_norm, alpha) * u_ref;
     return speed;
-}
-// Remove template specialisation from doc (causes duplicate) @cond
+};
+
+// Remove template specialisations from doc (causes duplicate) @cond
 template <>
 Eigen::VectorXd power_law_speed(Eigen::VectorXd const & z, const double u_ref, const double z_ref, const double alpha) {
     // Template specialisation for VectorXd type
     Eigen::VectorXd z_norm = z / z_ref;
     Eigen::VectorXd speed = pow(z_norm.array(), alpha) * u_ref;
     return speed;
-}
+};
 // @endcond
 
 
-/** Compute speed profile according to the MOST law.
+/** @brief Compute speed profile according to the MOST law.
  *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
@@ -71,13 +71,15 @@ T most_law_speed(T const & z, const double kappa, const double d, const double z
     T speed;
     return speed;
 }
+
+
 // Remove template specialisation from doc (causes duplicate) @cond
 template <>
 Eigen::VectorXd most_law_speed(Eigen::VectorXd const & z, const double kappa, const double d, const double z0, const double L){
     std::cout << "MOST Law not implemented yet" << std::endl;
     Eigen::VectorXd speed;
     return speed;
-}
+};
 // @endcond
 
 
@@ -112,7 +114,7 @@ T_z marusic_jones_speed(T_z const & z, T_pi_j const pi_j, const double kappa, co
     T_z u_deficit = term2 - term1 + term3;
     T_z speed = u_inf - u_deficit * u_tau;
     return speed;
-}
+};
 // Remove template specialisation from doc (causes duplicate) @cond
 template <typename T_pi_j>
 Eigen::VectorXd marusic_jones_speed(Eigen::VectorXd const & z, T_pi_j const pi_j, const double kappa, const double z_0,
@@ -126,7 +128,7 @@ Eigen::VectorXd marusic_jones_speed(Eigen::VectorXd const & z, T_pi_j const pi_j
     Eigen::VectorXd u_deficit = term2 - term1 + term3;
     Eigen::VectorXd speed = u_inf - u_deficit.array() * u_tau;
     return speed;
-}
+};
 //@endcond
 
 
@@ -157,7 +159,7 @@ T coles_wake(T const & eta, const double capital_pi){
     wc = 2.0 * eta_sqd * (3.0 - 2.0 * eta)
         - eta_sqd * (1.0 - eta) * (1.0 - 2.0*eta) / capital_pi;
     return wc;
-}
+};
 // Remove template specialisation from doc (causes duplicate) @cond
 template <>
 Eigen::VectorXd coles_wake(Eigen::VectorXd const & eta, const double capital_pi){
@@ -166,7 +168,7 @@ Eigen::VectorXd coles_wake(Eigen::VectorXd const & eta, const double capital_pi)
     wc = 2.0 * eta_sqd.array() * (3.0 - 2.0 * eta.array())
         - eta_sqd.array() * (1.0 - eta.array()) * (1.0 - 2.0*eta.array()) / capital_pi;
     return wc;
-}
+};
 //@endcond
 
 
@@ -204,7 +206,7 @@ T lewkowicz_speed(T const & eta, const double pi_coles, const double kappa, cons
     //}
     speed = u_inf - f*u_tau;
     return speed;
-}
+};
 // Remove template specialisation from doc (causes duplicate) @cond
 template <>
 Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & eta, const double pi_coles, const double kappa, const double u_inf, const double u_tau){
@@ -223,11 +225,11 @@ Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & eta, const double pi_col
     }
     speed = u_inf - f.array()*u_tau;
     return speed;
-}
-// endcond
+};
+// @endcond
 
 
 } /* namespace es */
 
 
-#endif /* SOURCE_RELATIONS_VELOCITY_H */
+#endif /* SOURCE_RELATIONS_VELOCITY_H_ */

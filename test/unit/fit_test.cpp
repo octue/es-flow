@@ -15,6 +15,7 @@
 #include "fit.h"
 #include "relations/velocity.h"
 
+#include "cpplot.h"
 
 using namespace es;
 using namespace Eigen;
@@ -34,42 +35,42 @@ TEST_F(FitTest, test_fit){
     // Basic profile parameters
     double z_ref = 60;
     double u_ref = 10;
-    double alpha = 0.3;
+    double alpha_true = 0.3;
 
     // Create a power law distribution with random noise added
-    Eigen::ArrayXd z = Eigen::ArrayXd::LinSpaced(20, 1, 20);
-    Eigen::ArrayXd u(20);
-    u = power_law_speed(z, u_ref, z_ref, alpha) + ArrayXd::Random(20) - 0.5;
+    Eigen::ArrayXd z = Eigen::ArrayXd::LinSpaced(20, 1, 200);
+    Eigen::ArrayXd u_original(20);
+    Eigen::ArrayXd u_noisy(20);
+    Eigen::ArrayXd u_fitted(20);
+    u_original = power_law_speed(z, u_ref, z_ref, alpha_true);
+    u_noisy = u_original + ArrayXd::Random(20);
 
-    std::cout << "basic power law profile (U = " << u << " m/s)" << std::endl;
+    // Fit to find the value of alpha
+    double alpha_fitted = fit_power_law_speed(z, u_noisy, z_ref, u_ref);
+    u_fitted = power_law_speed(z, u_ref, z_ref, alpha_fitted);
 
-//    // Check that it works for a VectorXd input (vertically spaced z)
-//    double low = 1;
-//    double high = 100;
-//    size_t n_bins = 100;
-//    VectorXd z = VectorXd::LinSpaced(n_bins, low, high);
-//    VectorXd speed = power_law_speed(z, u_ref, z_ref, alpha);
-//    std::cout << "checked VectorXd operation" << std::endl;
-//
-//    // Check that it works for an AutoDiffScalar
-//    // Also provides minimal example of how to get the derivative through the profile
-//    typedef Eigen::AutoDiffScalar<Eigen::VectorXd> ADScalar;
-//    ADScalar ads_z;
-//    ADScalar ads_speed;
-//    VectorXd dspeed_dz;
-//    dspeed_dz.setZero(n_bins);
-//    for (int k = 0; k < n_bins; k++) {
-//    ads_z.value() = z[k];
-//    ads_z.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the
-//    // derivative guess each step
-//    ads_speed = power_law_speed(ads_z, u_ref, z_ref, alpha);
-//    dspeed_dz[k] = ads_speed.derivatives()[0];
-//    }
-//    std::cout << "checked AutoDiffScalar operation" << std::endl;
-//
-//    // Print useful diagnostics values
-//    std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
-//    std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
+    // Display original, noisy and fitted profiles on scatter plot
+    cpplot::Figure fig = cpplot::Figure();
+    cpplot::ScatterPlot p_original = cpplot::ScatterPlot();
+    cpplot::ScatterPlot p_noisy = cpplot::ScatterPlot();
+    cpplot::ScatterPlot p_fitted = cpplot::ScatterPlot();
 
+    p_original.y = z.matrix();
+    p_noisy.y = z.matrix();
+    p_fitted.y = z.matrix();
+
+    p_original.x = u_original;
+    p_noisy.x = u_noisy;
+    p_fitted.x = u_fitted;
+
+    fig.add(p_original);
+    fig.add(p_noisy);
+    fig.add(p_fitted);
+
+    fig.write("test_fit_power_law_speed.json");
+
+    // Check that the fit worked
+    // TODO use a known seed for the random noise which is added to avoid occasional failure here
+    ASSERT_NEAR(alpha_fitted,  alpha_true, 0.1);
 }
 
