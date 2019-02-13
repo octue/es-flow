@@ -13,15 +13,12 @@
 #include <stdio.h>
 #include "ceres/ceres.h"
 #include <Eigen/Core>
-#include <limits>
 
 #include "relations/velocity.h"
 #include "definitions.h"
 
 using ceres::AutoDiffCostFunction;
-using ceres::NumericDiffCostFunction;
-using ceres::DynamicNumericDiffCostFunction;
-using ceres::NumericDiffOptions;
+using ceres::DynamicAutoDiffCostFunction;
 using ceres::CostFunction;
 using ceres::Problem;
 using ceres::Solver;
@@ -195,10 +192,10 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     for (auto i = 0; i < z.size(); i++) {
 
         // Set the stride such that the entire set of derivatives is computed at once (since we have maximum 5)
-        DynamicNumericDiffCostFunction<LewkowiczSpeedResidual, ceres::CENTRAL>* cost_function =
-            new DynamicNumericDiffCostFunction<LewkowiczSpeedResidual, ceres::CENTRAL>(
-                new LewkowiczSpeedResidual(z[i], u[i], fix_params, initial_params)
-            );
+        auto cost_function = new DynamicAutoDiffCostFunction<LewkowiczSpeedResidual, 5>(
+            new LewkowiczSpeedResidual(z[i], u[i], fix_params, initial_params)
+        );
+
         // Add N parameters, where N is the number of free parameters in the problem
         auto pc = 0;
         for (auto p_ctr = 0; p_ctr < 5; p_ctr++) {
@@ -209,6 +206,7 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
         }
         cost_function->SetNumResiduals(1);
         problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), &pi_coles, &u_inf, &shear_ratio);
+        //        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), unfixed_param_ptrs);
     }
 
     // Run the solver

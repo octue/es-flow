@@ -170,6 +170,19 @@ Eigen::VectorXd coles_wake(Eigen::VectorXd const &eta, T_param const &pi_coles){
 //@endcond
 
 
+// Do not document @cond
+/* Template for isinf to kill off problems where ceres::Jet is used (autodifferentiation) instead of standard types
+ */
+bool isinf(double in) {
+    return std::isinf(in);
+};
+template <typename T>
+bool isinf(T in) {
+    return false;
+};
+// @endcond
+
+
 /** Compute Lewkowicz (1982) velocity profile.
  *
  * Used by Perry and Marusic 1995 (from eqs 2 and 7).
@@ -195,14 +208,15 @@ Eigen::VectorXd coles_wake(Eigen::VectorXd const &eta, T_param const &pi_coles){
  */
 template <typename T_z, typename T_param>
 T_z lewkowicz_speed(T_z const & z, T_param const & pi_coles, T_param const & kappa, T_param const & u_inf, T_param const & shear_ratio, T_param const &delta_c) {
-    T_param f, speed, eta;
+    T_z f, speed, eta;
     eta = z / delta_c;
     T_param u_tau = u_inf / shear_ratio;
     T_z term1 = log(eta) / (-1.0*kappa);
-    T_z term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
+    T_z term2 = pi_coles * coles_wake(T_z(1.0), pi_coles) / kappa;
     T_z term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;
     f = term1 + term2 - term3;
-    if (std::isinf(f)) {
+    // TODO FIX This only works for doubles, floats - need to template for autodiff
+    if (isinf(f)) {
         f = u_inf / u_tau;
     };
     speed = u_inf - f * u_tau;
