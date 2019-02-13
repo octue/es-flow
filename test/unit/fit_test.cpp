@@ -84,7 +84,6 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     double kappa = KAPPA_VON_KARMAN;
     double u_inf = 20;
     double shear_ratio = 23.6;
-    double u_tau = u_inf / shear_ratio;
     double delta_c = 1000;
 
     // Create a `correct` distribution with random noise added
@@ -92,7 +91,7 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     Eigen::ArrayXd u_original(40);
     Eigen::ArrayXd u_noisy(40);
     Eigen::ArrayXd u_fitted(40);
-    u_original = lewkowicz_speed(z, pi_coles, kappa, u_inf, u_tau, delta_c);
+    u_original = lewkowicz_speed(z, pi_coles, kappa, u_inf, shear_ratio, delta_c);
     u_noisy = u_original + ArrayXd::Random(40) / 4;
     std::cout << z.transpose() << std::endl <<std::endl;
     std::cout << u_noisy.transpose() << std::endl <<std::endl;

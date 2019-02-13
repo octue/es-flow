@@ -194,9 +194,10 @@ Eigen::VectorXd coles_wake(Eigen::VectorXd const &eta, T_param const &pi_coles){
  *
  */
 template <typename T_z, typename T_param>
-T_z lewkowicz_speed(T_z const & z, T_param const & pi_coles, T_param const & kappa, T_param const & u_inf, T_param const & u_tau, T_param const &delta_c) {
+T_z lewkowicz_speed(T_z const & z, T_param const & pi_coles, T_param const & kappa, T_param const & u_inf, T_param const & shear_ratio, T_param const &delta_c) {
     T_z f, speed, eta;
     eta = z / delta_c;
+    T_param u_tau = u_inf/shear_ratio;
     f = pi_coles * coles_wake(T_param(1.0), pi_coles) / kappa;
     f = f - log(eta) / kappa;
     f = f - pi_coles * coles_wake(eta, pi_coles);
@@ -209,9 +210,10 @@ T_z lewkowicz_speed(T_z const & z, T_param const & pi_coles, T_param const & kap
 };
 // Remove template specialisation from doc (causes duplicate) @cond
 template <typename T_param>
-Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &u_tau, T_param const &delta_c=1.0){
+Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &shear_ratio, T_param const &delta_c=1.0){
     Eigen::VectorXd f, speed, eta;
     eta = z.array() / delta_c;
+    T_param u_tau = u_inf/shear_ratio;
     Eigen::VectorXd term1 = eta.array().log() / (-1.0*kappa);
     double term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
     Eigen::VectorXd term3 = pi_coles * coles_wake(eta, pi_coles).array() / kappa;
@@ -225,9 +227,10 @@ Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & z, T_param const &pi_col
     return speed;
 };
 template <typename T_param>
-Eigen::ArrayXd lewkowicz_speed(Eigen::ArrayXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &u_tau, T_param const &delta_c=1.0){
+Eigen::ArrayXd lewkowicz_speed(Eigen::ArrayXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &shear_ratio, T_param const &delta_c=1.0){
     Eigen::ArrayXd f, speed, eta;
     eta = z / delta_c;
+    T_param u_tau = u_inf/shear_ratio;
     Eigen::ArrayXd term1 = eta.log() / (-1.0*kappa);
     double term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
     Eigen::ArrayXd term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;

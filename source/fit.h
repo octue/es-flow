@@ -18,7 +18,7 @@
 #include "definitions.h"
 
 using ceres::AutoDiffCostFunction;
-using ceres::DynamicAutoDiffCostFunction;
+using ceres::DynamicNumericDiffCostFunction;
 using ceres::CostFunction;
 using ceres::Problem;
 using ceres::Solver;
@@ -107,7 +107,7 @@ struct LewkowiczSpeedResidual {
      * pi_coles = params[0]
      * kappa = params[1]
      * u_inf = params[2]
-     * u_tau = params[3]
+     * shear_ratio = params[3]
      * delta_c = params[4]
      *
      * @param z Observation data point, vertical coordinate in m
@@ -135,7 +135,7 @@ struct LewkowiczSpeedResidual {
 //        std::cout << "pi_coles" << params[0] << std::endl;
 //        std::cout << "kappa" << params[1] << std::endl;
 //        std::cout << "u_inf" << params[2] << std::endl;
-//        std::cout << "u_tau" << params[3] << std::endl;
+//        std::cout << "shear_ratio" << params[3] << std::endl;
 //        std::cout << "delta_c" << params[4] << std::endl;
 //        std::cout << "z" << T(z_) << std::endl;
 //        std::cout << "u" << u_ << std::endl;
@@ -181,7 +181,7 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     Array5b fix_params;
     Array5d initial_params;
     fix_params << false, true, false, false, true;
-    initial_params << pi_coles, kappa, u_inf, u_tau, delta_c;
+    initial_params << pi_coles, kappa, u_inf, shear_ratio, delta_c;
 
     // Initialise a results array, and get a vector of pointers to the free parameters
     Array5d final_params(initial_params);
@@ -194,7 +194,7 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     Problem problem;
     Solver::Summary summary;
     Solver::Options options;
-    options.max_num_iterations = 25;
+    options.max_num_iterations = 400;
     options.linear_solver_type = ceres::DENSE_QR;
     options.minimizer_progress_to_stdout = true;
     
@@ -203,8 +203,8 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     for (auto i = 0; i < z.size(); i++) {
 
         // Set the stride such that the entire set of derivatives is computed at once (since we have maximum 5)
-        DynamicAutoDiffCostFunction<LewkowiczSpeedResidual, 5>* cost_function =
-            new DynamicAutoDiffCostFunction<LewkowiczSpeedResidual, 5>(
+        DynamicNumericDiffCostFunction<LewkowiczSpeedResidual, ceres::CENTRAL>* cost_function =
+            new DynamicNumericDiffCostFunction<LewkowiczSpeedResidual, ceres::CENTRAL>(
                 new LewkowiczSpeedResidual(z[i], u[i], fix_params, initial_params)
             );
         // Add N parameters, where N is the number of free parameters in the problem
@@ -216,7 +216,7 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
             }
         }
         cost_function->SetNumResiduals(1);
-        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), &pi_coles, &u_inf, &u_tau);
+        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), &pi_coles, &u_inf, &shear_ratio);
 //        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), unfixed_param_ptrs);
     }
 
@@ -226,7 +226,7 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     std::cout << "Initial values: " << initial_params.transpose() << std::endl;
     final_params(0) = pi_coles;
     final_params(2) = u_inf;
-    final_params(3) = u_tau;
+    final_params(3) = shear_ratio;
     std::cout << "Final   values: " << final_params.transpose() << std::endl;
 
     return final_params;
