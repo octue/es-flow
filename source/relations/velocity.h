@@ -189,23 +189,23 @@ Eigen::VectorXd coles_wake(Eigen::VectorXd const &eta, T_param const &pi_coles){
  * @param[in]  pi_coles The coles wake parameter Pi
  * @param[in]  kappa von Karman constant
  * @param[in]  u_inf Speed of flow at z = delta (m/s)
- * @param[in]  u_tau Shear / skin friction velocity (governed by ratio parameter shear_ratio = u_inf / u_tau)
+ * @param[in]  shear_ratio Shear / skin friction velocity ratio (shear_ratio = u_inf / u_tau)
  * @param[in]  delta_c Boundary layer thickness in m, used to normalise z. Defaults to 1.0.
  *
  */
 template <typename T_z, typename T_param>
 T_z lewkowicz_speed(T_z const & z, T_param const & pi_coles, T_param const & kappa, T_param const & u_inf, T_param const & shear_ratio, T_param const &delta_c) {
-    T_z f, speed, eta;
+    T_param f, speed, eta;
     eta = z / delta_c;
-    T_param u_tau = u_inf/shear_ratio;
-    f = pi_coles * coles_wake(T_param(1.0), pi_coles) / kappa;
-    f = f - log(eta) / kappa;
-    f = f - pi_coles * coles_wake(eta, pi_coles);
-    // TODO sort this out so it can be template compliant
-//    if (std::isinf(f)) {
-//        f = u_inf/u_tau;
-//    }
-    speed = u_inf - f*u_tau;
+    T_param u_tau = u_inf / shear_ratio;
+    T_z term1 = log(eta) / (-1.0*kappa);
+    T_z term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
+    T_z term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;
+    f = term1 + term2 - term3;
+    if (std::isinf(f)) {
+        f = u_inf / u_tau;
+    };
+    speed = u_inf - f * u_tau;
     return speed;
 };
 // Remove template specialisation from doc (causes duplicate) @cond

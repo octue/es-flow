@@ -13,12 +13,15 @@
 #include <stdio.h>
 #include "ceres/ceres.h"
 #include <Eigen/Core>
+#include <limits>
 
 #include "relations/velocity.h"
 #include "definitions.h"
 
 using ceres::AutoDiffCostFunction;
+using ceres::NumericDiffCostFunction;
 using ceres::DynamicNumericDiffCostFunction;
+using ceres::NumericDiffOptions;
 using ceres::CostFunction;
 using ceres::Problem;
 using ceres::Solver;
@@ -94,7 +97,6 @@ double fit_power_law_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u, con
 }
 
 
-
 /** @brief Cost functor for fitting lewkowicz speed profiles.
  *
  * Implements operator() as required by ceres-solver. Allows some parameters to be fixed (see ``fit_lewkowicz_speed``).
@@ -132,16 +134,7 @@ struct LewkowiczSpeedResidual {
                 param_ctr += 1;
             }
         }
-//        std::cout << "pi_coles" << params[0] << std::endl;
-//        std::cout << "kappa" << params[1] << std::endl;
-//        std::cout << "u_inf" << params[2] << std::endl;
-//        std::cout << "shear_ratio" << params[3] << std::endl;
-//        std::cout << "delta_c" << params[4] << std::endl;
-//        std::cout << "z" << T(z_) << std::endl;
-//        std::cout << "u" << u_ << std::endl;
-        T spd = lewkowicz_speed(T(z_), params[0], params[1], params[2], params[3], params[4]); // TODO can I spread these?
-
-//        std::cout << "spd" << spd << std::endl;
+        T spd = lewkowicz_speed(T(z_), params[0], params[1], params[2], params[3], params[4]);
         residual[0] = u_ - spd;
         return true;
     }
@@ -195,9 +188,8 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     Solver::Summary summary;
     Solver::Options options;
     options.max_num_iterations = 400;
-    options.linear_solver_type = ceres::DENSE_QR;
     options.minimizer_progress_to_stdout = true;
-    
+
     // Set up the only cost function (also known as residual), using cauchy loss function for
     // robust fitting and auto-differentiation to obtain the jacobian
     for (auto i = 0; i < z.size(); i++) {
@@ -217,7 +209,6 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
         }
         cost_function->SetNumResiduals(1);
         problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), &pi_coles, &u_inf, &shear_ratio);
-//        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), unfixed_param_ptrs);
     }
 
     // Run the solver

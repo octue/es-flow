@@ -250,11 +250,12 @@ eta = z/deltac;
 % S is the ratio between free stream velocity and the wall friction velocity -
 % use it to get U1 (eq.7 Perry and Marusic)
 Utau = U1/S;
-
-% sprintf('pi %f', Pi)
-% sprintf('u_inf %f', U1)
-% sprintf('u_tau %f', Utau)
-% sprintf('delta_c %f', deltac)
+format long
+disp('----------------------')
+disp(Pi)
+disp(U1)
+disp(Utau)
+disp(deltac)
 
 % Coles wake function, as a function of Pi and eta, using the Lewkowicz (1982)
 % formulation (Perry and Marusic eq.9)

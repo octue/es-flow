@@ -100,6 +100,13 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     Eigen::Array<double, 5, 1> fitted = fit_lewkowicz_speed(z, u_noisy);
     u_fitted = lewkowicz_speed(z, fitted(0), fitted(1), fitted(2), fitted(3), fitted(4));
 
+    // Sum of squares error, for exact and fitted
+    double lsq_error_noisy = pow(u_original-u_noisy, 2.0).sum();
+    double lsq_error_fitted = pow(u_fitted-u_noisy, 2.0).sum();
+    std::cout << "Sqd error (correct - noisy): " << lsq_error_noisy << std::endl;
+    std::cout << "Sqd error (fitted - noisy) (should be lower): " << lsq_error_fitted << std::endl;
+
+
     // Display original, noisy and fitted profiles on scatter plot
     cpplot::Figure fig = cpplot::Figure();
     cpplot::Layout lay = cpplot::Layout();
