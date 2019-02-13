@@ -94,7 +94,6 @@ double fit_power_law_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u, con
 }
 
 
-
 /** @brief Cost functor for fitting lewkowicz speed profiles.
  *
  * Implements operator() as required by ceres-solver. Allows some parameters to be fixed (see ``fit_lewkowicz_speed``).
@@ -107,7 +106,7 @@ struct LewkowiczSpeedResidual {
      * pi_coles = params[0]
      * kappa = params[1]
      * u_inf = params[2]
-     * u_tau = params[3]
+     * shear_ratio = params[3]
      * delta_c = params[4]
      *
      * @param z Observation data point, vertical coordinate in m
@@ -132,16 +131,7 @@ struct LewkowiczSpeedResidual {
                 param_ctr += 1;
             }
         }
-//        std::cout << "pi_coles" << params[0] << std::endl;
-//        std::cout << "kappa" << params[1] << std::endl;
-//        std::cout << "u_inf" << params[2] << std::endl;
-//        std::cout << "u_tau" << params[3] << std::endl;
-//        std::cout << "delta_c" << params[4] << std::endl;
-//        std::cout << "z" << T(z_) << std::endl;
-//        std::cout << "u" << u_ << std::endl;
-        T spd = lewkowicz_speed(T(z_), params[0], params[1], params[2], params[3], params[4]); // TODO can I spread these?
-
-//        std::cout << "spd" << spd << std::endl;
+        T spd = lewkowicz_speed(T(z_), params[0], params[1], params[2], params[3], params[4]);
         residual[0] = u_ - spd;
         return true;
     }
@@ -181,7 +171,7 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     Array5b fix_params;
     Array5d initial_params;
     fix_params << false, true, false, false, true;
-    initial_params << pi_coles, kappa, u_inf, u_tau, delta_c;
+    initial_params << pi_coles, kappa, u_inf, shear_ratio, delta_c;
 
     // Initialise a results array, and get a vector of pointers to the free parameters
     Array5d final_params(initial_params);
@@ -194,19 +184,18 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     Problem problem;
     Solver::Summary summary;
     Solver::Options options;
-    options.max_num_iterations = 25;
-    options.linear_solver_type = ceres::DENSE_QR;
+    options.max_num_iterations = 400;
     options.minimizer_progress_to_stdout = true;
-    
+
     // Set up the only cost function (also known as residual), using cauchy loss function for
     // robust fitting and auto-differentiation to obtain the jacobian
     for (auto i = 0; i < z.size(); i++) {
 
         // Set the stride such that the entire set of derivatives is computed at once (since we have maximum 5)
-        DynamicAutoDiffCostFunction<LewkowiczSpeedResidual, 5>* cost_function =
-            new DynamicAutoDiffCostFunction<LewkowiczSpeedResidual, 5>(
-                new LewkowiczSpeedResidual(z[i], u[i], fix_params, initial_params)
-            );
+        auto cost_function = new DynamicAutoDiffCostFunction<LewkowiczSpeedResidual, 5>(
+            new LewkowiczSpeedResidual(z[i], u[i], fix_params, initial_params)
+        );
+
         // Add N parameters, where N is the number of free parameters in the problem
         auto pc = 0;
         for (auto p_ctr = 0; p_ctr < 5; p_ctr++) {
@@ -216,8 +205,8 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
             }
         }
         cost_function->SetNumResiduals(1);
-        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), &pi_coles, &u_inf, &u_tau);
-//        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), unfixed_param_ptrs);
+        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), &pi_coles, &u_inf, &shear_ratio);
+        //        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), unfixed_param_ptrs);
     }
 
     // Run the solver
@@ -226,7 +215,7 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     std::cout << "Initial values: " << initial_params.transpose() << std::endl;
     final_params(0) = pi_coles;
     final_params(2) = u_inf;
-    final_params(3) = u_tau;
+    final_params(3) = shear_ratio;
     std::cout << "Final   values: " << final_params.transpose() << std::endl;
 
     return final_params;

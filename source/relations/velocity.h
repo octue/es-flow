@@ -170,6 +170,19 @@ Eigen::VectorXd coles_wake(Eigen::VectorXd const &eta, T_param const &pi_coles){
 //@endcond
 
 
+// Do not document @cond
+/* Template for isinf to kill off problems where ceres::Jet is used (autodifferentiation) instead of standard types
+ */
+bool isinf(double in) {
+    return std::isinf(in);
+};
+template <typename T>
+bool isinf(T in) {
+    return false;
+};
+// @endcond
+
+
 /** Compute Lewkowicz (1982) velocity profile.
  *
  * Used by Perry and Marusic 1995 (from eqs 2 and 7).
@@ -189,29 +202,32 @@ Eigen::VectorXd coles_wake(Eigen::VectorXd const &eta, T_param const &pi_coles){
  * @param[in]  pi_coles The coles wake parameter Pi
  * @param[in]  kappa von Karman constant
  * @param[in]  u_inf Speed of flow at z = delta (m/s)
- * @param[in]  u_tau Shear / skin friction velocity (governed by ratio parameter shear_ratio = u_inf / u_tau)
+ * @param[in]  shear_ratio Shear / skin friction velocity ratio (shear_ratio = u_inf / u_tau)
  * @param[in]  delta_c Boundary layer thickness in m, used to normalise z. Defaults to 1.0.
  *
  */
 template <typename T_z, typename T_param>
-T_z lewkowicz_speed(T_z const & z, T_param const & pi_coles, T_param const & kappa, T_param const & u_inf, T_param const & u_tau, T_param const &delta_c) {
+T_z lewkowicz_speed(T_z const & z, T_param const & pi_coles, T_param const & kappa, T_param const & u_inf, T_param const & shear_ratio, T_param const &delta_c) {
     T_z f, speed, eta;
     eta = z / delta_c;
-    f = pi_coles * coles_wake(T_param(1.0), pi_coles) / kappa;
-    f = f - log(eta) / kappa;
-    f = f - pi_coles * coles_wake(eta, pi_coles);
-    // TODO sort this out so it can be template compliant
-//    if (std::isinf(f)) {
-//        f = u_inf/u_tau;
-//    }
-    speed = u_inf - f*u_tau;
+    T_param u_tau = u_inf / shear_ratio;
+    T_z term1 = log(eta) / (-1.0*kappa);
+    T_z term2 = pi_coles * coles_wake(T_z(1.0), pi_coles) / kappa;
+    T_z term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;
+    f = term1 + term2 - term3;
+    // TODO FIX This only works for doubles, floats - need to template for autodiff
+    if (isinf(f)) {
+        f = u_inf / u_tau;
+    };
+    speed = u_inf - f * u_tau;
     return speed;
 };
 // Remove template specialisation from doc (causes duplicate) @cond
 template <typename T_param>
-Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &u_tau, T_param const &delta_c=1.0){
+Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &shear_ratio, T_param const &delta_c=1.0){
     Eigen::VectorXd f, speed, eta;
     eta = z.array() / delta_c;
+    T_param u_tau = u_inf/shear_ratio;
     Eigen::VectorXd term1 = eta.array().log() / (-1.0*kappa);
     double term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
     Eigen::VectorXd term3 = pi_coles * coles_wake(eta, pi_coles).array() / kappa;
@@ -225,9 +241,10 @@ Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & z, T_param const &pi_col
     return speed;
 };
 template <typename T_param>
-Eigen::ArrayXd lewkowicz_speed(Eigen::ArrayXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &u_tau, T_param const &delta_c=1.0){
+Eigen::ArrayXd lewkowicz_speed(Eigen::ArrayXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &shear_ratio, T_param const &delta_c=1.0){
     Eigen::ArrayXd f, speed, eta;
     eta = z / delta_c;
+    T_param u_tau = u_inf/shear_ratio;
     Eigen::ArrayXd term1 = eta.log() / (-1.0*kappa);
     double term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
     Eigen::ArrayXd term3 = pi_coles * coles_wake(eta, pi_coles) / kappa;

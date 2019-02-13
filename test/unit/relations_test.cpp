@@ -198,13 +198,12 @@ TEST_F(VelocityRelationsTest, test_lewkowicz_profile) {
     double kappa = 0.41;
     double delta = 1000.0;
     double u_inf = 20.0;
-    double s = 23.6;
-    double u_tau = u_inf / s;
+    double shear_ratio = 23.6;
     double z_0 = 0.0;
 
     // Check that it works for a z value of type double
     double z_doub = 1.0;
-    double speed1 = lewkowicz_speed(z_doub, pi_coles, kappa, u_inf, u_tau, delta);
+    double speed1 = lewkowicz_speed(z_doub, pi_coles, kappa, u_inf, shear_ratio, delta);
     std::cout << "checked scalar double operation (U = " << speed1 << " m/s)" << std::endl;
 
     // Check that it works for a ArrayXd input (vertically spaced z)
@@ -212,7 +211,7 @@ TEST_F(VelocityRelationsTest, test_lewkowicz_profile) {
     double high = 100;
     int n_bins = 10;
     VectorXd z = VectorXd::LinSpaced(n_bins, low, high);
-    VectorXd speed = lewkowicz_speed(z, pi_coles, kappa, u_inf, u_tau, delta);
+    VectorXd speed = lewkowicz_speed(z, pi_coles, kappa, u_inf, shear_ratio, delta);
     std::cout << "checked VectorXd operation: "<< speed.transpose() << std::endl;
 
     // Check that it works for an AutoDiffScalar
@@ -225,7 +224,7 @@ TEST_F(VelocityRelationsTest, test_lewkowicz_profile) {
     for (int k = 0; k < n_bins; k++) {
         ads_z.value() = z[k];
         ads_z.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the derivative guess each step
-        ads_speed = lewkowicz_speed(ads_z, pi_coles, kappa, u_inf, u_tau, delta);
+        ads_speed = lewkowicz_speed(ads_z, pi_coles, kappa, u_inf, shear_ratio, delta);
         dspeed_dz[k] = ads_speed.derivatives()[0];
     }
     std::cout << "checked AutoDiffScalar<VectorXd> operation" << std::endl;

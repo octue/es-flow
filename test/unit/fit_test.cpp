@@ -84,7 +84,6 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     double kappa = KAPPA_VON_KARMAN;
     double u_inf = 20;
     double shear_ratio = 23.6;
-    double u_tau = u_inf / shear_ratio;
     double delta_c = 1000;
 
     // Create a `correct` distribution with random noise added
@@ -92,7 +91,7 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     Eigen::ArrayXd u_original(40);
     Eigen::ArrayXd u_noisy(40);
     Eigen::ArrayXd u_fitted(40);
-    u_original = lewkowicz_speed(z, pi_coles, kappa, u_inf, u_tau, delta_c);
+    u_original = lewkowicz_speed(z, pi_coles, kappa, u_inf, shear_ratio, delta_c);
     u_noisy = u_original + ArrayXd::Random(40) / 4;
     std::cout << z.transpose() << std::endl <<std::endl;
     std::cout << u_noisy.transpose() << std::endl <<std::endl;
@@ -100,6 +99,12 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     // Fit to find the value of alpha
     Eigen::Array<double, 5, 1> fitted = fit_lewkowicz_speed(z, u_noisy);
     u_fitted = lewkowicz_speed(z, fitted(0), fitted(1), fitted(2), fitted(3), fitted(4));
+
+    // Sum of squares error, for exact and fitted
+    double lsq_error_noisy = pow(u_original-u_noisy, 2.0).sum();
+    double lsq_error_fitted = pow(u_fitted-u_noisy, 2.0).sum();
+    std::cout << "Sqd error (correct - noisy): " << lsq_error_noisy << std::endl;
+    std::cout << "Sqd error (fitted - noisy) (should be lower): " << lsq_error_fitted << std::endl;
 
     // Display original, noisy and fitted profiles on scatter plot
     cpplot::Figure fig = cpplot::Figure();
