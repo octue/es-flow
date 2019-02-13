@@ -106,7 +106,6 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     std::cout << "Sqd error (correct - noisy): " << lsq_error_noisy << std::endl;
     std::cout << "Sqd error (fitted - noisy) (should be lower): " << lsq_error_fitted << std::endl;
 
-
     // Display original, noisy and fitted profiles on scatter plot
     cpplot::Figure fig = cpplot::Figure();
     cpplot::Layout lay = cpplot::Layout();
