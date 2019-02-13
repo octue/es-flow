@@ -66,4 +66,4 @@ public:
 
 } /* namespace es */
 
-#endif //ES_FLOW_DATA_TYPES_H
+#endif // ES_FLOW_DATA_TYPES_H

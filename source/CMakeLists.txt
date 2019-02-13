@@ -8,6 +8,8 @@ set(SOURCE_FILES
         fit.h
         relations/velocity.h
         relations/stress.h
+        relations/spectra.cpp
+        relations/spectra.h
         profile.cpp
         profile.h
         readers.h
@@ -16,8 +18,6 @@ set(SOURCE_FILES
         utilities/cumtrapz.h
         utilities/filter.h
         utilities/tensors.h
-        relations/spectra.cpp
-        relations/spectra.h
         )
 add_library(flow STATIC ${SOURCE_FILES})
 

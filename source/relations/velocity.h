@@ -7,16 +7,16 @@
  *
  */
 
-#ifndef SOURCE_RELATIONS_VELOCITY_H_
-#define SOURCE_RELATIONS_VELOCITY_H_
+#ifndef ES_FLOW_VELOCITY_H_
+#define ES_FLOW_VELOCITY_H_
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include "profile.h"
+#include <iostream>
 
 
 namespace es {
-
 
 /** @brief Compute speed profile according to the power law.
  *
@@ -32,18 +32,17 @@ namespace es {
  * @param[in]  z_ref Reference height in m
  * @param[in]  alpha Power law exponent. Must be of same type as input z (allows autodifferentiation).
  */
-template <typename T>
-T power_law_speed(T const & z, const double u_ref, const double z_ref, T const & alpha){
+template <typename T, typename Talf>
+T power_law_speed(T const & z, const double u_ref, const double z_ref, Talf const & alpha){
     T z_norm = z / z_ref;
     T speed = pow(z_norm, alpha) * u_ref;
     return speed;
 };
 
 // Remove template specialisations from doc (causes duplicate) @cond
-Eigen::ArrayXd power_law_speed(Eigen::ArrayXd const & z, const double u_ref, const double z_ref, const double alpha) {
-    // Template specialisation for ArrayXd type
-    Eigen::ArrayXd z_norm = z / z_ref;
-    Eigen::ArrayXd speed = pow(z_norm.array(), alpha) * u_ref;
+Eigen::VectorXd power_law_speed(Eigen::VectorXd const & z, const double u_ref, const double z_ref, const double alpha) {
+    Eigen::VectorXd z_norm = z.array() / z_ref;
+    Eigen::VectorXd speed = pow(z_norm.array(), alpha) * u_ref;
     return speed;
 };
 // @endcond
@@ -117,15 +116,15 @@ T_z marusic_jones_speed(T_z const & z, T_pi_j const pi_j, const double kappa, co
 };
 // Remove template specialisation from doc (causes duplicate) @cond
 template <typename T_pi_j>
-Eigen::ArrayXd marusic_jones_speed(Eigen::ArrayXd const & z, T_pi_j const pi_j, const double kappa, const double z_0,
+Eigen::VectorXd marusic_jones_speed(Eigen::VectorXd const & z, T_pi_j const pi_j, const double kappa, const double z_0,
                              const double delta, const double u_inf, const double u_tau){
-    Eigen::ArrayXd eta = (z + z_0) / (delta + z_0);
-    Eigen::ArrayXd eta_cubed = eta.cube();
-    Eigen::ArrayXd term1 = eta.log() / kappa;
-    Eigen::ArrayXd term2 = (eta_cubed - 1.0) / (3.0 * kappa);
-    Eigen::ArrayXd term3 = 2.0 * pi_j * (1.0 - eta.square() * 3.0 + eta_cubed * 2.0) / kappa;
-    Eigen::ArrayXd u_deficit = term2 - term1 + term3;
-    Eigen::ArrayXd speed = u_inf - u_deficit * u_tau;
+    Eigen::VectorXd eta = (z.array() + z_0) / (delta + z_0);
+    Eigen::VectorXd eta_cubed = eta.array().cube();
+    Eigen::VectorXd term1 = eta.array().log() / kappa;
+    Eigen::VectorXd term2 = (eta_cubed.array() - 1.0) / (3.0 * kappa);
+    Eigen::VectorXd term3 = 2.0 * pi_j * (1.0 - eta.array().square() * 3.0 + eta_cubed.array() * 2.0) / kappa;
+    Eigen::VectorXd u_deficit = term2 - term1 + term3;
+    Eigen::VectorXd speed = u_inf - u_deficit.array() * u_tau;
     return speed;
 };
 //@endcond
@@ -151,20 +150,21 @@ Eigen::ArrayXd marusic_jones_speed(Eigen::ArrayXd const & z, T_pi_j const pi_j, 
  * @param[in]  pi_coles     The coles wake parameter Pi
  *
  */
-template <typename T>
-T coles_wake(T const & eta, T const & pi_coles){
-    T wc, eta_sqd;
+template <typename T_z, typename T_param>
+T_z coles_wake(T_z const &eta, T_param const &pi_coles){
+    T_z wc, eta_sqd;
     eta_sqd = pow(eta, 2.0);
     wc = 2.0 * eta_sqd * (3.0 - 2.0 * eta)
         - eta_sqd * (1.0 - eta) * (1.0 - 2.0*eta) / pi_coles;
     return wc;
 };
 // Remove template specialisation from doc (causes duplicate) @cond
-Eigen::ArrayXd coles_wake(Eigen::ArrayXd const & eta, const double pi_coles){
-    Eigen::ArrayXd wc, eta_sqd;
-    eta_sqd = eta.pow(2.0);
-    wc = 2.0 * eta_sqd * (3.0 - 2.0 * eta)
-        - eta_sqd * (1.0 - eta) * (1.0 - 2.0*eta) / pi_coles;
+template <typename T_param>
+Eigen::VectorXd coles_wake(Eigen::VectorXd const &eta, T_param const &pi_coles){
+    Eigen::VectorXd wc, eta_sqd;
+    eta_sqd = eta.array().pow(2.0);
+    wc = 2.0 * eta_sqd.array() * (3.0 - 2.0 * eta.array())
+        - eta_sqd.array() * (1.0 - eta.array()) * (1.0 - 2.0*eta.array()) / pi_coles;
     return wc;
 };
 //@endcond
@@ -193,37 +193,39 @@ Eigen::ArrayXd coles_wake(Eigen::ArrayXd const & eta, const double pi_coles){
  * @param[in]  delta_c Boundary layer thickness in m, used to normalise z. Defaults to 1.0.
  *
  */
-template <typename T>
-T lewkowicz_speed(T const & z, T const & pi_coles, T const & kappa, T const & u_inf, T const & u_tau, T const &delta_c=1.0) {
-    T f, speed, eta;
+template <typename T_z, typename T_param>
+T_z lewkowicz_speed(T_z const & z, T_param const & pi_coles, T_param const & kappa, T_param const & u_inf, T_param const & u_tau, T_param const &delta_c) {
+    T_z f, speed, eta;
     eta = z / delta_c;
-    f = pi_coles * coles_wake(T(1.0), pi_coles) / kappa;
+    f = pi_coles * coles_wake(T_param(1.0), pi_coles) / kappa;
     f = f - log(eta) / kappa;
     f = f - pi_coles * coles_wake(eta, pi_coles);
     // TODO sort this out so it can be template compliant
-    //if (std::isinf(f)) {
-    //    f = u_inf/u_tau;
-    //}
+//    if (std::isinf(f)) {
+//        f = u_inf/u_tau;
+//    }
     speed = u_inf - f*u_tau;
     return speed;
 };
 // Remove template specialisation from doc (causes duplicate) @cond
-// TODO template specialisation to autodiff only on z coordinate
-//template <typename T>
-//    T lewkowicz_speed(T const & z, const double pi_coles, const double kappa, const double u_inf, const double u_tau, const double delta_c=1.0) {
-//    T f, speed, eta;
-//    eta = z / delta_c;
-//    f = pi_coles * coles_wake(1.0, pi_coles) / kappa;
-//    f = f - log(eta) / kappa;
-//    f = f - pi_coles * coles_wake(eta, pi_coles);
-//    // TODO sort this out so it can be template compliant
-//    //if (std::isinf(f)) {
-//    //    f = u_inf/u_tau;
-//    //}
-//    speed = u_inf - f*u_tau;
-//    return speed;
-//};
-Eigen::ArrayXd lewkowicz_speed(Eigen::ArrayXd const & z, const double pi_coles, const double kappa, const double u_inf, const double u_tau, const double delta_c=1.0){
+template <typename T_param>
+Eigen::VectorXd lewkowicz_speed(Eigen::VectorXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &u_tau, T_param const &delta_c=1.0){
+    Eigen::VectorXd f, speed, eta;
+    eta = z.array() / delta_c;
+    Eigen::VectorXd term1 = eta.array().log() / (-1.0*kappa);
+    double term2 = pi_coles * coles_wake(1.0, pi_coles) / kappa;
+    Eigen::VectorXd term3 = pi_coles * coles_wake(eta, pi_coles).array() / kappa;
+    f = term1.array() + term2 - term3.array();
+    for (int k = 0; k < f.size(); k++) {
+        if (std::isinf(f[k])) {
+            f(k) = u_inf / u_tau;
+        }
+    }
+    speed = u_inf - f.array() * u_tau;
+    return speed;
+};
+template <typename T_param>
+Eigen::ArrayXd lewkowicz_speed(Eigen::ArrayXd const & z, T_param const &pi_coles, T_param const &kappa, T_param const &u_inf, T_param const &u_tau, T_param const &delta_c=1.0){
     Eigen::ArrayXd f, speed, eta;
     eta = z / delta_c;
     Eigen::ArrayXd term1 = eta.log() / (-1.0*kappa);
@@ -235,7 +237,7 @@ Eigen::ArrayXd lewkowicz_speed(Eigen::ArrayXd const & z, const double pi_coles, 
             f(k) = u_inf / u_tau;
         }
     }
-    speed = u_inf - f*u_tau;
+    speed = u_inf - f * u_tau;
     return speed;
 };
 // @endcond
@@ -244,4 +246,4 @@ Eigen::ArrayXd lewkowicz_speed(Eigen::ArrayXd const & z, const double pi_coles, 
 } /* namespace es */
 
 
-#endif /* SOURCE_RELATIONS_VELOCITY_H_ */
+#endif /* ES_FLOW_VELOCITY_H_ */

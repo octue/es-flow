@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef SOURCE_DEFINITIONS_H
-#define SOURCE_DEFINITIONS_H
+#ifndef ES_FLOW_DEFINITIONS_H
+#define ES_FLOW_DEFINITIONS_H
 
 // Rotational speed of the world in rad/s
 #define OMEGA_WORLD 7.2921159e-05
@@ -23,4 +23,4 @@
 #define acosd(x) (acos(x) * 180.0 / M_PI)
 #define tand(x) (tan(x * M_PI / 180.0) * M_PI / 180.0)
 
-#endif //SOURCE_DEFINITIONS_H
+#endif // ES_FLOW_DEFINITIONS_H

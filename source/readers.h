@@ -180,4 +180,4 @@ template <class DataType>
 
 
 
-#endif //ES_FLOW_READERS_H
+#endif // ES_FLOW_READERS_H

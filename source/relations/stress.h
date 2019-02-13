@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef SOURCE_RELATIONS_STRESS_H_
-#define SOURCE_RELATIONS_STRESS_H_
+#ifndef ES_FLOW_STRESS_H_
+#define ES_FLOW_STRESS_H_
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -213,4 +213,4 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
 
 } /* namespace es */
 
-#endif /* SOURCE_RELATIONS_VELOCITY_H_ */
+#endif /* ES_FLOW_STRESS_H_ */

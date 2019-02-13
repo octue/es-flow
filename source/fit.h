@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef SOURCE_FIT_H_
-#define SOURCE_FIT_H_
+#ifndef ES_FLOW_FIT_H
+#define ES_FLOW_FIT_H
 
 #include <stdio.h>
 #include "ceres/ceres.h"
@@ -71,10 +71,11 @@ double fit_power_law_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u, con
 	Problem problem;
     Solver::Summary summary;
     Solver::Options options;
-    options.max_num_iterations = 25;
+
+    options.max_num_iterations = 400;
     options.linear_solver_type = ceres::DENSE_QR;
     options.minimizer_progress_to_stdout = true;
-
+//std::cout << options << std::endl;
 	// Set up the only cost function (also known as residual), using cauchy loss function for
 	// robust fitting and auto-differentiation to obtain the derivative (jacobian)
 	for (auto i = 0; i < z.size(); i++) {
@@ -131,7 +132,16 @@ struct LewkowiczSpeedResidual {
                 param_ctr += 1;
             }
         }
+//        std::cout << "pi_coles" << params[0] << std::endl;
+//        std::cout << "kappa" << params[1] << std::endl;
+//        std::cout << "u_inf" << params[2] << std::endl;
+//        std::cout << "u_tau" << params[3] << std::endl;
+//        std::cout << "delta_c" << params[4] << std::endl;
+//        std::cout << "z" << T(z_) << std::endl;
+//        std::cout << "u" << u_ << std::endl;
         T spd = lewkowicz_speed(T(z_), params[0], params[1], params[2], params[3], params[4]); // TODO can I spread these?
+
+//        std::cout << "spd" << spd << std::endl;
         residual[0] = u_ - spd;
         return true;
     }
@@ -161,10 +171,10 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
 
     // TODO Assert that z.size() == u.size()
 
-    double pi_coles = 0.75;
+    double pi_coles = 0.4;
     double kappa = KAPPA_VON_KARMAN;
-    double shear_ratio = 10;
-    double u_inf = u.maxCoeff(); // TODO make this less sensitive to noise. Maybe median?
+    double shear_ratio = 20;
+    double u_inf = 15; // TODO better guess
     double u_tau = u_inf / shear_ratio;
     double delta_c = 1000;
 
@@ -179,7 +189,7 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
     for (int p_ctr = 0; p_ctr <5; p_ctr++) {
         if (!fix_params(p_ctr)) { unfixed_param_ptrs.push_back(final_params.data()+p_ctr); };
     }
-    std::cout << "HERE2 " << unfixed_param_ptrs[0][0] << " "  << unfixed_param_ptrs[1][0] << " " << unfixed_param_ptrs[2][0] << " " <<std::endl;
+
     // Build the problem
     Problem problem;
     Solver::Summary summary;
@@ -205,7 +215,6 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
                 pc += 1;
             }
         }
-        std::cout << "added n params n = " << pc << std::endl;
         cost_function->SetNumResiduals(1);
         problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), &pi_coles, &u_inf, &u_tau);
 //        problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), unfixed_param_ptrs);
@@ -213,7 +222,7 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
 
     // Run the solver
     Solve(options, &problem, &summary);
-    std::cout << summary.BriefReport() << std::endl;
+    std::cout << summary.FullReport() << std::endl;
     std::cout << "Initial values: " << initial_params.transpose() << std::endl;
     final_params(0) = pi_coles;
     final_params(2) = u_inf;
@@ -226,4 +235,4 @@ Array5d fit_lewkowicz_speed(const Eigen::ArrayXd &z, const Eigen::ArrayXd &u) {
 } /* namespace es */
 
 
-#endif /* SOURCE_FIT_H_ */
+#endif // ES_FLOW_FIT_H

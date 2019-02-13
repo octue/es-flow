@@ -80,10 +80,10 @@ TEST_F(FitTest, test_fit_power_law_speed){
 TEST_F(FitTest, test_fit_lewkowicz_speed){
 
     // Basic profile parameters
-    double pi_coles = 0.7;
+    double pi_coles = 0.42;
     double kappa = KAPPA_VON_KARMAN;
-    double u_inf = 10;
-    double shear_ratio = 17.2;
+    double u_inf = 20;
+    double shear_ratio = 23.6;
     double u_tau = u_inf / shear_ratio;
     double delta_c = 1000;
 
@@ -93,7 +93,9 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     Eigen::ArrayXd u_noisy(40);
     Eigen::ArrayXd u_fitted(40);
     u_original = lewkowicz_speed(z, pi_coles, kappa, u_inf, u_tau, delta_c);
-    u_noisy = u_original + ArrayXd::Random(40) / 5;
+    u_noisy = u_original + ArrayXd::Random(40) / 4;
+    std::cout << z.transpose() << std::endl <<std::endl;
+    std::cout << u_noisy.transpose() << std::endl <<std::endl;
 
     // Fit to find the value of alpha
     Eigen::Array<double, 5, 1> fitted = fit_lewkowicz_speed(z, u_noisy);
@@ -101,13 +103,20 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
 
     // Display original, noisy and fitted profiles on scatter plot
     cpplot::Figure fig = cpplot::Figure();
+    cpplot::Layout lay = cpplot::Layout();
     cpplot::ScatterPlot p_original = cpplot::ScatterPlot();
     cpplot::ScatterPlot p_noisy = cpplot::ScatterPlot();
     cpplot::ScatterPlot p_fitted = cpplot::ScatterPlot();
+    lay.xLabel("u_bar (m/s)");
+    lay.yLabel("z (m)");
+    fig.setLayout(lay);
 
     p_original.y = z.matrix();
+    p_original.name = "Correct";
     p_noisy.y = z.matrix();
+    p_noisy.name = "Added noise";
     p_fitted.y = z.matrix();
+    p_fitted.name = "Fitted";
 
     p_original.x = u_original;
     p_noisy.x = u_noisy;

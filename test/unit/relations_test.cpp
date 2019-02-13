@@ -53,6 +53,8 @@ TEST_F(VelocityRelationsTest, test_power_law_profile) {
     ADScalar ads_speed;
     VectorXd dspeed_dz;
     dspeed_dz.setZero(n_bins);
+
+    typedef Eigen::AutoDiffScalar<Eigen::VectorXd> ADScalar;
     for (int k = 0; k < n_bins; k++) {
         ads_z.value() = z[k];
         ads_z.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the
@@ -126,7 +128,7 @@ TEST_F(VelocityRelationsTest, test_marusic_jones_profile) {
     double z_0 = 0.0;
 
     // Check that it works for a z value of type double
-    double z_doub = 1.;
+    double z_doub = 1.0;
     double speed1 = marusic_jones_speed(z_doub, pi_j, kappa, z_0, delta, u_inf, u_tau);
     std::cout << "checked scalar double operation (U = " << speed1 << " m/s)" << std::endl;
 
@@ -201,33 +203,32 @@ TEST_F(VelocityRelationsTest, test_lewkowicz_profile) {
     double z_0 = 0.0;
 
     // Check that it works for a z value of type double
-    double eta_doub = 1.0/delta;
-    double speed1 = lewkowicz_speed(eta_doub, pi_coles, kappa, u_inf, u_tau);
+    double z_doub = 1.0;
+    double speed1 = lewkowicz_speed(z_doub, pi_coles, kappa, u_inf, u_tau, delta);
     std::cout << "checked scalar double operation (U = " << speed1 << " m/s)" << std::endl;
 
-    // Check that it works for a VectorXd input (vertically spaced z)
+    // Check that it works for a ArrayXd input (vertically spaced z)
     double low = 1;
     double high = 100;
-    size_t n_bins = 100;
+    int n_bins = 10;
     VectorXd z = VectorXd::LinSpaced(n_bins, low, high);
-    VectorXd eta = z.array() / delta;
-    VectorXd speed = lewkowicz_speed(eta, pi_coles, kappa, u_inf, u_tau);
-    std::cout << "checked VectorXd operation" << std::endl;
+    VectorXd speed = lewkowicz_speed(z, pi_coles, kappa, u_inf, u_tau, delta);
+    std::cout << "checked VectorXd operation: "<< speed.transpose() << std::endl;
 
     // Check that it works for an AutoDiffScalar
     // Also provides minimal example of how to get the derivative through the profile
     typedef Eigen::AutoDiffScalar<Eigen::VectorXd> ADScalar;
-    ADScalar ads_eta;
+    ADScalar ads_z;
     ADScalar ads_speed;
     VectorXd dspeed_dz;
     dspeed_dz.setZero(n_bins);
     for (int k = 0; k < n_bins; k++) {
-        ads_eta.value() = eta[k];
-        ads_eta.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the derivative guess each step
-        ads_speed = lewkowicz_speed(ads_eta, pi_coles, kappa, u_inf, u_tau);
-        dspeed_dz[k] = ads_speed.derivatives()[0] / delta;
+        ads_z.value() = z[k];
+        ads_z.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the derivative guess each step
+        ads_speed = lewkowicz_speed(ads_z, pi_coles, kappa, u_inf, u_tau, delta);
+        dspeed_dz[k] = ads_speed.derivatives()[0];
     }
-    std::cout << "checked AutoDiffScalar operation" << std::endl;
+    std::cout << "checked AutoDiffScalar<VectorXd> operation" << std::endl;
 
     // Print useful diagnostics values
     std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;

@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef SOURCE_PROFILE_H
-#define SOURCE_PROFILE_H
+#ifndef ES_FLOW_PROFILE_H
+#define ES_FLOW_PROFILE_H
 
 #include <iostream>
 #include <vector>
@@ -145,4 +145,4 @@ public:
 } /* namespace es */
 
 
-#endif //SOURCE_PROFILE_H
+#endif // ES_FLOW_PROFILE_H

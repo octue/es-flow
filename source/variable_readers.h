@@ -255,4 +255,4 @@ double readDouble(mat_t *matfp, const std::string var_name, bool print_var){
 } /* end namespace */
 
 
-#endif //ES_FLOW_VARIABLE_READERS_H
+#endif // ES_FLOW_VARIABLE_READERS_H

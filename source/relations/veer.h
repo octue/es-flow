@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef SOURCE_RELATIONS_VELOCITY_H_
-#define SOURCE_RELATIONS_VELOCITY_H_
+#ifndef ES_FLOW_VEER_H_
+#define ES_FLOW_VEER_H_
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -34,7 +34,7 @@ namespace es {
  */
 template <typename T>
 T veer_lhs(T const & ui, const double ui_g, const double phi){
-    T lhs = 2.0*omega_world*sind(phi)*(ui_g - ui);
+    T lhs = 2.0*OMEGA_WORLD*sind(phi)*(ui_g - ui);
     return lhs;
 }
 
@@ -60,4 +60,4 @@ T veer_rhs(T & ui, T & uiu3_bar, const double nu){
 
 } /* namespace es */
 
-#endif /* SOURCE_RELATIONS_VELOCITY_H_ */
+#endif /* ES_FLOW_VEER_H_ */
