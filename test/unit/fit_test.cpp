@@ -134,7 +134,7 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     fig.write("test_fit_lewkowicz_speed.json");
 
     // Check that the fit worked
-    // TODO use a known seed for the random noise which is added to avoid occasional failure here
-//    ASSERT_NEAR(alpha_fitted,  alpha_true, 0.15);
+    ASSERT_NEAR(fitted(0), pi_coles, 0.02);
+
 }
 
