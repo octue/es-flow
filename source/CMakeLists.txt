@@ -1,29 +1,24 @@
 
-# Add include directories so the test routines can pick up the library contents
-include_directories(relations)
-
-# Add the souce and test directories
-add_subdirectory(relations)
-
 # Add the flow library
 set(SOURCE_FILES
-        adem_analysis.cpp
-        adem_analysis.h
-        adem_signature.cpp
-        adem_signature.h
+        adem/adem.h
+        adem/signature.h
         data_types.h
-        fit_profiles.cpp
-        fit_profiles.h
-        instrument_analysis.cpp
-        instrument_analysis.h
-        relations/velocity.cpp
+        definitions.h
+        fit.h
         relations/velocity.h
         relations/stress.h
-        profile.cpp profile.h
-        readers.cpp readers.h
+        relations/spectra.cpp
+        relations/spectra.h
+        profile.cpp
+        profile.h
+        readers.h
         variable_readers.h
-        window.cpp window.h
-        utilities/cumtrapz.h)
+        utilities/conv.h
+        utilities/cumtrapz.h
+        utilities/filter.h
+        utilities/tensors.h
+        )
 add_library(flow STATIC ${SOURCE_FILES})
 
 

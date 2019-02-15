@@ -1,57 +1,32 @@
 /*
- * PROFILES_TEST.CPP Test fixtures for analytical profiles
+ * VELOCITY_RELATIONS_TEST.CPP Test fixtures for analytical profiles
  *
- * References:
+ * Author:                   Tom Clark (thclark @ github)
  *
- *   [1]
- *
- * Future Improvements:
- *
- *   [1]
- *
- * Author:                   T. Clark
- * Work address:             Ocean Array Systems Ltd
- *                           Hauser Forum
- *                           3 Charles Babbage Road
- *                           Cambridge
- *                           CB3 0GT
- * Email:                    tom.clark@oceanarraysystems.com
- * Website:                  www.oceanarraysystems.com
- *
- * Copyright (c) 2016-17 Ocean Array Systems, All Rights Reserved.
+ * Copyright (c) 2016-9 Octue Ltd. All Rights Reserved.
  *
  */
 
-#include "gtest/gtest.h"
-#include "profile.h"
-#include "relations/velocity.h"
-#include "relations/stress.h"
-#include "constants.h"
 #include <Eigen/Dense>
 #include <Eigen/Core>
+#include "gtest/gtest.h"
 #include <unsupported/Eigen/AutoDiff>
+
+#include "definitions.h"
+#include "relations/stress.h"
+#include "relations/veer.h"
+#include "relations/velocity.h"
+
 
 using namespace es;
 using namespace Eigen;
 
+
 // Test fixture for generating analytical profiles
-class AnalyticalProfileTest : public ::testing::Test {
+class VelocityRelationsTest : public ::testing::Test {};
 
-protected:
 
-    virtual void SetUp() {
-        std::cout << std::endl << "Setting up AnalyticalProfileTest()..." << std::endl;
-    }
-
-    virtual void TearDown() {
-        std::cout << "Tearing down AnalyticalProfileTest()..." << std::endl << std::endl;
-    }
-
-};
-
-TEST_F(AnalyticalProfileTest, test_power_law_profile) {
-    // Get analytical values for velocity using power law profile
-    std::cout << "test_power_law_profile" << std::endl;
+TEST_F(VelocityRelationsTest, test_power_law_profile) {
 
     // Basic test parameters
     double z_ref = 60;
@@ -78,6 +53,8 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
     ADScalar ads_speed;
     VectorXd dspeed_dz;
     dspeed_dz.setZero(n_bins);
+
+    typedef Eigen::AutoDiffScalar<Eigen::VectorXd> ADScalar;
     for (int k = 0; k < n_bins; k++) {
         ads_z.value() = z[k];
         ads_z.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the
@@ -92,9 +69,8 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
     std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
 }
 
-//TEST_F(AnalyticalProfileTest, test_most_profile) {
-//    // Get analytical values for velocity using log law profile and psi function
-//    std::cout << "test_most_profile" << std::endl;
+
+//TEST_F(VelocityRelationsTest, test_most_profile) {
 //
 //    // von karman constant
 //    double kappa = 0.41;
@@ -139,9 +115,8 @@ TEST_F(AnalyticalProfileTest, test_power_law_profile) {
 //    std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
 //}
 
-TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
-    // Get analytical values for velocity using law of wall and wake
-    std::cout << "test_marusic_jones_profile" << std::endl;
+
+TEST_F(VelocityRelationsTest, test_marusic_jones_profile) {
 
     // Basic test parameters
     double pi_j = 0.42;
@@ -153,7 +128,7 @@ TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
     double z_0 = 0.0;
 
     // Check that it works for a z value of type double
-    double z_doub = 1.;
+    double z_doub = 1.0;
     double speed1 = marusic_jones_speed(z_doub, pi_j, kappa, z_0, delta, u_inf, u_tau);
     std::cout << "checked scalar double operation (U = " << speed1 << " m/s)" << std::endl;
 
@@ -213,76 +188,46 @@ TEST_F(AnalyticalProfileTest, test_marusic_jones_profile) {
     }
     std::cout << "partial_dspeed_dpi       = [" << partial_dspeed_dpi.transpose() << "];" << std::endl;
     std::cout << "partial_dspeed_dpi_check = [" << partial_dspeed_dpi_check.transpose() << "];" << std::endl;
-
-
-
-
-
-
-
-
-
-    // Print variables to plot comparison with MATLAB based equivalent calculation
-    //    std::cout << "pi_j = " << pi_j << ";" << std::endl;
-    //    std::cout << "kappa = " << kappa << ";" << std::endl;
-    //    std::cout << "delta = " << delta << ";" << std::endl;
-    //    std::cout << "s = " << s << ";" << std::endl;
-    //    std::cout << "u_inf = " << u_inf << ";" << std::endl;
-    //    std::cout << "z_0 = " << z_0 << ";" << std::endl;
-    //    std::cout << "z = [" << z << "];" << std::endl;
 }
 
-TEST_F(AnalyticalProfileTest, test_r13_profile) {
-    // Get an R13 profile from a basic parameter set
 
-    // Test a basic integrator out
-    double arg = 0.0;
-    double res = do_something(arg);
-
-    std::cout << "test_r13_profile" << std::endl;
-}
-
-TEST_F(AnalyticalProfileTest, test_lewkowicz_profile) {
-    // Get analytical values for velocity using lewkowicz law of wall and wake
-    std::cout << "test_lewkowicz_profile" << std::endl;
+TEST_F(VelocityRelationsTest, test_lewkowicz_profile) {
 
     // Basic test parameters
     double pi_coles = 0.42;
     double kappa = 0.41;
     double delta = 1000.0;
     double u_inf = 20.0;
-    double s = 23.6;
-    double u_tau = u_inf / s;
+    double shear_ratio = 23.6;
     double z_0 = 0.0;
 
     // Check that it works for a z value of type double
-    double eta_doub = 1.0/delta;
-    double speed1 = lewkowicz_speed(eta_doub, pi_coles, kappa, u_inf, u_tau);
+    double z_doub = 1.0;
+    double speed1 = lewkowicz_speed(z_doub, pi_coles, kappa, u_inf, shear_ratio, delta);
     std::cout << "checked scalar double operation (U = " << speed1 << " m/s)" << std::endl;
 
-    // Check that it works for a VectorXd input (vertically spaced z)
+    // Check that it works for a ArrayXd input (vertically spaced z)
     double low = 1;
     double high = 100;
-    size_t n_bins = 100;
+    int n_bins = 10;
     VectorXd z = VectorXd::LinSpaced(n_bins, low, high);
-    VectorXd eta = z.array() / delta;
-    VectorXd speed = lewkowicz_speed(eta, pi_coles, kappa, u_inf, u_tau);
-    std::cout << "checked VectorXd operation" << std::endl;
+    VectorXd speed = lewkowicz_speed(z, pi_coles, kappa, u_inf, shear_ratio, delta);
+    std::cout << "checked VectorXd operation: "<< speed.transpose() << std::endl;
 
     // Check that it works for an AutoDiffScalar
     // Also provides minimal example of how to get the derivative through the profile
     typedef Eigen::AutoDiffScalar<Eigen::VectorXd> ADScalar;
-    ADScalar ads_eta;
+    ADScalar ads_z;
     ADScalar ads_speed;
     VectorXd dspeed_dz;
     dspeed_dz.setZero(n_bins);
     for (int k = 0; k < n_bins; k++) {
-        ads_eta.value() = eta[k];
-        ads_eta.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the derivative guess each step
-        ads_speed = lewkowicz_speed(ads_eta, pi_coles, kappa, u_inf, u_tau);
-        dspeed_dz[k] = ads_speed.derivatives()[0] / delta;
+        ads_z.value() = z[k];
+        ads_z.derivatives() = Eigen::VectorXd::Unit(1, 0);  // Also works once outside the loop without resetting the derivative guess each step
+        ads_speed = lewkowicz_speed(ads_z, pi_coles, kappa, u_inf, shear_ratio, delta);
+        dspeed_dz[k] = ads_speed.derivatives()[0];
     }
-    std::cout << "checked AutoDiffScalar operation" << std::endl;
+    std::cout << "checked AutoDiffScalar<VectorXd> operation" << std::endl;
 
     // Print useful diagnostics values
     std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
@@ -296,11 +241,14 @@ TEST_F(AnalyticalProfileTest, test_lewkowicz_profile) {
     //    std::cout << "u_inf = " << u_inf << ";" << std::endl;
     //    std::cout << "z_0 = " << z_0 << ";" << std::endl;
     //    std::cout << "z = [" << z << "];" << std::endl;
+
 }
 
 
-TEST_F(AnalyticalProfileTest, test_veer_profile) {
-    std::cout << "test_veer_profile" << std::endl;
+class VeerRelationsTest : public ::testing::Test {};
+
+
+TEST_F(VeerRelationsTest, test_veer_profile) {
 
 //    // Elevation of site in degrees latitude
 //    double phi_latitude = 52;
@@ -311,53 +259,6 @@ TEST_F(AnalyticalProfileTest, test_veer_profile) {
 //    VectorXd v_bar;
 //    v_bar << 10., 3.;
 
-
     // Assume homogeneous, isotropic turbulence such that R13 = R23. Not valid, but OK for the sake of the unit test.
-
-
-
-//        size_t dim_x = 28, dim_y = 126;
-//    Eigen::FFT<float> fft;
-//    Eigen::MatrixXf in = Eigen::MatrixXf::Random(dim_x, dim_y);
-//    Eigen::MatrixXcf out;
-//    out.setZero(dim_x, dim_y);
-//
-//    for (int k = 0; k < in.rows(); k++) {
-//        Eigen::VectorXcf tmpOut(dim_x);
-//        fft.fwd(tmpOut, in.row(k));
-//        out.row(k) = tmpOut;
-//    }
-//
-//    for (int k = 0; k < in.cols(); k++) {
-//        Eigen::VectorXcf tmpOut(dim_y);
-//        fft.fwd(tmpOut, out.col(k));
-//        out.col(k) = tmpOut;
-//    }
-
-    /*
-
-    Profile<double> p1(bins);
-    Profile<double> p2(bins, 10.1, 0.2, 0.1);
-
-// Ensure that the printing operator does not error (before values are assigned)
-    std::cout << p1 << std::endl;
-
-// Assign values (init as zeros, the value doesn't matter here)
-    std::vector<double> vals(100);
-    p1.setValues(vals);
-
-// This should crap out due to incorrect number of bins
-    vals.push_back(0.0);
-    try {
-        p1.setValues(vals);
-        FAIL() << "Expected std::out_of_range exception";
-    }
-    catch(std::out_of_range const & err) {
-        EXPECT_EQ(err.what(), std::string("size of vector 'values' does not equal the number of bins for this profile"));
-    }
-    catch(...) {
-        FAIL() << "Expected std::out_of_range - exception of another type found";
-    }
-*/
 
 }

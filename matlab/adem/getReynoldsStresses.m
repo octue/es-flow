@@ -12,3 +12,12 @@ end
 
 % Add to get full Reynolds Stresses
 R = RA + RB;
+
+% Plot Reynolds Stress distributions for checking purposes
+raiseFigure('Reynolds Stress (A)')
+clf
+plot(RA)
+
+raiseFigure('Reynolds Stress B')
+clf
+plot(RB)

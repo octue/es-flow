@@ -2,43 +2,71 @@
 EnvironmentSTUDIO
 =================
 
-EnvironmentSTUDIO flow (**es-flow** for short) is a collection of libraries and executables
-for analysing and modeling both atmospheric and marine boundary layers.
-es-flow covers [#f1]_ the following steps:
+EnvironmentSTUDIO flow (**es-flow** for short) is a library for analysing and modeling atmospheric and marine boundary layers.
 
-a. Read-in and clean up raw instrument data from a variety of instruments including LiDAR, SODAR, Met Masts, ADCPs, Vectrinos and Microstructure Profilers. For a full list of supported instruments and operational modes see For more, see :doc:`supported_instruments`.
+While **es-flow** can be used for any turbulent boundary layer analysis, its main focus is for
+wind and tidal site characterisation - generating the 'best fit' of analytical models to measured velocity data.
 
-b. Save and load cleaned instrument data in manageable, structured file formats based on OAS standards. For more, see :doc:`file_formats`.
+A key strength of **es-flow** is the :doc:`adem`. This extremely robust method allows users to:
 
-c. Apply conventional flow analyses for wind and tidal site characterisation using instrument data.
+    - determine detailed turbulence information from instruments like LiDAR
+    - characterise turbulence and shear beyond tip height of even the biggest offshore wind turbines
+    - characterise **coherent structure** in turbulence, crucially important for fatigue loading in wind turbines.
 
-d. Apply spectral and coherent-structural turbulence analyses for wind and tidal site characterisation.
 
-e. Save analysis results files in OAS standard forms (again, see :doc:`file_formats`).
+Aims
+====
 
-f. Generate artificial flow fields for simulation purposes (fields for FVM/panel/BEM models, inlets to DES, etc.).
+The **es-flow** library provides: [#f1]_
 
-g. Provide an API for accessing artificial flow field properties (e.g. velocity fields) and/or saving the generated fields to OAS standard or industry standard files.
+#. **Parameterised profiles**
+    - Mean Velocity (using power law, logarithmic law, MOST or Lewkowicz relations)
+    - Mean Veer (Using Monin-Obukhov approach)
+    - Reynolds Stress ``u'w'`` (using Lewkowicz relations)
+    - Reynolds Stress ``u'u'``, ``u'v'``, ``u'w'``, ``v'v'``, ``v'w'``, ``w'w'`` (using the :doc:`adem`)
+    - Spectra ``Sij`` (using Kaimal, von Karman)
+    - Spectra ``Sij`` (using :doc:`adem`)
+    - Integral turbulent intensity and lengthscale ``I``, ``l``
+#. **Best fit parameter sets**
+    - To describe the above profiles analytically (given measured velocity data from an instrument).
 
-We use the `GitHub Issue Tracker <https://github.com/oceanarraysystems/es-flow>`_
-to manage bug reports and feature requests.
+In future, generation of artificial flow fields for simulation purposes might be considered. This would overlap with - or replace - utilities like TurbSim to produce, for example:
+    - ``.wnd`` fields input to BEM or FVM models like Bladed, FAST and TurbineGRID
+    - Inlet boundary conditions for DES or LES codes
+
+
+Uses
+=====
+
+At `Octue <http://www.octue.com>`_, **es-flow** is used to:
+
+  * Provide a basis for developing and validating new processes, like the :doc:`adem`, for characterising Atmospheric Boundary Layers.
+  * Process LiDAR and ADCP datasets from raw instrument files.
+  * Apply windowed analyses to time series data, for flow characterisation.
+  * Generate load cases for FAST, Bladed and our own TurbineGRID aerodynamic wind turbine analysis tools.
+
+We'd like to hear about your use case. Please get in touch!
+
+We use the `GitHub Issue Tracker <https://github.com/octue/es-flow>`_ to manage bug reports and feature requests.
+
 
 
 .. toctree::
    :maxdepth: 1
    :hidden:
 
+   self
+   models
+   examples
+   file_formats
    installation
    license
-   users
-   supported_instruments
-   file_formats
-   examples
    version_history
    bibliography
+   library_api/library_root
 
 
 
 .. rubric:: Footnotes
 
-.. [#f1] Or **will** cover. Not all of this functionality is implemented yet!
+.. [#f1] Not all of this functionality is implemented yet!

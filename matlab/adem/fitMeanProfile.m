@@ -173,7 +173,9 @@ x0 = x0(~constrained);
 kappa = 0.41;
 
 % Suppress display of optimisation progress
-opts = optimoptions('lsqcurvefit','Display','iter');
+% Note: Use levenberg marquadt for consistency with ceres-solver in the c++
+% implementation
+opts = optimoptions('lsqcurvefit','Display','iter','Algorithm', 'levenberg-marquardt');
 
 % Run the curve fit, for different types of boundary layer profile. Using
 % lsqcurvefit is a more robust approach than the previous minimisation approach,

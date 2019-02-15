@@ -54,13 +54,20 @@ for j = 1:size(gA,3)
 end
 
 % Trim the zero padded edges from the full convolution
-PsiA = PsiA(2:end-1, :, :);
-PsiB = PsiB(2:end-1, :, :);
+% PsiA = PsiA(2:end-1, :, :);
+% PsiB = PsiB(2:end-1, :, :);
+% TODO Check whether trimming top and bottom rows, or the bottom two, is more
+% valid. I think it's the bottom two, which is what we'll fdo in the C++
+% implementation.
+PsiA = PsiA(1:end-2, :, :);
+PsiB = PsiB(1:end-2, :, :);
 
 % Remove the UTau^2 from eq. 43
 Utau = U1/S;
-PsiA = PsiA.*Utau.^2;
-PsiB = PsiB.*Utau.^2;
+PsiA = PsiA.*(Utau.^2);
+PsiB = PsiB.*(Utau.^2);
 
 % Summate from the different components
 Psi = PsiA + PsiB;
+
+

@@ -7,7 +7,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 
 # Set make options
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 
@@ -18,6 +18,10 @@ message("-- Defined THIRD_PARTY_DIR: ${THIRD_PARTY_DIR}")
 # Add argument parsing tool
 find_package(CXXOPTS REQUIRED)
 include_directories(${CXXOPTS_INCLUDE_DIRS})
+
+# Add plotting tool
+find_package(CPPLOT REQUIRED)
+include_directories(${CPPLOT_INCLUDE_DIRS})
 
 # Add ceres-solver dependency
 find_package(Ceres REQUIRED)
@@ -36,6 +40,8 @@ include_directories(${MKL_INCLUDE_DIRS})
 find_package(MATIO REQUIRED)
 include_directories(${MATIO_INCLUDE_DIRS})
 
+#Add libboost (mainly for string and path manipulation)
+find_package(Boost REQUIRED)
 
 # Variables used for building mex files, platform independent
 # TODO shift to using find_package for MATLAB MEX https://cmake.org/cmake/help/v3.3/module/FindMatlab.html
@@ -84,7 +90,7 @@ endif()
 set(DOCS_INSTALL_DIR "share/doc/es-flow" CACHE STRING "es-flow docs install path relative to CMAKE_INSTALL_PREFIX")
 find_package(Sphinx QUIET)
 if (NOT SPHINX_FOUND)
-    message("-- Failed to find Sphinx, disabling build of documentation.")
+    message(WARNING "-- Failed to find Sphinx, disabling build of documentation.")
 else()
     # Generate the User's Guide (html).
     # The corresponding target is es_flow_docs, but is included in ALL.
