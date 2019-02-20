@@ -8,7 +8,7 @@ matrix:
     env: PYTHON=2.7 HOMEBREW_NO_AUTO_UPDATE=1
     stage: GitHub Release
     install:
-    - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv virtualenv) && brew install doxygen
+    - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv-virtualenv) && (brew install doxygen || brew upgrade doxygen)
     - pyenv install --skip-existing 2.7
     - pyenv versions
     - pyenv virtualenv 2.7 docbuild27 && eval "$(pyenv init -)" && pyenv activate docbuild27
