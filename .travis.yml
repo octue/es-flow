@@ -8,13 +8,13 @@ matrix:
     env: PYTHON=2.7
     stage: GitHub Release
     install:
-    - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv virtualenv)
+    - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv virtualenv) && brew install doxygen
     - pyenv install --skip-existing 2.7
     - pyenv versions
-    - pyenv virtualenv 2.7 docbuild27 && pyenv activate docbuild27
+    - pyenv virtualenv 2.7 docbuild27 && eval "$(pyenv init -)" && pyenv activate docbuild27
     - pip install -r requirements.txt
     script:
-    - export ES_FLOW_ROOT=`pwd`
+    - export ES_FLOW_ROOT=`pwd` && echo "Set ES_FLOW_ROOT to $ES_FLOW_ROOT"
     - cd $ES_FLOW_ROOT/docs/source
     - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT $ES_FLOW_ROOT/docs
     deploy:
