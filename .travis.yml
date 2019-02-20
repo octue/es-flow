@@ -9,7 +9,7 @@ matrix:
       stage: GitHub Release
       install:
         - brew update
-        - brew install python2
+        - brew upgrade python@2 || brew install python2
         - pip install --user --upgrade pip virtualenv
         - virtualenv -p python$PYTHON venv
         - source venv/bin/activate
