@@ -9,7 +9,7 @@ matrix:
       stage: GitHub Release
       install:
 #        - brew update
-        - brew install pyenv && brew install pyenv-virtualenv
+        - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv virtualenv)
 #         Show the current python versions available (for debugging only - check that python 2.7 is available)
         - pyenv versions
 #         Create a virtualenv using python 2.7
