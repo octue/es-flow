@@ -48,7 +48,7 @@ if N < 3:
   print('make_docs.py src_root destination_root')
   sys.exit(1)
 
-src_dir    = sys.argv[1] + '/docs/source'
+src_dir    = sys.argv[1]
 build_root = sys.argv[2]
 cache_dir  = build_root + '/doctrees'
 html_dir   = build_root + '/html'

@@ -16,10 +16,11 @@ matrix:
     script:
     - export ES_FLOW_ROOT=`pwd` && echo "Set ES_FLOW_ROOT to $ES_FLOW_ROOT"
     - cd $ES_FLOW_ROOT/docs/source
-    - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT $ES_FLOW_ROOT/docs
+    - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT/docs/source $ES_FLOW_ROOT/docs
+    - cd ../..
     before_deploy:
+    - export TRAVIS_TAG=rc-`git rev-parse --short HEAD` && echo "Deploying to Github release with TRAVIS_TAG=$TRAVIS_TAG"
     - cd docs
-    - export TRAVIS_TAG=rc-${git rev-parse --short HEAD}
     deploy:
       provider: releases
       overwrite: true
