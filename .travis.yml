@@ -8,11 +8,12 @@ matrix:
       env: PYTHON=2.7
       stage: GitHub Release
       install:
-        - brew update
-        - brew upgrade python@2 || brew install python2
-        - pip install --user --upgrade pip virtualenv
-        - virtualenv -p python$PYTHON venv
-        - source venv/bin/activate
+#        - brew update
+        - brew install pyenv && brew install pyenv-virtualenv
+#         Show the current python versions available (for debugging only - check that python 2.7 is available)
+        - pyenv versions
+#         Create a virtualenv using python 2.7
+        - pyenv virtualenv 2.7 docbuild27 && pyenv activate docbuild27
         - pip install -r requirements.txt
       script:
         - export ES_FLOW_ROOT=`pwd`
