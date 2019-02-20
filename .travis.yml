@@ -9,22 +9,24 @@ matrix:
     stage: GitHub Release
     install:
     - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv-virtualenv) && (brew install doxygen || brew upgrade doxygen)
-    - pyenv install --skip-existing 2.7
+    - pyenv install --skip-existing $PYTHON
     - pyenv versions
-    - pyenv virtualenv 2.7 docbuild27 && eval "$(pyenv init -)" && pyenv activate docbuild27
+    - pyenv virtualenv $PYTHON venv && eval "$(pyenv init -)" && pyenv activate venv
     - pip install -r requirements.txt
     script:
     - export ES_FLOW_ROOT=`pwd` && echo "Set ES_FLOW_ROOT to $ES_FLOW_ROOT"
     - cd $ES_FLOW_ROOT/docs/source
     - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT $ES_FLOW_ROOT/docs
+    before_deploy:
+    - cd docs
+    - export TRAVIS_TAG=rc-${git rev-parse --short HEAD}
     deploy:
       provider: releases
-      api_key: "$GITHUB_OAUTH_TOKEN"
-      skip_cleanup: true
+      overwrite: true
+      draft: true
+      api_key:
+        secure: $GITHUB_ENCRYPTED_API_KEY
+      file_glob: true
+      file: $ES_FLOW_ROOT/docs/html/*
       on:
         repo: octue/es-flow
-        tags: true
-#  - os: osx
-#    env: PYTHON=3.6
-#  - os: windows
-#    env: PYTHON=3.6
