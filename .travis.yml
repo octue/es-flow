@@ -5,7 +5,7 @@ matrix:
   include:
   - os: osx
     name: 'JOB: Build docs and deploy to tagged release (Python 2.7)'
-    env: PYTHON=2.7
+    env: PYTHON=2.7 HOMEBREW_NO_AUTO_UPDATE=1
     stage: GitHub Release
     install:
     - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv virtualenv) && brew install doxygen
