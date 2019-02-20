@@ -3,28 +3,27 @@ git:
   depth: 10
 matrix:
   include:
-    - os: osx
-      name: "JOB: Build docs and deploy to tagged release (Python 2.7)"
-      env: PYTHON=2.7
-      stage: GitHub Release
-      install:
-#        - brew update
-        - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv virtualenv)
-#         Show the current python versions available (for debugging only - check that python 2.7 is available)
-        - pyenv versions
-#         Create a virtualenv using python 2.7
-        - pyenv virtualenv 2.7 docbuild27 && pyenv activate docbuild27
-        - pip install -r requirements.txt
-      script:
-        - export ES_FLOW_ROOT=`pwd`
-        - cd $ES_FLOW_ROOT/docs/source
-        - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT $ES_FLOW_ROOT/docs
-      deploy:
-        provider: releases
-        api_key: "$GITHUB_OAUTH_TOKEN"
-        skip_cleanup: true
-        on:
-          tags: true
+  - os: osx
+    name: 'JOB: Build docs and deploy to tagged release (Python 2.7)'
+    env: PYTHON=2.7
+    stage: GitHub Release
+    install:
+    - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv virtualenv)
+    - pyenv install --skip-existing 2.7
+    - pyenv versions
+    - pyenv virtualenv 2.7 docbuild27 && pyenv activate docbuild27
+    - pip install -r requirements.txt
+    script:
+    - export ES_FLOW_ROOT=`pwd`
+    - cd $ES_FLOW_ROOT/docs/source
+    - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT $ES_FLOW_ROOT/docs
+    deploy:
+      provider: releases
+      api_key: "$GITHUB_OAUTH_TOKEN"
+      skip_cleanup: true
+      on:
+        repo: octue/es-flow
+        tags: true
 #  - os: osx
 #    env: PYTHON=3.6
 #  - os: windows
