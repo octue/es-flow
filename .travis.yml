@@ -24,6 +24,7 @@ matrix:
         - echo DEBUG $GITHUB_ENCRYPTED_API_KEY
       deploy:
         provider: releases
+        skip_cleanup: true
         overwrite: true
         draft: true
         api_key:
