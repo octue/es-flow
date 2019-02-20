@@ -19,7 +19,7 @@ message("-- Defined THIRD_PARTY_DIR: ${THIRD_PARTY_DIR}")
 find_package(CXXOPTS REQUIRED)
 include_directories(${CXXOPTS_INCLUDE_DIRS})
 
-# Add plotting tool
+# Add plotting tool 
 find_package(CPPLOT REQUIRED)
 include_directories(${CPPLOT_INCLUDE_DIRS})
 
