@@ -3,31 +3,32 @@ git:
   depth: 10
 matrix:
   include:
-  - os: osx
-    name: 'JOB: Build docs and deploy to tagged release (Python 2.7)'
-    env: PYTHON=2.7 HOMEBREW_NO_AUTO_UPDATE=1
-    stage: GitHub Release
-    install:
-    - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv-virtualenv) && (brew install doxygen || brew upgrade doxygen)
-    - pyenv install --skip-existing $PYTHON
-    - pyenv versions
-    - pyenv virtualenv $PYTHON venv && eval "$(pyenv init -)" && pyenv activate venv
-    - pip install -r requirements.txt
-    script:
-    - export ES_FLOW_ROOT=`pwd` && echo "Set ES_FLOW_ROOT to $ES_FLOW_ROOT"
-    - cd $ES_FLOW_ROOT/docs/source
-    - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT/docs/source $ES_FLOW_ROOT/docs
-    - cd ../..
-    before_deploy:
-    - export TRAVIS_TAG=rc-`git rev-parse --short HEAD` && echo "Deploying to Github release with TRAVIS_TAG=$TRAVIS_TAG"
-    - cd docs
-    deploy:
-      provider: releases
-      overwrite: true
-      draft: true
-      api_key:
-        secure: $GITHUB_ENCRYPTED_API_KEY
-      file_glob: true
-      file: $ES_FLOW_ROOT/docs/html/*
-      on:
-        repo: octue/es-flow
+    - os: osx
+      name: 'JOB: Build docs and deploy to tagged release (Python 2.7)'
+      env: PYTHON=2.7 HOMEBREW_NO_AUTO_UPDATE=1
+      stage: GitHub Release
+      install:
+        - (brew install pyenv || brew upgrade pyenv) && (brew install pyenv-virtualenv || brew upgrade pyenv-virtualenv) && (brew install doxygen || brew upgrade doxygen)
+        - pyenv install --skip-existing $PYTHON
+        - pyenv versions
+        - pyenv virtualenv $PYTHON venv && eval "$(pyenv init -)" && pyenv activate venv
+        - pip install -r requirements.txt
+      script:
+        - export ES_FLOW_ROOT=`pwd` && echo "Set ES_FLOW_ROOT to $ES_FLOW_ROOT"
+        - cd $ES_FLOW_ROOT/docs/source
+        - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT/docs/source $ES_FLOW_ROOT/docs
+        - cd ../..
+      before_deploy:
+        - export TRAVIS_TAG=rc-`git rev-parse --short HEAD` && echo "Deploying to Github release with TRAVIS_TAG=$TRAVIS_TAG"
+        - cd docs
+        - echo DEBUG $GITHUB_ENCRYPTED_API_KEY
+      deploy:
+        provider: releases
+        overwrite: true
+        draft: true
+        api_key:
+          secure: uOu1JaF3SUQ/4anryPOnS2ZAO55ez8iRzezpVjYxqFKkklaF6azpUg6jNfi++uaPe+D16aC8dHWGXH8KP2FstJHtnZY+IdMKcSlFKdz6FSf3eaayhvKLzIIx+94j2osFvkf4mLZNOKGkBUOpWttPBcHfq2Fqpy7D6Fz7lenvuxonWAi1z4MkrIEPG6YxsnEeawxN7Y9PjnxbARKbAVXTD4z4Ckv5bwWbCMNcUcc97Joz1jjQaZ4hJPy9bsrInFzXcWwkVg0U49J3lYYzzT0tufY0eGW5HlhTGW4s24Jbq6wjuXOLkCOAra9XiM4IsFdOoDevLBaBwLu/W9cudxaqQOGJlSxBYNgxZmN8XfXCwQSdfbxP9w1PUoT04NrrVGH1viDA2ZJ5OquQ5jt4W+PtqnUT9sc/RWLRyEiZ4X7psn4PYa+YPrp0u6o6o5mxMu2AgU1MrcAl+5aZyZeYe3b8fUlq7fmlD4V5ICCzZwNUl8SXTaw2Az7r/C7F1n13jyw2QQV/4uNIDKnf1nH9urkJI/Zjh5seKwWQpOOsDVlwv5so1xAmB/6LUILIRrebzQ9DpezGGMEKbL72hev9y122iaMxOpWxbTlFzsiV5lda6ouzsR8LqenoBugTUwrpO+FqRswPZTwVJ9TjoghaET0FHdZrI4uJY/41mpZ9Liyx1uU=
+        file_glob: true
+        file: $ES_FLOW_ROOT/docs/html/*
+        on:
+          repo: octue/es-flow
