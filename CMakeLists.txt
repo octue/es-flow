@@ -43,17 +43,9 @@ include_directories(${MATIO_INCLUDE_DIRS})
 #Add libboost (mainly for string and path manipulation)
 find_package(Boost REQUIRED)
 
-# Build the documentation, if we can find sphinx
-set(DOCS_INSTALL_DIR "share/doc/es-flow" CACHE STRING "es-flow docs install path relative to CMAKE_INSTALL_PREFIX")
-find_package(Sphinx QUIET)
-if (NOT SPHINX_FOUND)
-    message(WARNING "-- Failed to find Sphinx, disabling build of documentation.")
-else()
-    # Generate the User's Guide (html).
-    # The corresponding target is es_flow_docs, but is included in ALL.
-    message("-- Found Sphinx")
-    add_subdirectory(docs)
-endif()
+
+# Build the documentation
+add_subdirectory(docs)
 
 
 # Add source to include_directories so the test routines can pick up the library contents
