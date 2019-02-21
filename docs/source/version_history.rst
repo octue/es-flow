@@ -49,16 +49,23 @@ n/a
 0.0.1
 ======
 
+Initial library release - development version. Highly unstable!
+
+The work to develop this stable release and CI flow undertaken to support research funded by AURA via the University of Hull (see upcoming version 0.1.0).
+
 New Features
 ------------
-#. Development version. Highly unstable.
-
+#. C++ based `flow` library, with `cmake` build system
+#. Large chunks of WIP for 0.1.0 release, included here because the work in progress was used to generate the doc builds.
+#. Octue's legacy `es-flow` MATLAB library (to be deprecated)
+#. Outline documentation using ReadTheDocs
+#. Autodoc build system (with automated build for releases in travis-ci)
 
 Backward Incompatible API Changes
 ---------------------------------
-#. Everything. API changes daily.
+#. n/a (Initial release)
 
 Bug Fixes & Minor Changes
 -------------------------
-#. Minor???!
+#. n/a (Initial Release)
 

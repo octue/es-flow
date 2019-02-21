@@ -34,8 +34,8 @@ git checkout -b release-v0.1.1-alpha.1
 git push --set-upstream origin release-v0.1.1-alpha.1
 ```
 - TravisCI automatically creates a tagged draft release on github. In the above example, the tag is `v0.1.1-alpha.1`.
-- Any commits into, or merges to, this branch, will trigger automatic builds on TravisCI. The documentation gets built, binaries compiled, tests run. Assets (e.g. precompiled binaries and HTML documentation) are assembled into a `zip` file and appended to the release. These are uploaded for each commit. 
-- Any new features, fixes etc on your development branch should first be merged into the release, not into master. 
+- Any commits into, or merges to, this branch, will trigger automatic builds on TravisCI. The documentation gets built, binaries compiled, tests run. Assets (e.g. precompiled binaries and HTML documentation) onto s3, `the octue-builds bucket`. 
+- Download the asset package as a zip and add attach it to the release. 
 - Once the release is prepared, checked, and all builds have completed, publish the release from GitHub.
 - Once the release is published, the feature branch may finally be merged into master.
 
