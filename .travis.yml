@@ -28,6 +28,8 @@ matrix:
     - cd ../..
     before_deploy:
     - rm -r docs/html/_sources
+    - zip -r documentation-$TRAVIS_TAG.zip docs/html
+    - ls
     deploy:
       provider: s3
       skip_cleanup: true
@@ -35,8 +37,7 @@ matrix:
       secret_access_key:
         secure: vWKuUIuDabccnn71HulTJSUQadXeUnqnvleWA4k0ZIXgC8qLOmW7hRfkgn0Ksbrj854PMiE1bl26ilULPEYv5e/4NMBVjW0DPEfG2/Co2/UGVE6L5Cg+W42k/swJNYzQXln+Jauhgwcf8sVmgdxjW67CzNGvGWsCnFYfuZmt/RTNluEkz0i20yaXrHtuYjGVKhc0jqlLJzp6wyaNHp+eIq4M4TDfGGLmNfTHwRW+zrfGMyNhrXm6l6nmeNk+wqvVRsRG6uICPuktYufdPoN2j/uZgDUFl8U3rCIBu7pEc7vDc/53ncBognz1YnD+UWAOl7uw18wYlKuY1u9C9V+vrua0pWrxfSA8bnz9s6wO3VoRYutWP/KH0xICgyBsyhTaB2gjAVTcJA67EOp8yYs2Z9ZU+RJYN1tUbHlxf97iVZxi31Dy6kYzop0eUPRMzBWg31DOgxgJODWsXaHU2nqrICqqjqqD6CoFsEGjlNeQ0WwQg522vtkN7gQxcWyYxvzpSa59t581EX3B0yO6pOW81WrfW4LyamuKjkQHP/wYE7g15lhIF4ytkgWTO9mvKt4fow5V/+BnWy4295ETJ323BlXaU5xXR7lX3agy/3JSAEkg5OCHe0Kc4CFoqvs/ArsO0+4aUEaTXv53iOvDwn29wrfq02xahMQ26W2VUe/oQWY=
       bucket: octue-builds
-      local-dir: docs/html
-      upload-dir: es-flow/versions/$TRAVIS_TAG/docs
+      file: documentation-$TRAVIS_TAG.zip
       acl: private
       on:
         repo: octue/es-flow
