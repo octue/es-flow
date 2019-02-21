@@ -40,3 +40,4 @@ matrix:
       acl: private
       on:
         repo: octue/es-flow
+        all_branches: true
