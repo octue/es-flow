@@ -24,7 +24,7 @@ matrix:
       with TRAVIS_TAG=$TRAVIS_TAG"
     - export ES_FLOW_ROOT=`pwd` && echo "Set ES_FLOW_ROOT to $ES_FLOW_ROOT"
     - cd $ES_FLOW_ROOT/docs/source
-    - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT/docs/source $ES_FLOW_ROOT/docs
+    - python $ES_FLOW_ROOT/scripts/make_docs.py $ES_FLOW_ROOT/docs/source $ES_FLOW_ROOT/docs $TRAVIS_TAG
     - cd ../..
     before_deploy:
     - rm -r docs/html/_sources
