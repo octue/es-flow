@@ -77,6 +77,9 @@ TEST_F(AdemTest, test_analysis) {
     // Run ADEM for these parameters to get full spectra and stuff
     AdemData data = adem(beta, delta_c, kappa, pi_coles, shear_ratio, u_inf, zeta, signature_a, signature_b);
 
+    // Print adem data for reference
+    std::cout << data << std::endl;
+
     // Verification data
     Eigen::Tensor<double, 3> psi;
     psi = data.psi_a + data.psi_b;
