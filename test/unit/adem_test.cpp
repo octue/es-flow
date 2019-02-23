@@ -12,13 +12,17 @@
 #include "gtest/gtest.h"
 #include <unsupported/Eigen/AutoDiff>
 
+#include "cpplot.h"
+
 #include "adem/adem.h"
 #include "utilities/filter.h"
+#include "utilities/tensors.h"
 
 
 using namespace es;
 using namespace Eigen;
 using namespace utilities;
+using namespace cpplot;
 
 // Add the test environment
 extern ::testing::Environment* const environment;
@@ -70,11 +74,9 @@ TEST_F(AdemTest, test_analysis) {
     double pi_coles = 0.42;
     double shear_ratio = 23.6;
     double u_inf = 2.2;
-    double u_tau = u_inf / shear_ratio;
-    double z_0 = 0.0;
     double zeta = 0.0;
 
-    // Run ADEM for these parameters to get full spectra and stuff
+    // Run ADEM for these parameters to get full spectra
     AdemData data = adem(beta, delta_c, kappa, pi_coles, shear_ratio, u_inf, zeta, signature_a, signature_b);
 
     // Print adem data for reference
@@ -109,6 +111,80 @@ TEST_F(AdemTest, test_analysis) {
     //    std::cout << "u_inf = " << u_inf << ";" << std::endl;
     //    std::cout << "z_0 = " << z_0 << ";" << std::endl;
     //    std::cout << "z = [" << z << "];" << std::endl;
+
+    // Initialise dimensions and spectral tensor arrays
+    Eigen::array<Eigen::Index, 2> dims = {psi.dimensions()[0], psi.dimensions()[1]};
+    auto n_elems_per_slice = dims[0] * dims[1];
+    std::string term_str;
+
+    Eigen::ArrayXXd s(dims[0], dims[1]);
+    Eigen::ArrayXXd s11(dims[0], dims[1]);
+    Eigen::ArrayXXd s12(dims[0], dims[1]);
+    Eigen::ArrayXXd s13(dims[0], dims[1]);
+    Eigen::ArrayXXd s22(dims[0], dims[1]);
+    Eigen::ArrayXXd s23(dims[0], dims[1]);
+    Eigen::ArrayXXd s33(dims[0], dims[1]);
+
+    // For each of the 6 auto / cross spectra terms, map a slice out of the psi tensor
+    for (Eigen::Index j = 0; j < dims[2]; j++) {
+
+        std::cout << "j: " << j << std::endl;
+        std::cout << "dims[0, 1, 2]: " << dims[0] << " " << dims[1] << " " <<dims[2] << std::endl;
+        std::cout << "psi dimensions " << psi.dimensions()[0] << " " << psi.dimensions()[1] << " " <<psi.dimensions()[2] << std::endl;
+        Eigen::Tensor<double, 2> slice_tens = psi.chip(j, 2);
+        Eigen::ArrayXXd slice = tensor_to_array(slice_tens, dims[0], dims[1]);
+        // TODO use std vec of pointers and labels duh
+        switch (j) {
+            case 0: {
+                s11 << slice;
+                term_str = "s11";
+                break;
+            }
+            case 1: {
+                s12 = slice;
+                term_str = "s12";
+                break;
+            }
+            case 2: {
+                s13 = slice;
+                term_str = "s13";
+                break;
+            }
+            case 3: {
+                s22 = slice;
+                term_str = "s22";
+                break;
+            }
+            case 4: {
+                s23 = slice;
+                term_str = "s23";
+                break;
+            }
+            case 5: {
+                s33 = slice;
+                term_str = "s33";
+                break;
+            }
+            default: {}
+        };
+
+        // Create a surface plot to show the spectrum term
+        Figure fig = Figure();
+        SurfacePlot p = SurfacePlot();
+
+        // x direction is frequency
+        p.x = Eigen::RowVectorXd::LinSpaced(s13.cols(), 1, s13.cols()).replicate(s13.rows(), 1).array();
+
+        // y direction is vertical height z
+        p.y = data.z.transpose().replicate(1, s13.cols()).array();
+
+        // Copy spectrum amplitude from mapped tensor,
+        s = slice;
+        p.z = s.transpose();
+
+        fig.add(p);
+        fig.write("test_spectrum_surface_plot_" + term_str + ".json");
+    }
 }
 
 
