@@ -369,11 +369,15 @@ void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, con
 
 /** @brief Get the premultiplied power spectra.
  *
- * Legacy MATLAB equivalent is:
- * @code
- *      [Psi, PsiA, PsiB] = getSpectra(T2wA, T2wB, gA, gB, U1, S);
- * @endcode
- * @param data
+ * Computes tensors  @f$ \Psi_{a} @f$ (`psi_a`) and @f$ \Psi_{b} @f$ (`psi_b`) from the scale functions and
+ * the eddy signatures, and adds them to the AdemData object.
+ *
+ * The output spectral tensors have dimension [nz x nk x 6], where `nz` should agree with the number of elements in
+ * the `t2w` scale functions, and `nk` represents the number of wavenumbers for which the spectrum is computed.
+ *
+ * @param[inout] data AdemData object, which must have properties `t2wa`, `t2wb' and `u_tau` defined already.
+ * @param[in] signature_a Signature object for Type A eddies
+ * @param[in] signature_b Signature object for Type B eddies
  */
 void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b){
 
