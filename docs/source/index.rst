@@ -13,6 +13,11 @@ A key strength of **es-flow** is the :doc:`adem`. This extremely robust method a
     - characterise turbulence and shear beyond tip height of even the biggest offshore wind turbines
     - characterise **coherent structure** in turbulence, crucially important for fatigue loading in wind turbines.
 
+.. figure:: images/psd_s11_lidar.png
+   :width: 500
+   :alt: Atmospheric Boundary Layer PSD determined with es-flow
+
+    Atmospheric Boundary Layer PSD determined with **es-flow**.
 
 Aims
 ====
@@ -34,6 +39,11 @@ In future, generation of artificial flow fields for simulation purposes might be
     - ``.wnd`` fields input to BEM or FVM models like Bladed, FAST and TurbineGRID
     - Inlet boundary conditions for DES or LES codes
 
+.. figure:: images/psd_s11_lidar.png
+   :width: 500
+   :alt: Atmospheric Boundary Layer velocity profile, fitted with es-flow
+
+    Atmospheric Boundary Layer velocity profile, fitted with **es-flow**.
 
 Uses
 =====
