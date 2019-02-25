@@ -39,7 +39,7 @@ In future, generation of artificial flow fields for simulation purposes might be
     - ``.wnd`` fields input to BEM or FVM models like Bladed, FAST and TurbineGRID
     - Inlet boundary conditions for DES or LES codes
 
-.. figure:: images/psd_s11_lidar.png
+.. figure:: images/wind_speed_component_fit.png
    :width: 500
    :alt: Atmospheric Boundary Layer velocity profile, fitted with es-flow
 
