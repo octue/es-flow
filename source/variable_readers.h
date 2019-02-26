@@ -31,11 +31,13 @@
 #include <unsupported/Eigen/CXX11/Tensor>
 
 using Eigen::Array;
+using Eigen::Array3d;
 using Eigen::ArrayXXd;
 using Eigen::Vector3d;
 using Eigen::VectorXd;
 using Eigen::Tensor;
 using Eigen::Dynamic;
+typedef Eigen::Array<double, 3, 2> Array32d;
 
 
 // TODO the Eigen variable readers are getting very unwieldy. Template them!
@@ -139,7 +141,7 @@ Vector3d readVector3d(mat_t *matfp, const std::string var_name, bool print_var) 
 
 }
 
-Vector3d readArray3d(mat_t *matfp, const std::string var_name, bool print_var) {
+Array3d readArray3d(mat_t *matfp, const std::string var_name, bool print_var) {
 
     // Get the variable's structure pointer and check validity
     matvar_t *mat_var = getVariable(matfp, var_name, print_var);
@@ -199,7 +201,7 @@ VectorXd readVectorXd(mat_t *matfp, const std::string var_name, bool print_var) 
 }
 
 
-VectorXd readArray32d(mat_t *matfp, const std::string var_name, bool print_var) {
+Array32d readArray32d(mat_t *matfp, const std::string var_name, bool print_var) {
 
     // Get the variable's structure pointer and check validity
     matvar_t *mat_var = getVariable(matfp, var_name, print_var);
@@ -212,7 +214,7 @@ VectorXd readArray32d(mat_t *matfp, const std::string var_name, bool print_var) 
 
     // Declare and size the array
     Eigen::Array<double, 3, 2> var;
-    var = Eigen::Array<double, 3, 2>(mat_var->dims[0], mat_var->dims[1]);
+    var = Eigen::Array<double, 3, 2>();
 
     // Copy the data into the native Eigen types. However, we can also map to data already in
     // memory which avoids a copy. Read about mapping here:
@@ -221,7 +223,7 @@ VectorXd readArray32d(mat_t *matfp, const std::string var_name, bool print_var) 
     double *var_d = (double *) mat_var->data;
     long int i = 0;
     for (i = 0; i < var.rows()*var.cols(); i++) {
-        var[i] = var_d[i];
+        var(i) = var_d[i];
     }
 
     // Free the data pointer and return the new variable
@@ -260,7 +262,7 @@ ArrayXXd readArrayXXd(mat_t *matfp, const std::string var_name, bool print_var) 
     // Free the data pointer and return the new variable
     Mat_VarFree(mat_var);
     return var;
-    
+
 }
 
 Tensor<double, 3> readTensor3d(mat_t *matfp, const std::string var_name, bool print_var) {
