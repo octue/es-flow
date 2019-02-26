@@ -16,6 +16,7 @@
 #include <Eigen/Core>
 #include <stdexcept>
 #include <unsupported/Eigen/CXX11/Tensor>
+#include <math.h>
 
 #include "variable_readers.h"
 #include "profile.h"
@@ -46,14 +47,17 @@ public:
     /// Mapped vertical coordinates used in the analysis (e.g. 1 x 50)
     Eigen::VectorXd lambda;
 
-    /// Wavenumber (wavenumber space for each vertical coord, e.g. 50 x 801)
-    Eigen::ArrayXXd k1z;
-
     /// g (6 coefficients at each vertical coord and wavenumber, e.g 50 x 801 x 6)
     Eigen::Tensor<double, 3> g;
 
     /// J (6 coefficients at each vertical coord, e.g 50 x 6)
     Eigen::ArrayXXd j;
+
+    /// Spacing of the regular grid used to create the eddy intensity signatures, in [x, y, z] directions
+    Eigen::Array3d domain_spacing;
+
+    /// Extents of the regular grid placed over the unit eddy to create the eddy intensity signatures, in [x_min, x_max; y_min, y_max; z_min, z_max] form
+    Eigen::Array<double, 3, 2> domain_extents;
 
     /** @brief Load data from a *.mat file containing eddy signature data.
      *
@@ -76,7 +80,8 @@ public:
         // Use the variable readers to assist
         eddy_type = readString(matfp, "type", print_var);
         lambda = readVectorXd(matfp, "lambda", print_var);
-        k1z = readArrayXXd(matfp, "k1z", print_var);
+        domain_spacing = readArray3d(matfp, "domain_spacing", print_var);
+        domain_extents = readArray32d(matfp, "domain_extents", print_var);
         g = readTensor3d(matfp, "g", print_var);
         j = readArrayXXd(matfp, "J", print_var);
 
@@ -105,9 +110,9 @@ public:
     {
         EddySignature result;
         result.eddy_type = this->eddy_type + "+" + c.eddy_type;
-        // TODO assert equality of lambda and k1z
         result.lambda = this->lambda;
-        result.k1z = this->k1z;
+        result.domain_spacing = this->domain_spacing;
+        result.domain_extents = this->domain_extents;
         result.g = (this->g + c.g);
         result.j = (this->j + c.j);
         return result;
@@ -122,9 +127,9 @@ public:
     {
         EddySignature result;
         result.eddy_type = "(" + this->eddy_type + ")/" + std::to_string(denom);
-        // TODO assert equality of lambda and k1z
         result.lambda = this->lambda;
-        result.k1z = this->k1z;
+        result.domain_spacing = this->domain_spacing;
+        result.domain_extents = this->domain_extents;
         result.g = this->g;
         result.j = this->j;
         result.g = result.g / denom;
@@ -132,6 +137,22 @@ public:
         return result;
     }
 
+    /** @brief Get k1z wavenumber array (wavenumber space for each vertical coord, e.g. 50 x 801)
+     *
+     * @param[in] eta vertical heights at which to get the k1z value, normalised (i.e. z/delta)
+     * @return k1z the wavenumber-length matrix
+     */
+    Eigen::ArrayXXd k1z(Eigen::ArrayXd &eta) const {
+
+        double dx = domain_spacing[0];
+        auto nx = Eigen::Index((domain_extents(0,1) - domain_extents(0,0)) / dx) + 1;
+
+        Eigen::ArrayXd k1_delta = Eigen::ArrayXd::LinSpaced(nx, 0, nx-1) * 2.0 * M_PI / dx;
+
+        Eigen::ArrayXXd k1z = k1_delta.transpose().replicate(eta.rows(), 1) * eta.replicate(1, k1_delta.rows());
+
+        return k1z;
+    }
 };
 
 } /* namespace es */
