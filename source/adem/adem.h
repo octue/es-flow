@@ -268,10 +268,17 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     deconv(minus_t2wa, r13a, j13a);
     deconv(minus_t2wb, r13b, j13b);
 
-    // TODO extend by padding out to the same length as lambda_e. The T^2w distributions converge to a constant at
-    //  high lambda (close to the wall) so padding with the last value in the vector is physically valid. This will
-    //  result in the Reynolds Stresses and Spectra, which are obtained by convolution, having the same number of points
-    //  in the z direction as the axes variables (eta, lambda_e, etc)... very useful!
+    // Extend by padding out to the same length as lambda_e.
+    // The T^2w distributions converge to a constant at high lambda (close to the wall) so padding with the last value
+    // in the vector is physically valid. This will result in the Reynolds Stresses and Spectra, which are obtained by
+    // convolution, having the same number of points in the z direction as the axes variables (eta, lambda_e, etc)
+    double pad_value_a = minus_t2wa(minus_t2wa.rows()-1);
+    double pad_value_b = minus_t2wb(minus_t2wb.rows()-1);
+    auto last_n = 10001 - minus_t2wa.rows();
+    minus_t2wa.conservativeResize(10001,1);
+    minus_t2wb.conservativeResize(10001,1);
+    minus_t2wa.tail(last_n) = pad_value_a;
+    minus_t2wb.tail(last_n) = pad_value_b;
 
     // Store in the data object
     data.eta = eta;
