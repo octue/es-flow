@@ -126,10 +126,10 @@ TEST_F(AdemTest, test_analysis) {
     Eigen::ArrayXXd s33(dims[0], dims[1]);
 
     // For each of the 6 auto / cross spectra terms, map a slice out of the psi tensor
-    for (Eigen::Index j = 0; j < dims[2]; j++) {
+    for (Eigen::Index j = 0; j < 6; j++) {
 
         std::cout << "j: " << j << std::endl;
-        std::cout << "dims[0, 1, 2]: " << dims[0] << " " << dims[1] << " " <<dims[2] << std::endl;
+        std::cout << "dims[0, 1, 2]: " << dims[0] << " " << dims[1] << std::endl;
         std::cout << "psi dimensions " << psi.dimensions()[0] << " " << psi.dimensions()[1] << " " <<psi.dimensions()[2] << std::endl;
         Eigen::Tensor<double, 2> slice_tens = psi.chip(j, 2);
         Eigen::ArrayXXd slice = tensor_to_array(slice_tens, dims[0], dims[1]);
@@ -263,5 +263,18 @@ TEST_F(AdemTest, test_filter_and_deconv) {
 
     ASSERT_TRUE(y.isApprox(y_correct));
     ASSERT_TRUE(z.isApprox(z_correct));
+
+}
+
+
+TEST_F(AdemTest, test_signature_k1z) {
+
+    // Load a signature
+    EddySignature signature_a = EddySignature();
+    signature_a.load(data_path + std::string("/signatures_A.mat"));
+
+    //
+    ArrayXd eta = ArrayXd::LinSpaced(9, 0.1, 1);
+    ArrayXXd k1z = signature_a.k1z(eta);
 
 }
