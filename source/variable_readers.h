@@ -38,6 +38,8 @@ using Eigen::Tensor;
 using Eigen::Dynamic;
 
 
+// TODO the Eigen variable readers are getting very unwieldy. Template them!
+
 namespace es {
 
 
@@ -137,6 +139,35 @@ Vector3d readVector3d(mat_t *matfp, const std::string var_name, bool print_var) 
 
 }
 
+Vector3d readArray3d(mat_t *matfp, const std::string var_name, bool print_var) {
+
+    // Get the variable's structure pointer and check validity
+    matvar_t *mat_var = getVariable(matfp, var_name, print_var);
+
+    // Check for three elements always
+    if (mat_var->dims[1]*mat_var->dims[0] != 3) {
+        std::string msg = "Number of elements in variable '" + var_name + "' not equal to 3";
+        throw std::invalid_argument(msg);
+    }
+
+    // Read a vector, with automatic transpose to column vector always.
+    Eigen::Array3d var;
+    if (mat_var->dims[0] == 1) {
+        if (print_var) std::cout << "Converting row vector '" << mat_var->name << "' to column vector" << std::endl;
+    }
+    var =  Eigen::Array3d();
+    double *var_d = (double *) mat_var->data;
+    long int i = 0;
+    for (i = 0; i < 3; i++) {
+        var[i] = var_d[i];
+    }
+
+    // Free the data pointer and return the new variable
+    Mat_VarFree(mat_var);
+    return var;
+
+}
+
 VectorXd readVectorXd(mat_t *matfp, const std::string var_name, bool print_var) {
 
     // Get the variable's structure pointer and check validity
@@ -167,6 +198,39 @@ VectorXd readVectorXd(mat_t *matfp, const std::string var_name, bool print_var) 
 
 }
 
+
+VectorXd readArray32d(mat_t *matfp, const std::string var_name, bool print_var) {
+
+    // Get the variable's structure pointer and check validity
+    matvar_t *mat_var = getVariable(matfp, var_name, print_var);
+
+    // Check for three elements always
+    if ((mat_var->dims[0] != 3) || (mat_var->dims[1] != 2)) {
+        std::string msg = "Variable '" + var_name + "' must be of size 3 x 2";
+        throw std::invalid_argument(msg);
+    }
+
+    // Declare and size the array
+    Eigen::Array<double, 3, 2> var;
+    var = Eigen::Array<double, 3, 2>(mat_var->dims[0], mat_var->dims[1]);
+
+    // Copy the data into the native Eigen types. However, we can also map to data already in
+    // memory which avoids a copy. Read about mapping here:
+    // http://eigen.tuxfamily.org/dox/group__TutorialMapClass.html
+    // TODO consider mapping to reduce peak memory overhead
+    double *var_d = (double *) mat_var->data;
+    long int i = 0;
+    for (i = 0; i < var.rows()*var.cols(); i++) {
+        var[i] = var_d[i];
+    }
+
+    // Free the data pointer and return the new variable
+    Mat_VarFree(mat_var);
+    return var;
+
+}
+
+
 ArrayXXd readArrayXXd(mat_t *matfp, const std::string var_name, bool print_var) {
 
     // Get the variable's structure pointer and check validity
@@ -196,7 +260,7 @@ ArrayXXd readArrayXXd(mat_t *matfp, const std::string var_name, bool print_var) 
     // Free the data pointer and return the new variable
     Mat_VarFree(mat_var);
     return var;
-
+    
 }
 
 Tensor<double, 3> readTensor3d(mat_t *matfp, const std::string var_name, bool print_var) {
