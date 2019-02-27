@@ -212,15 +212,15 @@ TEST_F(AdemTest, test_analysis) {
 
         // x direction is frequency
 //        p.x = Eigen::RowVectorXd::LinSpaced(s13.cols(), 1, s13.cols()).replicate(s13.rows(), 1).array();
-        p.x = data.k1z.transpose().leftCols(400);
+        p.x = data.k1z.transpose().leftCols(600);
         std::cout << "size x " << p.x.rows() << " " << p.x.cols() << std::endl;
 
         // y direction is vertical height z
-        p.y = data.z.transpose().replicate(p.x.rows(), 1).array().leftCols(400);
+        p.y = data.z.transpose().replicate(p.x.rows(), 1).array().leftCols(600);
         std::cout << "size y " << p.y.rows() << " " << p.y.cols() << std::endl;
 
         // Copy spectrum amplitude from mapped tensor
-        p.z = slice.transpose().leftCols(400);
+        p.z = slice.transpose().leftCols(600);
         std::cout << "size z " << p.z.rows() << " " << p.z.cols() << std::endl;
 
         fig.add(p);
