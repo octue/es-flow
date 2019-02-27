@@ -129,10 +129,12 @@ TEST_F(AdemTest, test_analysis) {
     for (Eigen::Index j = 0; j < 6; j++) {
 
         std::cout << "j: " << j << std::endl;
-        std::cout << "dims[0, 1, 2]: " << dims[0] << " " << dims[1] << std::endl;
-        std::cout << "psi dimensions " << psi.dimensions()[0] << " " << psi.dimensions()[1] << " " <<psi.dimensions()[2] << std::endl;
         Eigen::Tensor<double, 2> slice_tens = psi.chip(j, 2);
         Eigen::ArrayXXd slice = tensor_to_array(slice_tens, dims[0], dims[1]);
+
+        // Premultiply the spectrum with the wavenumber, which gives the spectral density
+        slice = slice;
+
         // TODO use std vec of pointers and labels duh
         switch (j) {
             case 0: {
@@ -168,19 +170,58 @@ TEST_F(AdemTest, test_analysis) {
             default: {}
         };
 
+        // Create a plot to show the t2w terms
+        Figure figt = Figure();
+        ScatterPlot pt = ScatterPlot();
+        auto n = data.t2wa.rows();
+        pt.x = Eigen::ArrayXd::LinSpaced(n, 1, n);
+        pt.y = data.t2wa;
+        pt.name = "t2wa";
+        figt.add(pt);
+        ScatterPlot pt2 = ScatterPlot();
+        pt2.x = Eigen::ArrayXd::LinSpaced(n, 1, n);
+        pt2.y = data.t2wb;
+        pt2.name = "t2wb";
+        figt.add(pt2);
+        figt.write("test_t2w_plot.json");
+
+        // Create a plot to show the z distribution
+        Figure figz = Figure();
+        ScatterPlot pz = ScatterPlot();
+        n = data.z.rows();
+        pz.x = Eigen::ArrayXd::LinSpaced(n, 1, n);
+        pz.y = data.z;
+        pz.name = "z";
+        figz.add(pz);
+        ScatterPlot pz2 = ScatterPlot();
+        pz2.x = Eigen::ArrayXd::LinSpaced(n, 1, n);
+        pz2.y = data.eta;
+        pz2.name = "eta";
+        figz.add(pz2);
+        ScatterPlot pz3 = ScatterPlot();
+        pz3.x = Eigen::ArrayXd::LinSpaced(n, 1, n);
+        pz3.y = data.lambda_e;
+        pz3.name = "lambda_e";
+        figz.add(pz3);
+        figz.write("test_z_plot.json");
+
+
         // Create a surface plot to show the spectrum term
         Figure fig = Figure();
         SurfacePlot p = SurfacePlot();
 
         // x direction is frequency
-        p.x = Eigen::RowVectorXd::LinSpaced(s13.cols(), 1, s13.cols()).replicate(s13.rows(), 1).array();
+//        p.x = Eigen::RowVectorXd::LinSpaced(s13.cols(), 1, s13.cols()).replicate(s13.rows(), 1).array();
+        p.x = data.k1z.transpose().leftCols(400);
+        std::cout << "size x " << p.x.rows() << " " << p.x.cols() << std::endl;
 
         // y direction is vertical height z
-        p.y = data.z.transpose().replicate(1, s13.cols()).array();
+        p.y = data.z.transpose().replicate(p.x.rows(), 1).array().leftCols(400);
+        std::cout << "size y " << p.y.rows() << " " << p.y.cols() << std::endl;
 
-        // Copy spectrum amplitude from mapped tensor,
-        s = slice;
-        p.z = s.transpose();
+        // Copy spectrum amplitude from mapped tensor
+        p.z = slice.transpose().leftCols(400);
+        std::cout << "size z " << p.z.rows() << " " << p.z.cols() << std::endl;
 
         fig.add(p);
         fig.write("test_spectrum_surface_plot_" + term_str + ".json");
