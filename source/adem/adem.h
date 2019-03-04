@@ -474,13 +474,10 @@ AdemData adem(const double beta,
     get_t2w(data, signature_a, signature_b);
 
     // Get vertical points through the boundary layer (for which the convolution functions were defined)
-    Eigen::ArrayXd eta = data.lambda_e.array();
-    eta.array().exp();
-    eta.array().inverse();
-    data.eta = eta.matrix();
-    data.z = eta.array() * data.delta_c;
+    data.z = data.eta.array() * data.delta_c;
 
     // Add k1z to the data structure
+    Eigen::ArrayXd eta = data.eta.array();
     data.k1z = signature_a.k1z(eta);
 
     // Get the mean speed profile at the same vertical points and update the data structure

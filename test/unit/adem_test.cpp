@@ -133,7 +133,7 @@ TEST_F(AdemTest, test_analysis) {
         Eigen::ArrayXXd slice = tensor_to_array(slice_tens, dims[0], dims[1]);
 
         // Premultiply the spectrum with the wavenumber, which gives the spectral density
-        slice = slice;
+//        slice = slice * data.k1z.transpose();
 
         // TODO use std vec of pointers and labels duh
         switch (j) {
@@ -205,24 +205,29 @@ TEST_F(AdemTest, test_analysis) {
         figz.add(pz3);
         figz.write("test_z_plot.json");
 
-
         // Create a surface plot to show the spectrum term
         Figure fig = Figure();
+        Layout lay = Layout();
+        lay.xLabel("k1z");
+        lay.yLabel("z");
+        lay.zLabel("Psi");
+        fig.setLayout(lay);
         SurfacePlot p = SurfacePlot();
 
         // x direction is frequency
-//        p.x = Eigen::RowVectorXd::LinSpaced(s13.cols(), 1, s13.cols()).replicate(s13.rows(), 1).array();
-        p.x = data.k1z.transpose().leftCols(600);
+        p.x = data.k1z.topRows(100).rightCols(600);
         std::cout << "size x " << p.x.rows() << " " << p.x.cols() << std::endl;
 
         // y direction is vertical height z
-        p.y = data.z.transpose().replicate(p.x.rows(), 1).array().leftCols(600);
+        p.y = data.z.transpose().replicate(p.x.rows(), 1).array().topRows(100).rightCols(600);
         std::cout << "size y " << p.y.rows() << " " << p.y.cols() << std::endl;
 
         // Copy spectrum amplitude from mapped tensor
-        p.z = slice.transpose().leftCols(600);
+        p.z = slice.transpose().topRows(100).rightCols(600);
         std::cout << "size z " << p.z.rows() << " " << p.z.cols() << std::endl;
-
+        p.x = p.x.topRows(99);
+        p.y = p.y.topRows(99);
+        p.z = p.z.topRows(99);
         fig.add(p);
         fig.write("test_spectrum_surface_plot_" + term_str + ".json");
     }
