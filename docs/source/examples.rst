@@ -94,7 +94,7 @@ the corresponding mean velocity profile?
 Fitting a velocity profile
 ==========================
 
-Imagine we have a vertical profile of velocity ``, determined by an instrument such as a vertical LiDAR in VAD mode.
+Imagine we have a vertical profile of velocity ``u(z)``, determined by an instrument such as a vertical LiDAR in VAD mode.
 
 Say there are 30 data points, spaced 10m apart vertically. In reality, each data point is an ensemble of many thousands
 of doppler velocity readings, from a region of vertical space above and below the ``z`` coordinate, known as 'bins'.
@@ -198,6 +198,7 @@ can provide an initial guess and fix certain parameters.
 .. _example-smearing-and-de-smearing:
 Smearing and de-smearing
 ========================
+
 Say we have an instrument like a vertical profiling LiDAR, which takes measurements from a volume, rather than a point.
 If we capture a profile (e.g. of velocity computed by the VAD technique), each point is the average velocity in a
 vertical 'bin'. However, if the shear (``du/dz``) changes through that bin, then the average velocity is biased...
@@ -317,7 +318,7 @@ their measurements. Please feed back if it'd be helpful to have other (or custom
 
 .. _example-de-smearing-a-measured-profile:
 De-smearing a measured profile
------------------------------
+------------------------------
 
 OK, so lets say we have measured profile data. We know our instrument has smeared the actual profile somewhat, and we
 want to correct for this.
