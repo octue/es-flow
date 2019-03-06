@@ -371,6 +371,11 @@ void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, con
     data.reynolds_stress_b = data.reynolds_stress_b.topRows(data.lambda_e.rows());
     data.reynolds_stress = data.reynolds_stress_a + data.reynolds_stress_b;
 
+    // FlipUD to match the reversal of z compared to the lambda_e basis on which these are calculated
+    data.reynolds_stress_a = data.reynolds_stress_a.colwise().reverse().eval();
+    data.reynolds_stress_b = data.reynolds_stress_b.colwise().reverse().eval();
+    data.reynolds_stress = data.reynolds_stress.colwise().reverse().eval();
+
 }
 
 
@@ -398,13 +403,16 @@ void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySig
     Eigen::Map<Eigen::VectorXd> t2wa_vec(data.t2wa.data(), data.t2wa.rows());
     Eigen::Map<Eigen::VectorXd> t2wb_vec(data.t2wb.data(), data.t2wb.rows());
 
+    std::cout << "DIMS " << dims[0] << " " << dims[1] << " " << dims[2] << std::endl;
+    std::cout << "PSI_DIMS " << psi_dims[0] << " " << psi_dims[1] << " " << psi_dims[2] << std::endl;
+
     // For each of the 6 auto / cross spectra terms
     for (Eigen::Index j = 0; j < dims[2]; j++) {
 
         auto page_offset_sig = j * dims[0] * dims[1];
         auto page_offset_psi = j * psi_dims[0] * psi_dims[1];
 
-        // For each of the different heights
+        // For each of the wavenumbers
         for (Eigen::Index i = 0; i < dims[1]; i++) {
 
             auto elements_offset_sig = (page_offset_sig + i * dims[0]);
@@ -416,18 +424,20 @@ void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySig
             Eigen::Map<Eigen::VectorXd> psi_a_vec((double *)psi_a.data() + elements_offset_psi, psi_dims[0]);
             Eigen::Map<Eigen::VectorXd> psi_b_vec((double *)psi_b.data() + elements_offset_psi, psi_dims[0]);
 
-            psi_a_vec = conv(t2wa_vec, g_a_vec);
-            psi_b_vec = conv(t2wb_vec, g_b_vec);
+            psi_a_vec = conv(t2wa_vec, g_a_vec).reverse();
+            psi_b_vec = conv(t2wb_vec, g_b_vec).reverse();
 
         }
     }
 
-    // Premultiply by the u_tau^2 term (see eq. 43)
-    auto u_tau_sqd = pow(data.u_tau, 2.0);
-
     // Don't store the sum of the spectra - they're memory hungry and we can always add the two together
-    data.psi_a = u_tau_sqd * psi_a;
-    data.psi_b = u_tau_sqd * psi_b;
+
+    // Premultiply by the u_tau^2 term (see eq. 43)
+    // auto u_tau_sqd = pow(data.u_tau, 2.0);
+    // data.psi_a = u_tau_sqd * psi_a;
+    // data.psi_b = u_tau_sqd * psi_b;
+    data.psi_a = psi_a;
+    data.psi_b = psi_b;
 
 }
 
