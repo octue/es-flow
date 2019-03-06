@@ -36,6 +36,7 @@ New Features
 #. Added plotting routines (using cpplot).
 #. Documentation and build systems implemented and settled.
 #. Google Test used to create test harness for the majority of the library.
+#. Turbulent effects selector included into the documentation for viewing by teh Offshore Renewable Energy Catapult
 
 Backward Incompatible API Changes
 ---------------------------------

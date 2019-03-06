@@ -268,10 +268,17 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     deconv(minus_t2wa, r13a, j13a);
     deconv(minus_t2wb, r13b, j13b);
 
-    // TODO extend by padding out to the same length as lambda_e. The T^2w distributions converge to a constant at
-    //  high lambda (close to the wall) so padding with the last value in the vector is physically valid. This will
-    //  result in the Reynolds Stresses and Spectra, which are obtained by convolution, having the same number of points
-    //  in the z direction as the axes variables (eta, lambda_e, etc)... very useful!
+    // Extend by padding out to the same length as lambda_e.
+    // The T^2w distributions converge to a constant at high lambda (close to the wall) so padding with the last value
+    // in the vector is physically valid. This will result in the Reynolds Stresses and Spectra, which are obtained by
+    // convolution, having the same number of points in the z direction as the axes variables (eta, lambda_e, etc)
+    double pad_value_a = minus_t2wa(minus_t2wa.rows()-1);
+    double pad_value_b = minus_t2wb(minus_t2wb.rows()-1);
+    auto last_n = 10001 - minus_t2wa.rows();
+    minus_t2wa.conservativeResize(10001,1);
+    minus_t2wb.conservativeResize(10001,1);
+    minus_t2wa.tail(last_n) = pad_value_a;
+    minus_t2wb.tail(last_n) = pad_value_b;
 
     // Store in the data object
     data.eta = eta;
@@ -364,6 +371,11 @@ void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, con
     data.reynolds_stress_b = data.reynolds_stress_b.topRows(data.lambda_e.rows());
     data.reynolds_stress = data.reynolds_stress_a + data.reynolds_stress_b;
 
+    // FlipUD to match the reversal of z compared to the lambda_e basis on which these are calculated
+    data.reynolds_stress_a = data.reynolds_stress_a.colwise().reverse().eval();
+    data.reynolds_stress_b = data.reynolds_stress_b.colwise().reverse().eval();
+    data.reynolds_stress = data.reynolds_stress.colwise().reverse().eval();
+
 }
 
 
@@ -391,13 +403,16 @@ void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySig
     Eigen::Map<Eigen::VectorXd> t2wa_vec(data.t2wa.data(), data.t2wa.rows());
     Eigen::Map<Eigen::VectorXd> t2wb_vec(data.t2wb.data(), data.t2wb.rows());
 
+    std::cout << "DIMS " << dims[0] << " " << dims[1] << " " << dims[2] << std::endl;
+    std::cout << "PSI_DIMS " << psi_dims[0] << " " << psi_dims[1] << " " << psi_dims[2] << std::endl;
+
     // For each of the 6 auto / cross spectra terms
     for (Eigen::Index j = 0; j < dims[2]; j++) {
 
         auto page_offset_sig = j * dims[0] * dims[1];
         auto page_offset_psi = j * psi_dims[0] * psi_dims[1];
 
-        // For each of the different heights
+        // For each of the wavenumbers
         for (Eigen::Index i = 0; i < dims[1]; i++) {
 
             auto elements_offset_sig = (page_offset_sig + i * dims[0]);
@@ -409,18 +424,20 @@ void get_spectra(AdemData& data, const EddySignature& signature_a, const EddySig
             Eigen::Map<Eigen::VectorXd> psi_a_vec((double *)psi_a.data() + elements_offset_psi, psi_dims[0]);
             Eigen::Map<Eigen::VectorXd> psi_b_vec((double *)psi_b.data() + elements_offset_psi, psi_dims[0]);
 
-            psi_a_vec = conv(t2wa_vec, g_a_vec);
-            psi_b_vec = conv(t2wb_vec, g_b_vec);
+            psi_a_vec = conv(t2wa_vec, g_a_vec).reverse();
+            psi_b_vec = conv(t2wb_vec, g_b_vec).reverse();
 
         }
     }
 
-    // Premultiply by the u_tau^2 term (see eq. 43)
-    auto u_tau_sqd = pow(data.u_tau, 2.0);
-
     // Don't store the sum of the spectra - they're memory hungry and we can always add the two together
-    data.psi_a = u_tau_sqd * psi_a;
-    data.psi_b = u_tau_sqd * psi_b;
+
+    // Premultiply by the u_tau^2 term (see eq. 43)
+    // auto u_tau_sqd = pow(data.u_tau, 2.0);
+    // data.psi_a = u_tau_sqd * psi_a;
+    // data.psi_b = u_tau_sqd * psi_b;
+    data.psi_a = psi_a;
+    data.psi_b = psi_b;
 
 }
 
@@ -453,9 +470,6 @@ AdemData adem(const double beta,
     // Data will contain computed outputs and useful small variables from the large signature files
     AdemData data = AdemData();
 
-    // Add k1z to the data structure
-    data.k1z = signature_a.k1z;
-
     // Add parameter inputs to data structure
     data.beta = beta;
     data.delta_c = delta_c;
@@ -470,11 +484,11 @@ AdemData adem(const double beta,
     get_t2w(data, signature_a, signature_b);
 
     // Get vertical points through the boundary layer (for which the convolution functions were defined)
-    Eigen::VectorXd eta = data.lambda_e;
-    eta.array().exp();
-    eta.array().inverse();
-    data.eta = eta;
-    data.z = eta.array() * data.delta_c;
+    data.z = data.eta.array() * data.delta_c;
+
+    // Add k1z to the data structure
+    Eigen::ArrayXd eta = data.eta.array();
+    data.k1z = signature_a.k1z(eta);
 
     // Get the mean speed profile at the same vertical points and update the data structure
     get_mean_speed(data);
