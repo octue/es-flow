@@ -1,4 +1,4 @@
-function [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity(type, varargin)
+function [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity(type, n_lambda)
 %GETEDDYINTENSITY Returns eddy intensity functions Jij, with i=1:3, j = 1:3
 % These are the signatures (in terms of turbulent fluctuations) that an
 % individual structure will contribute to a boundary layer.
@@ -15,8 +15,9 @@ function [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity(type, varargin)
 %       the influence a single eddy has on the velocity field. The Intensity I
 %       as computed on that grid is also included.
 %
-%       [...] getEddyIntensity(X, Y, Z, U, V, W)
-%       Recomputes intensity functions from known gridded velocity signature.
+%       [...] getEddyIntensity(type, n_lambda)
+%       Computes eddy signatures for a non-default number of points in the
+%       lambda vector, n_lambda. Default n_lambda = 200.
 %
 % Inputs:
 %
@@ -24,6 +25,12 @@ function [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity(type, varargin)
 %                                   Current accepted values are  'A', 'B1',
 %                                   'B2', 'B3', 'B4', which correspond with the
 %                                   eddy types in Ref [1].
+%
+%       n_lambda        int         Number of points in the lambda vector.
+%                                   Lambda is selected to be spaced
+%                                   logarithmically between the outer part of
+%                                   the domain and a location very close to the
+%                                   wall.
 %
 % Outputs:
 %
@@ -54,15 +61,7 @@ function [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity(type, varargin)
 %
 % Future Improvements:
 %
-%   [1] Computation could be done using the eddy spectral function gij (eq.44
-%       Perry and Marusic 1995) which is quicker but more complicated than the
-%       direct integration of eqn 35 that is presently implemented.
-%
-%   [2] Presently the intensity functions are computed each time this is called.
-%       There should be a cached lookup for particular eddy types (i.e. a .mat
-%       file storing all Jij).
-%
-%   [4] Possible additional modification to take into account a free surface
+%   [1] Possible additional modification to take into account a free surface
 %       image.
 %
 % References:
@@ -71,237 +70,215 @@ function [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity(type, varargin)
 %       layers. Part 1. Extension of the attached eddy hypothesis J Fluid Mech
 %       vol 298 pp 361-388
 %
-% Author:                   T. H. Clark
-% Work address:             Ocean Array Systems Ltd
-%                           Hauser Forum
-%                           3 Charles Babbage Road
-%                           Cambridge
-%                           CB3 0GT
-% Email:                    tom.clark@oceanarraysystems.com
-% Website:                  www.oceanarraysystems.com
+% Author:                   T. H. Clark (github: thclark)
+% 
+% Website:                  www.octue.com
 %
-% Revision History:        	18 April 2015       Created from the deprecated getJ
-%                                               Added the string type specifier
-%                                               and reworked for new biot savart
-%                                               interface.
-%                           23 April 2014       Added volumetric grid and
-%                                               velocity signature to
-%                                               documentation
-%
-% Copyright (c) 2014-2015 Ocean Array Systems, All Rights Reserved.
+% Copyright (c) 2014-2019 Octue Ltd, All Rights Reserved.
 
 
-% We need to calculate the influence
 if nargin == 1
-
-    % EXPRESS EDDY STRUCTURE AS LINE VORTICES
-
-    nEl = 2;
-
-    switch lower(type)
-        case 'a'
-
-            % Define a type A eddy by its key points and reflection. See Figure 13
-            % Pery and Marusic 1995.
-            a = linspace(0,    1,   nEl);
-            b = linspace(1,    0,   nEl);
-            c = linspace(0,   -1,   nEl);
-            d = linspace(-1,   0,   nEl);
-            e = linspace(0,    0.8, nEl); 
-            f = linspace(0.8,  0,   nEl); 
-            g = linspace(0,   -0.8, nEl); 
-            h = linspace(-0.8, 0,   nEl);
-            L = vertcat([ a(1:end-1)'      h(1:end-1)'    a(1:end-1)'],...
-                        [ b(1:end-1)'      e(1:end-1)'    b(1:end-1)'],...
-                        [ a(1:end-1)'      f(1:end-1)'    c(1:end-1)'],...
-                        [ b(1:end)'        g(1:end)'      d(1:end)']);
-
-            % Start and end nodes of each vortex segment, [nNodes x 3] arrays
-            startNodes  = L(1:end-1,:);
-            endNodes    = L(2:end,:);
-
-        case 'b1'
-
-            % Define a type B1 eddy by its key points and reflection. See Figure 13
-            % Pery and Marusic 1995.
-            az = linspace(1,     0.5,   nEl)';
-            ay = linspace(-0.15,   0,   nEl)';
-            ax = linspace(0.2,     0,   nEl)';
-            bz = linspace(0.5,     1,   nEl)';
-            by = linspace(0,    0.15,   nEl)';
-            bx = linspace(0,    0.09,   nEl)';
-            arz = linspace(-1,    -0.5,   nEl)';
-            ary = linspace(-0.15,    0,   nEl)';
-            arx = linspace(0.2,      0,   nEl)';
-            brz = linspace(-0.5,    -1,   nEl)';
-            bry = linspace(0,     0.15,   nEl)';
-            brx = linspace(0,     0.09,   nEl)';
-
-            startNodes = vertcat( [ax(1:end-1)   ay(1:end-1)   az(1:end-1)],...
-                                  [bx(1:end-1)   by(1:end-1)   bz(1:end-1)],...
-                                  [arx(1:end-1)  ary(1:end-1)  arz(1:end-1)],...
-                                  [brx(1:end-1)  bry(1:end-1)  brz(1:end-1)]);
-
-            endNodes   = vertcat( [ax(2:end)   ay(2:end)   az(2:end)],...
-                                  [bx(2:end)   by(2:end)   bz(2:end)],...
-                                  [arx(2:end)  ary(2:end)  arz(2:end)],...
-                                  [brx(2:end)  bry(2:end)  brz(2:end)]);
-
-        case 'b2'
-
-            % Define a type B2 eddy by its key points and reflection. See Figure 13
-            % Pery and Marusic 1995.
-            az = linspace(0.5,      1,   nEl)';
-            ay = linspace(-0.15,    0,   nEl)';
-            ax = linspace(0.11,   0.2,   nEl)';
-            bz = linspace(1,      0.5,   nEl)';
-            by = linspace(0,     0.15,   nEl)';
-            bx = linspace(0.2,      0,   nEl)';
-            arz = linspace(-0.5,   -1,   nEl)';
-            ary = linspace(-0.15,   0,   nEl)';
-            arx = linspace(0.11,  0.2,   nEl)';
-            brz = linspace(-1,   -0.5,   nEl)';
-            bry = linspace(0,    0.15,   nEl)';
-            brx = linspace(0.2,     0,   nEl)';
-
-            startNodes = vertcat( [ax(1:end-1)   ay(1:end-1)   az(1:end-1)],...
-                                  [bx(1:end-1)   by(1:end-1)   bz(1:end-1)],...
-                                  [arx(1:end-1)  ary(1:end-1)  arz(1:end-1)],...
-                                  [brx(1:end-1)  bry(1:end-1)  brz(1:end-1)]);
-
-            endNodes   = vertcat( [ax(2:end)   ay(2:end)   az(2:end)],...
-                                  [bx(2:end)   by(2:end)   bz(2:end)],...
-                                  [arx(2:end)  ary(2:end)  arz(2:end)],...
-                                  [brx(2:end)  bry(2:end)  brz(2:end)]);
-
-        case 'b3'
-
-            % Define a type B3 eddy by its key points and reflection. See Figure 13
-            % Pery and Marusic 1995.
-            az = linspace(1,       0.5,   nEl)';
-            ay = linspace(-0.15,     0,   nEl)';
-            ax = linspace(0.09,      0,   nEl)';
-            bz = linspace(0.5,       1,   nEl)';
-            by = linspace(0,      0.15,   nEl)';
-            bx = linspace(0,       0.2,   nEl)';
-            arz = linspace(-1,     -0.5,   nEl)';
-            ary = linspace(-0.15,     0,   nEl)';
-            arx = linspace(0.09,      0,   nEl)';
-            brz = linspace(-0.5,     -1,   nEl)';
-            bry = linspace(0,      0.15,   nEl)';
-            brx = linspace(0,       0.2,   nEl)';
-
-            startNodes = vertcat( [ax(1:end-1)   ay(1:end-1)   az(1:end-1)],...
-                                  [bx(1:end-1)   by(1:end-1)   bz(1:end-1)],...
-                                  [arx(1:end-1)  ary(1:end-1)  arz(1:end-1)],...
-                                  [brx(1:end-1)  bry(1:end-1)  brz(1:end-1)]);
-
-            endNodes   = vertcat( [ax(2:end)   ay(2:end)   az(2:end)],...
-                                  [bx(2:end)   by(2:end)   bz(2:end)],...
-                                  [arx(2:end)  ary(2:end)  arz(2:end)],...
-                                  [brx(2:end)  bry(2:end)  brz(2:end)]);
-
-        case 'b4'
-
-            % Define a type B4 eddy by its key points and reflection. See Figure 13
-            % Pery and Marusic 1995.
-            az = linspace(0.5,      1,   nEl)';
-            ay = linspace(-0.15,    0,   nEl)';
-            ax = linspace(0,      0.2,   nEl)';
-            bz = linspace(1,      0.5,   nEl)';
-            by = linspace(0,     0.15,   nEl)';
-            bx = linspace(0.2,   0.11,   nEl)';
-            arz = linspace(-0.5,    -1,   nEl)';
-            ary = linspace(-0.15,    0,   nEl)';
-            arx = linspace(0,      0.2,   nEl)';
-            brz = linspace(-1,    -0.5,   nEl)';
-            bry = linspace(0,     0.15,   nEl)';
-            brx = linspace(0.2,   0.11,   nEl)';
-            startNodes = vertcat( [ax(1:end-1)   ay(1:end-1)   az(1:end-1)],...
-                                  [bx(1:end-1)   by(1:end-1)   bz(1:end-1)],...
-                                  [arx(1:end-1)  ary(1:end-1)  arz(1:end-1)],...
-                                  [brx(1:end-1)  bry(1:end-1)  brz(1:end-1)]);
-
-            endNodes   = vertcat( [ax(2:end)   ay(2:end)   az(2:end)],...
-                                  [bx(2:end)   by(2:end)   bz(2:end)],...
-                                  [arx(2:end)  ary(2:end)  arz(2:end)],...
-                                  [brx(2:end)  bry(2:end)  brz(2:end)]);
-
-        otherwise
-
-            error('MATLAB:InvalidInput','Unrecognised eddy type string input. See help(''getEddyIntensity'') for valid eddy types')
-
-    end
-
-
-
-    % PLOT EDDY STRUCTURE SHAPE
-
-    raiseFigure(['Type ' type ' Eddy Structure'])
-    clf
-    subplot(1,3,1)
-    % plot3(startNodes(:,1), startNodes(:,2), startNodes(:,3))
-    plot3([startNodes(:,1)'; endNodes(:,1)'],[startNodes(:,2)'; endNodes(:,2)'],[startNodes(:,3)'; endNodes(:,3)'],'k-')
-    axis equal
-    xlabel('x/\delta')
-    ylabel('y/\delta')
-    zlabel('z/\delta')
-
-
-
-    % SETUP INFLUENCE DOMAIN
-
-    dx = 0.010;
-    dy = 0.010;
-    dz = 0.020;
-    xVec = 0:dx:4;
-    xVec = [fliplr(-1*xVec(1,2:end)) xVec];
-    yVec = 0:dy:2;
-    yVec = [fliplr(-1*yVec(1,2:end)) yVec];
-    zVec = 0:dz:1.5;
-
-    % Size of domain
-    nX = numel(xVec);
-    nY = numel(yVec);
-    nZ = numel(zVec);
-
-    U = zeros(nY, nX, nZ);
-    V = zeros(nY, nX, nZ);
-    W = zeros(nY, nX, nZ);
-
-    % Volume Mesh. Note we produce with meshgrid rather than ndgrid for
-    % compatibility with MATLAB's volume plotting facilities - helps us to visualise
-    % the eddy signature.
-    [X,Y,Z] = meshgrid(xVec,yVec,zVec);
-
-    
-    % DETERMINE VELOCITY INFLUENCE OF THE STRUCTURE
-
-    % Squares of the core radii, [nNodes x 1] array
-    rcEffSqd    = (0.05^2)*ones(size(startNodes,1),1);
-
-    % Vortex strengths, [nNodes x 1] array
-    gamma       = ones(size(startNodes,1),1);
-
-    % Grid locations on which to compute influence
-    locations   = [X(:), Y(:), Z(:)];
-
-    % Do the Biot Savart calculation for induced velocity
-    induction = biot_savart(startNodes', endNodes', locations', gamma', rcEffSqd');
-    
-    U(:) = induction(1,:);
-    V(:) = induction(2,:);
-    W(:) = induction(3,:);
-
-else
-    [X, Y, Z, U, V, W] = deal(varargin{:});
-    %     xVec = X(1,:,1); xVec = xVec(:);
-    %     yVec = Y(:,1,1); yVec = yVec(:);
-    zVec = Z(1,1,:); zVec = zVec(:);
+    n_lambda = 200;
 end
 
 
-%% COMPUTE AND PLOT REYNOLDS STRESSES
+% EXPRESS EDDY STRUCTURE AS LINE VORTICES
+
+nEl = 2;
+
+switch lower(type)
+    case 'a'
+
+        % Define a type A eddy by its key points and reflection. See Figure 13
+        % Pery and Marusic 1995.
+        a = linspace(0,    1,   nEl);
+        b = linspace(1,    0,   nEl);
+        c = linspace(0,   -1,   nEl);
+        d = linspace(-1,   0,   nEl);
+        e = linspace(0,    0.8, nEl); 
+        f = linspace(0.8,  0,   nEl); 
+        g = linspace(0,   -0.8, nEl); 
+        h = linspace(-0.8, 0,   nEl);
+        L = vertcat([ a(1:end-1)'      h(1:end-1)'    a(1:end-1)'],...
+                    [ b(1:end-1)'      e(1:end-1)'    b(1:end-1)'],...
+                    [ a(1:end-1)'      f(1:end-1)'    c(1:end-1)'],...
+                    [ b(1:end)'        g(1:end)'      d(1:end)']);
+
+        % Start and end nodes of each vortex segment, [nNodes x 3] arrays
+        startNodes  = L(1:end-1,:);
+        endNodes    = L(2:end,:);
+
+    case 'b1'
+
+        % Define a type B1 eddy by its key points and reflection. See Figure 13
+        % Pery and Marusic 1995.
+        az = linspace(1,     0.5,   nEl)';
+        ay = linspace(-0.15,   0,   nEl)';
+        ax = linspace(0.2,     0,   nEl)';
+        bz = linspace(0.5,     1,   nEl)';
+        by = linspace(0,    0.15,   nEl)';
+        bx = linspace(0,    0.09,   nEl)';
+        arz = linspace(-1,    -0.5,   nEl)';
+        ary = linspace(-0.15,    0,   nEl)';
+        arx = linspace(0.2,      0,   nEl)';
+        brz = linspace(-0.5,    -1,   nEl)';
+        bry = linspace(0,     0.15,   nEl)';
+        brx = linspace(0,     0.09,   nEl)';
+
+        startNodes = vertcat( [ax(1:end-1)   ay(1:end-1)   az(1:end-1)],...
+                              [bx(1:end-1)   by(1:end-1)   bz(1:end-1)],...
+                              [arx(1:end-1)  ary(1:end-1)  arz(1:end-1)],...
+                              [brx(1:end-1)  bry(1:end-1)  brz(1:end-1)]);
+
+        endNodes   = vertcat( [ax(2:end)   ay(2:end)   az(2:end)],...
+                              [bx(2:end)   by(2:end)   bz(2:end)],...
+                              [arx(2:end)  ary(2:end)  arz(2:end)],...
+                              [brx(2:end)  bry(2:end)  brz(2:end)]);
+
+    case 'b2'
+
+        % Define a type B2 eddy by its key points and reflection. See Figure 13
+        % Pery and Marusic 1995.
+        az = linspace(0.5,      1,   nEl)';
+        ay = linspace(-0.15,    0,   nEl)';
+        ax = linspace(0.11,   0.2,   nEl)';
+        bz = linspace(1,      0.5,   nEl)';
+        by = linspace(0,     0.15,   nEl)';
+        bx = linspace(0.2,      0,   nEl)';
+        arz = linspace(-0.5,   -1,   nEl)';
+        ary = linspace(-0.15,   0,   nEl)';
+        arx = linspace(0.11,  0.2,   nEl)';
+        brz = linspace(-1,   -0.5,   nEl)';
+        bry = linspace(0,    0.15,   nEl)';
+        brx = linspace(0.2,     0,   nEl)';
+
+        startNodes = vertcat( [ax(1:end-1)   ay(1:end-1)   az(1:end-1)],...
+                              [bx(1:end-1)   by(1:end-1)   bz(1:end-1)],...
+                              [arx(1:end-1)  ary(1:end-1)  arz(1:end-1)],...
+                              [brx(1:end-1)  bry(1:end-1)  brz(1:end-1)]);
+
+        endNodes   = vertcat( [ax(2:end)   ay(2:end)   az(2:end)],...
+                              [bx(2:end)   by(2:end)   bz(2:end)],...
+                              [arx(2:end)  ary(2:end)  arz(2:end)],...
+                              [brx(2:end)  bry(2:end)  brz(2:end)]);
+
+    case 'b3'
+
+        % Define a type B3 eddy by its key points and reflection. See Figure 13
+        % Pery and Marusic 1995.
+        az = linspace(1,       0.5,   nEl)';
+        ay = linspace(-0.15,     0,   nEl)';
+        ax = linspace(0.09,      0,   nEl)';
+        bz = linspace(0.5,       1,   nEl)';
+        by = linspace(0,      0.15,   nEl)';
+        bx = linspace(0,       0.2,   nEl)';
+        arz = linspace(-1,     -0.5,   nEl)';
+        ary = linspace(-0.15,     0,   nEl)';
+        arx = linspace(0.09,      0,   nEl)';
+        brz = linspace(-0.5,     -1,   nEl)';
+        bry = linspace(0,      0.15,   nEl)';
+        brx = linspace(0,       0.2,   nEl)';
+
+        startNodes = vertcat( [ax(1:end-1)   ay(1:end-1)   az(1:end-1)],...
+                              [bx(1:end-1)   by(1:end-1)   bz(1:end-1)],...
+                              [arx(1:end-1)  ary(1:end-1)  arz(1:end-1)],...
+                              [brx(1:end-1)  bry(1:end-1)  brz(1:end-1)]);
+
+        endNodes   = vertcat( [ax(2:end)   ay(2:end)   az(2:end)],...
+                              [bx(2:end)   by(2:end)   bz(2:end)],...
+                              [arx(2:end)  ary(2:end)  arz(2:end)],...
+                              [brx(2:end)  bry(2:end)  brz(2:end)]);
+
+    case 'b4'
+
+        % Define a type B4 eddy by its key points and reflection. See Figure 13
+        % Pery and Marusic 1995.
+        az = linspace(0.5,      1,   nEl)';
+        ay = linspace(-0.15,    0,   nEl)';
+        ax = linspace(0,      0.2,   nEl)';
+        bz = linspace(1,      0.5,   nEl)';
+        by = linspace(0,     0.15,   nEl)';
+        bx = linspace(0.2,   0.11,   nEl)';
+        arz = linspace(-0.5,    -1,   nEl)';
+        ary = linspace(-0.15,    0,   nEl)';
+        arx = linspace(0,      0.2,   nEl)';
+        brz = linspace(-1,    -0.5,   nEl)';
+        bry = linspace(0,     0.15,   nEl)';
+        brx = linspace(0.2,   0.11,   nEl)';
+        startNodes = vertcat( [ax(1:end-1)   ay(1:end-1)   az(1:end-1)],...
+                              [bx(1:end-1)   by(1:end-1)   bz(1:end-1)],...
+                              [arx(1:end-1)  ary(1:end-1)  arz(1:end-1)],...
+                              [brx(1:end-1)  bry(1:end-1)  brz(1:end-1)]);
+
+        endNodes   = vertcat( [ax(2:end)   ay(2:end)   az(2:end)],...
+                              [bx(2:end)   by(2:end)   bz(2:end)],...
+                              [arx(2:end)  ary(2:end)  arz(2:end)],...
+                              [brx(2:end)  bry(2:end)  brz(2:end)]);
+
+    otherwise
+
+        error('MATLAB:InvalidInput','Unrecognised eddy type string input. See help(''getEddyIntensity'') for valid eddy types')
+
+end
+
+
+% PLOT EDDY STRUCTURE SHAPE
+
+raiseFigure(['Type ' type ' Eddy Structure'])
+clf
+subplot(1,3,1)
+plot3([startNodes(:,1)'; endNodes(:,1)'],[startNodes(:,2)'; endNodes(:,2)'],[startNodes(:,3)'; endNodes(:,3)'],'k-')
+axis equal
+xlabel('x/\delta')
+ylabel('y/\delta')
+zlabel('z/\delta')
+
+
+% SETUP INFLUENCE DOMAIN
+
+dx = 0.01;
+dy = 0.01;
+dz = 0.02;
+xVec = 0:dx:4;
+xVec = [fliplr(-1*xVec(1,2:end)) xVec];
+yVec = 0:dy:2;
+yVec = [fliplr(-1*yVec(1,2:end)) yVec];
+zVec = 0:dz:1.5;
+
+% Size of domain
+nX = numel(xVec);
+nY = numel(yVec);
+nZ = numel(zVec);
+
+U = zeros(nY, nX, nZ);
+V = zeros(nY, nX, nZ);
+W = zeros(nY, nX, nZ);
+
+% Volume Mesh. Note we produce with meshgrid rather than ndgrid for
+% compatibility with MATLAB's volume plotting facilities - helps us to visualise
+% the eddy signature.
+[X,Y,Z] = meshgrid(xVec,yVec,zVec);
+
+
+% DETERMINE VELOCITY INFLUENCE OF THE STRUCTURE
+
+% Squares of the core radii, [nNodes x 1] array
+rcEffSqd    = (0.05^2)*ones(size(startNodes,1),1);
+
+% Vortex strengths, [nNodes x 1] array
+gamma       = ones(size(startNodes,1),1);
+
+% Grid locations on which to compute influence
+locations   = [X(:), Y(:), Z(:)];
+
+% Do the Biot Savart calculation for induced velocity
+induction = biot_savart(startNodes', endNodes', locations', gamma', rcEffSqd');
+U(:) = induction(1,:);
+V(:) = induction(2,:);
+W(:) = induction(3,:);
+
+    
+% COMPUTE AND PLOT REYNOLDS STRESSES
 
 V1V1 = U.*U;
 V1V2 = U.*V;
@@ -334,7 +311,7 @@ I = horzcat(I11, I12, I13, I22, I23, I33);
 % And infer J which is equal; just remapped to logarithmic spacing covering the
 % same domain (no all the way to z=0 but close)
 lambda_min = log(1/max(zVec));
-lambda = linspace(lambda_min, log(500), 200);
+lambda = linspace(lambda_min, log(500), n_lambda);
 newZVec = 1./exp(lambda);
 J11 = interp1(zVec(:),I11(:),newZVec(:),'pchip',NaN);
 J12 = interp1(zVec(:),I12(:),newZVec(:),'pchip',NaN);
@@ -350,8 +327,7 @@ J = J(~mask,:);
 lambda = lambda(~mask);
 
 
-
-%% PLOT EDDY INTENSITY FUNCTIONS
+% PLOT EDDY INTENSITY FUNCTIONS
 
 raiseFigure(['Type ' type ' Eddy Structure'])
 
