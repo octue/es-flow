@@ -1,4 +1,4 @@
-function [J, lambda, X, Y, Z, U, V, W] = getEddyIntensity(type, varargin)
+function [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity(type, varargin)
 %GETEDDYINTENSITY Returns eddy intensity functions Jij, with i=1:3, j = 1:3
 % These are the signatures (in terms of turbulent fluctuations) that an
 % individual structure will contribute to a boundary layer.
@@ -9,10 +9,14 @@ function [J, lambda, X, Y, Z, U, V, W] = getEddyIntensity(type, varargin)
 %       the input string, presently 'A', 'B1', 'B2', 'B3', 'B4' which are the
 %       eddies described in Ref 1.
 %
-%       [J, lambda, X, Y, Z, U, V, W] = getEddyIntensity('type')
+%       [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity('type')
 %       Outputs grids X, Y, Z, U, V, W (normalised to the eddy scale) which were
 %       used to compute the eddy influence. The grids can be used to visualise
-%       the influence a single eddy has on the velocity field.
+%       the influence a single eddy has on the velocity field. The Intensity I
+%       as computed on that grid is also included.
+%
+%       [...] getEddyIntensity(X, Y, Z, U, V, W)
+%       Recomputes intensity functions from known gridded velocity signature.
 %
 % Inputs:
 %
@@ -58,11 +62,6 @@ function [J, lambda, X, Y, Z, U, V, W] = getEddyIntensity(type, varargin)
 %       There should be a cached lookup for particular eddy types (i.e. a .mat
 %       file storing all Jij).
 %
-%   [3] Check why we're discretising the line filaments into small pieces -
-%       probably a hangover from the old biot savart code. Eliminating (setting
-%       nEl = 1) could save a lot of compute time right there (factor 51
-%       improvement).
-%
 %   [4] Possible additional modification to take into account a free surface
 %       image.
 %
@@ -92,13 +91,11 @@ function [J, lambda, X, Y, Z, U, V, W] = getEddyIntensity(type, varargin)
 % Copyright (c) 2014-2015 Ocean Array Systems, All Rights Reserved.
 
 
-%% If nargin = 1 we need to calculate the influence
+% We need to calculate the influence
 if nargin == 1
 
     % EXPRESS EDDY STRUCTURE AS LINE VORTICES
 
-    % We discretise the line vortices into smaller elements - see future
-    % improvements!
     nEl = 2;
 
     switch lower(type)
@@ -277,8 +274,7 @@ if nargin == 1
     % the eddy signature.
     [X,Y,Z] = meshgrid(xVec,yVec,zVec);
 
-
-
+    
     % DETERMINE VELOCITY INFLUENCE OF THE STRUCTURE
 
     % Squares of the core radii, [nNodes x 1] array
@@ -290,39 +286,12 @@ if nargin == 1
     % Grid locations on which to compute influence
     locations   = [X(:), Y(:), Z(:)];
 
-    % Type of core model to use (prevents singularities)
-    CoreModel   = 2;
-
-    % Type of computation to use (currently only 2, which uses the GPU, is allowed)
-    RunMode = 2;
-
-    % Cutoff radius (10 deltas - encompasses the whole domain for these purposes)
-    CutOff      = 10;
-
-    % GPU optimisation parameters for if a GPU is present
-    GPUParams   = [1024 1 0];
-
-    % Do the Biot Savart calculationdisp(['bsTest1: Using file ' which('biotSavart')])
-    disp( 'getEddyIntensity: Running biotSavart code with parameters:' )
-    disp(['       Eddy Type: ' type                     ]) 
-    disp(['       CoreModel: ' num2str(CoreModel)       ]) 
-    disp(['          CutOff: ' num2str(CutOff)          ])
-    disp(['         RunMode: ' num2str(RunMode)         ])
-    disp(['       GPUParams: [' num2str(GPUParams) ']'  ])
-    disp(['        MEX File: ' which('biotSavart')      ])
-    outerLoop = true;
+    % Do the Biot Savart calculation for induced velocity
+    induction = biot_savart(startNodes', endNodes', locations', gamma', rcEffSqd');
     
-    uind = biotsavart(startNodes', endNodes', locations', gamma, rcEffSqd, CoreModel, outerLoop);
-    % If we wish to save a test case for the biot savart code (it's a useful one
-    % becuse of the fine and regular grid - NaNs pop up where the line vortex
-    % elements are collinear with grid points. These NaNs are checked for and
-    % handled in the BS code without upsetting the results, but it'd be good if they
-    % didn't crop up in the first place...
-    % save('bsTest4.mat','locations','startNodes','endNodes','gamma','rcEffSqd','CoreModel','CutOff','RunMode','GPUParams')
-
-    U(:) = uind(1,:);
-    V(:) = uind(2,:);
-    W(:) = uind(3,:);
+    U(:) = induction(1,:);
+    V(:) = induction(2,:);
+    W(:) = induction(3,:);
 
 else
     [X, Y, Z, U, V, W] = deal(varargin{:});
@@ -351,10 +320,21 @@ I22 = trapz(Y(:,1,1), trapz(X(1,:,1),V2V2./U0^2,2),1);
 I23 = trapz(Y(:,1,1), trapz(X(1,:,1),V2V3./U0^2,2),1);
 I33 = trapz(Y(:,1,1), trapz(X(1,:,1),V3V3./U0^2,2),1);
 
-% And infer J which is equal; just remapped to a different space
-% Compute the z/delta spacing from lambda the logarithmic spacing
-% lambda = linspace(-10, log(1/0.0001), 1000)';
-lambda = linspace(0,log(1000),50);
+% TODO Use this scaling factor to show eddy signature agains P&M Appendix C with correct scaling.
+% I11 = I11*(0.25/pi)^2;
+% I12 = I12*(0.25/pi)^2;
+% I13 = I13*(0.25/pi)^2;
+% I22 = I22*(0.25/pi)^2;
+% I23 = I23*(0.25/pi)^2;
+% I33 = I33*(0.25/pi)^2;
+
+% Concatenate to a single array for output
+I = horzcat(I11, I12, I13, I22, I23, I33);
+
+% And infer J which is equal; just remapped to logarithmic spacing covering the
+% same domain (no all the way to z=0 but close)
+lambda_min = log(1/max(zVec));
+lambda = linspace(lambda_min, log(500), 200);
 newZVec = 1./exp(lambda);
 J11 = interp1(zVec(:),I11(:),newZVec(:),'pchip',NaN);
 J12 = interp1(zVec(:),I12(:),newZVec(:),'pchip',NaN);
@@ -362,11 +342,9 @@ J13 = interp1(zVec(:),I13(:),newZVec(:),'pchip',NaN);
 J22 = interp1(zVec(:),I22(:),newZVec(:),'pchip',NaN);
 J23 = interp1(zVec(:),I23(:),newZVec(:),'pchip',NaN);
 J33 = interp1(zVec(:),I33(:),newZVec(:),'pchip',NaN);
-
-% Reorganise output to a structure
 J = [J11(:) J12(:) J13(:) J22(:) J23(:) J33(:)];
 
-% Eliminate values that were out of the bounds of our computed domain
+% Eliminate any values that were out of the bounds of our computed domain
 mask = any(isnan(J),2);
 J = J(~mask,:);
 lambda = lambda(~mask);
@@ -381,10 +359,10 @@ subplot(1,3,2)
 plot(zVec(:),[I11(:) I12(:) I13(:) I22(:) I23(:) I33(:)])
 xlabel('z/\delta')
 ylabel('Eddy Intensity Function I')
-legend({'I_1_1';'I_1_2';'I_1_3';'I_2_2';'I_3_3'})
+legend({'I_1_1';'I_1_2';'I_1_3';'I_2_2';'I_2_3';'I_3_3'})
 
 subplot(1,3,3)
-plot(lambda,J)
+plot(lambda, J)
 xlabel('\lambda')
 ylabel('Eddy Intensity Function J')
 legend({'J_1_1';'J_1_2';'J_1_3';'J_2_2';'J_2_3';'J_3_3'})

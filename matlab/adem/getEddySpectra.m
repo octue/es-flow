@@ -134,9 +134,9 @@ newZVec = (1./exp(lambda));
 newU = zeros(size(U,1), size(U,2), numel(newZVec));
 newV = zeros(size(U,1), size(U,2), numel(newZVec));
 newW = zeros(size(U,1), size(U,2), numel(newZVec));
-dispstat(['Determining type ' type 'eddy spectral function...'],'init','timestamp')
+dispstat(['Determining type ' type ' eddy spectral function...'],'init','timestamp')
 for i = 1:size(U,1)
-    dispstat(['Determining type ' type 'eddy spectral function, profile ' num2str(i) ' of ' num2str(size(U,1)) '.'],'timestamp')
+    dispstat(['Determining type ' type ' eddy spectral function, profile ' num2str(i) ' of ' num2str(size(U,1)) '.'],'timestamp')
     for j = 1:size(U,2)        
         uvec = U(i,j,:);
         vvec = V(i,j,:);
@@ -170,8 +170,7 @@ Fk = Fk./size(Fi,2);
 Dx = X(1,2,1) - X(1,1,1);
 N = size(X,2);
 k1delta = (0:N-1)*2*pi/Dx;
-disp('szk1d')
-size(k1delta)
+
 % Integrate over the y direction for Gij (eqn 40)
 zVec = reshape(newZVec,[1 1 numel(newZVec)]);
 deltaOnz = repmat(1./zVec, [1 size(Z,2) 1]);
@@ -183,7 +182,7 @@ G23 = deltaOnz .* trapz(Y(:,1,1), real(conj(Fj).*Fk), 1); clearvars Fj
 G33 = deltaOnz .* trapz(Y(:,1,1), real(conj(Fk).*Fk), 1); clearvars Fk
 
 
-if true
+if false
     raiseFigure(['Type ' type ' G11']); contourf(permute(G11,[2 3 1]),30); axis equal; colorbar; title('G11(1,i,j)'); xlabel('i'); ylabel('j');
     raiseFigure(['Type ' type ' G12']); contourf(permute(G12,[2 3 1]),30); axis equal; colorbar; title('G12(1,i,j)'); xlabel('i'); ylabel('j');
     raiseFigure(['Type ' type ' G13']); contourf(permute(G13,[2 3 1]),30); axis equal; colorbar; title('G13(1,i,j)'); xlabel('i'); ylabel('j');
@@ -203,7 +202,7 @@ g22 = k1z.*G22;
 g23 = k1z.*G23;
 g33 = k1z.*G33;
 
-if true
+if false
     raiseFigure(['Type ' type ' g11']); contourf(permute(g11,[2 3 1]),30); axis equal; colorbar; title('g11(1,i,j)'); xlabel('i'); ylabel('j');
     raiseFigure(['Type ' type ' g12']); contourf(permute(g12,[2 3 1]),30); axis equal; colorbar; title('g12(1,i,j)'); xlabel('i'); ylabel('j');
     raiseFigure(['Type ' type ' g13']); contourf(permute(g13,[2 3 1]),30); axis equal; colorbar; title('g13(1,i,j)'); xlabel('i'); ylabel('j');
