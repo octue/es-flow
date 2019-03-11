@@ -1,4 +1,4 @@
-function [g, J, k1z, lambda, X, Y, Z, U, V, W, Dx] = getEddySpectra(varargin)
+function [g, J, k1z, lambda, X, Y, Z, U, V, W, Dx] = getEddySpectra(type, J, lambda, X, Y, Z, U, V, W)
 %GETEDDYSPECTRA Returns eddy spectral functions gij, with i=1:3, j=1:3
 % These are the signatures (in terms of turbulent fluctuations) that an
 % individual structure will contribute to a boundary layer. Also calculates
@@ -50,7 +50,7 @@ function [g, J, k1z, lambda, X, Y, Z, U, V, W, Dx] = getEddySpectra(varargin)
 %       X,Y,Z           [nY, nX, nZ]
 %                                   Regular arrays as produced by meshgrid
 %                                   containing the volume coordinate points at
-%                                   which the velocity signaturee was computed.
+%                                   which the velocity signature was computed.
 %
 %       U,V,W           [nY, nX, nZ]
 %                                   Velocities in m/s induced by a single eddy
@@ -69,15 +69,6 @@ function [g, J, k1z, lambda, X, Y, Z, U, V, W, Dx] = getEddySpectra(varargin)
 %       Perry and Marusic 1995) which is quicker but more complicated than the
 %       direct integration of eqn 35 that is presently implemented.
 %
-%   [2] Presently the intensity functions are computed each time this is called.
-%       There should be a cached lookup for particular eddy types (i.e. a .mat
-%       file storing all Jij).
-%
-%   [3] Check why we're discretising the line filaments into small pieces -
-%       probably a hangover from the old biot savart code. Eliminating (setting
-%       nEl = 1) could save a lot of compute time right there (factor 51
-%       improvement).
-%
 %   [4] Possible additional modification to take into account a free surface
 %       image.
 %
@@ -87,74 +78,44 @@ function [g, J, k1z, lambda, X, Y, Z, U, V, W, Dx] = getEddySpectra(varargin)
 %       layers. Part 1. Extension of the attached eddy hypothesis J Fluid Mech
 %       vol 298 pp 361-388
 %
-% Author:                   T. H. Clark
-% Work address:             Ocean Array Systems Ltd
-%                           Hauser Forum
-%                           3 Charles Babbage Road
-%                           Cambridge
-%                           CB3 0GT
-% Email:                    tom.clark@oceanarraysystems.com
-% Website:                  www.oceanarraysystems.com
+% Author:                   T. H. Clark (github: thclark)
+% Website:                  www.octue.com
 %
-% Revision History:        	19 April 2015       Created from the deprecated getJ
-%                                               Added the string type specifier
-%                                               and reworked for new biot savart
-%                                               interface.
-%                           23 April 2014       Added volumetric grid and
-%                                               velocity signature to the output
-%                           24 April 2014       Added documentation for the full
-%                                               input of intensity functions
-%
-% Copyright (c) 2014-2015 Ocean Array Systems, All Rights Reserved.
+% Copyright (c) 2014-2019 Octue Ltd, All Rights Reserved.
 
-if numel(varargin) == 1
-    % Use the getEddyIntensity function to get velocity arrays
-    type = varargin{1};
-    [J, lambda, X, Y, Z, U, V, W] = getEddyIntensity(type);
-    
-elseif numel(varargin) == 7
-    
-    % Load already computed velocity arrays from the input, recompute J
-    [type, X, Y, Z, U, V, W] = deal(varargin{:}); clearvars varargin
-    [J, lambda] = getEddyIntensity(type, X, Y, Z, U, V, W);
-    
-elseif numel(varargin) == 9
-    % Load already computed velocity and J arrays from the input (allows for quicker
-    % modification and debug of this function without recomputation of all the
-    % eddy signatures)
-    [type, J, lambda, X, Y, Z, U, V, W] = deal(varargin{:}); clearvars varargin
-    
-else
-    error('Incorrect number of inputs')
-end
 
 % Interpolate UVW to the same locations in lambda that we have the J functions
 oldZVec = Z(1,1,:);
 newZVec = (1./exp(lambda));
-newU = zeros(size(U,1), size(U,2), numel(newZVec));
-newV = zeros(size(U,1), size(U,2), numel(newZVec));
-newW = zeros(size(U,1), size(U,2), numel(newZVec));
+newU = zeros(numel(newZVec), size(U,1), size(U,2));
+newV = zeros(numel(newZVec), size(U,1), size(U,2));
+newW = zeros(numel(newZVec), size(U,1), size(U,2));
+
+% Permute for continuous access down the interpolating direction
+U = permute(U, [3, 1, 2]);
+V = permute(V, [3, 1, 2]);
+W = permute(W, [3, 1, 2]);
 dispstat(['Determining type ' type ' eddy spectral function...'],'init','timestamp')
-for i = 1:size(U,1)
-    dispstat(['Determining type ' type ' eddy spectral function, profile ' num2str(i) ' of ' num2str(size(U,1)) '.'],'timestamp')
-    for j = 1:size(U,2)        
-        uvec = U(i,j,:);
-        vvec = V(i,j,:);
-        wvec = W(i,j,:);
-        newU(i,j,:) = interp1(oldZVec(:), uvec(:), newZVec(:), 'pchip');
-        newV(i,j,:) = interp1(oldZVec(:), vvec(:), newZVec(:), 'pchip');
-        newW(i,j,:) = interp1(oldZVec(:), wvec(:), newZVec(:), 'pchip');
+for j = 1:size(U,2)
+    dispstat(['Determining type ' type ' eddy spectral function, profile ' num2str(j) ' of ' num2str(size(U,2)) '.'],'timestamp')
+    for i = 1:size(U,1)
+        uvec = U(:,i,j);
+        vvec = V(:,i,j);
+        wvec = W(:,i,j);
+        newU(:,i,j) = interp1(oldZVec(:), uvec(:), newZVec(:), 'pchip');
+        newV(:,i,j) = interp1(oldZVec(:), vvec(:), newZVec(:), 'pchip');
+        newW(:,i,j) = interp1(oldZVec(:), wvec(:), newZVec(:), 'pchip');
     end
 end
-
-% save
-% load
+U = ipermute(newU, [3 1 2]); clearvars newU;
+V = ipermute(newV, [3 1 2]); clearvars newV;
+W = ipermute(newW, [3 1 2]); clearvars newW;
 
 % Take the fourier transform of each component along the streamwise direction
 % (dimension 2 in this case)
-Fi = fft(newU, [], 2); %clearvars newU
-Fj = fft(newV, [], 2); %clearvars newV
-Fk = fft(newW, [], 2); %clearvars newW
+Fi = fft(U, [], 2); clearvars U
+Fj = fft(V, [], 2); clearvars V
+Fk = fft(W, [], 2); clearvars W
 
 % Kill the redundant half of the FFT?
 Fi(:,ceil(end/2):end,:) = 0;
@@ -182,13 +143,13 @@ G23 = deltaOnz .* trapz(Y(:,1,1), real(conj(Fj).*Fk), 1); clearvars Fj
 G33 = deltaOnz .* trapz(Y(:,1,1), real(conj(Fk).*Fk), 1); clearvars Fk
 
 
-if false
-    raiseFigure(['Type ' type ' G11']); contourf(permute(G11,[2 3 1]),30); axis equal; colorbar; title('G11(1,i,j)'); xlabel('i'); ylabel('j');
-    raiseFigure(['Type ' type ' G12']); contourf(permute(G12,[2 3 1]),30); axis equal; colorbar; title('G12(1,i,j)'); xlabel('i'); ylabel('j');
+if true
+%     raiseFigure(['Type ' type ' G11']); contourf(permute(G11,[2 3 1]),30); axis equal; colorbar; title('G11(1,i,j)'); xlabel('i'); ylabel('j');
+%     raiseFigure(['Type ' type ' G12']); contourf(permute(G12,[2 3 1]),30); axis equal; colorbar; title('G12(1,i,j)'); xlabel('i'); ylabel('j');
     raiseFigure(['Type ' type ' G13']); contourf(permute(G13,[2 3 1]),30); axis equal; colorbar; title('G13(1,i,j)'); xlabel('i'); ylabel('j');
-    raiseFigure(['Type ' type ' G22']); contourf(permute(G22,[2 3 1]),30); axis equal; colorbar; title('G22(1,i,j)'); xlabel('i'); ylabel('j');
-    raiseFigure(['Type ' type ' G23']); contourf(permute(G23,[2 3 1]),30); axis equal; colorbar; title('G23(1,i,j)'); xlabel('i'); ylabel('j');
-    raiseFigure(['Type ' type ' G33']); contourf(permute(G33,[2 3 1]),30); axis equal; colorbar; title('G33(1,i,j)'); xlabel('i'); ylabel('j');
+%     raiseFigure(['Type ' type ' G22']); contourf(permute(G22,[2 3 1]),30); axis equal; colorbar; title('G22(1,i,j)'); xlabel('i'); ylabel('j');
+%     raiseFigure(['Type ' type ' G23']); contourf(permute(G23,[2 3 1]),30); axis equal; colorbar; title('G23(1,i,j)'); xlabel('i'); ylabel('j');
+%     raiseFigure(['Type ' type ' G33']); contourf(permute(G33,[2 3 1]),30); axis equal; colorbar; title('G33(1,i,j)'); xlabel('i'); ylabel('j');
 end
     
 % Determine k1z (k1z = k1delta * z/delta)
@@ -213,7 +174,7 @@ if false
     %raiseFigure('eddy ribbons'); clf; streamribbon(X,Y,Z,U,V,W,rand(10,1),(rand(10,1)-0.5)*2,rand(10,1)*1.5); shading interp; view(3); camlight; lighting gouraud;
 end
 
-% These are [1 x nk x nZ] arrays and we should probably put them in a reusable
+% These are [1 x nk x nZ] and we should probably put them in a more usable
 % form. Swap dimensions to [nZ x nk]:
 order = [3 2 1];
 k1z = permute(k1z,order);
@@ -231,6 +192,7 @@ g = cat(3, g11, g12, g13, g22, g23, g33);
 % alphaz as per eqn. 44. Annoyingly there is a -Inf value at the zero
 % wavenumbers in alphaz.
 alphaz = log(k1z);
+% TODO check if this is what is causing the spectral signature to span to 0
 alphaz(:,1) = alphaz(:,2);
 da = diff(alphaz,1,2);
 checkJ11 = trapz(da.*g11(:,2:end),2);
