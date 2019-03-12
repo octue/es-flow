@@ -30,7 +30,7 @@
 #include "utilities/tensors.h"
 
 using namespace utilities;
-
+using namespace cpplot;
 
 namespace es {
 
@@ -240,45 +240,190 @@ std::ostream &operator<<(std::ostream &os, AdemData const &data) {
  */
 void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b) {
 
-    // Define a range for lambda_e (lambda_e = ln(delta_c/z) = ln(1/eta))
-    Eigen::ArrayXd lambda_e = Eigen::ArrayXd::LinSpaced(10001, 0, 100);
+    // Define a range for lambda_e, choose from the smallest grid unit size to full b.l. scale (eta=1)
+    Eigen::ArrayXd lambda_e = Eigen::ArrayXd::LinSpaced(500, 0, signature_a.lambda.maxCoeff());
 
-    // Re-express as eta and flip so that eta ascends (required for the integration in reynolds_stress_13)
+    // Re-express as eta and flip so that eta ascends (required for the integration in reynolds_stress_13). Add a zero
+    // first element, so that the integration goes from zero.
     Eigen::ArrayXd eta;
     eta = -1.0 * lambda_e; // *-1 inverts 1/eta in the subsequent exp() operator
     eta = eta.exp();
-    eta.reverseInPlace();
 
-    // Get the Reynolds Stresses and flip back
+    Eigen::ArrayXd eta_with_zero = Eigen::ArrayXd(eta.rows()+1);
+    eta_with_zero.setZero();
+    eta_with_zero.bottomRows(eta.rows()) = eta.reverse();
+
+    Figure figc = Figure();
+    ScatterPlot pc = ScatterPlot();
+    pc.x = Eigen::ArrayXd::LinSpaced(eta_with_zero.rows(), 1, eta_with_zero.rows());
+    pc.y = eta_with_zero;
+    figc.add(pc);
+    figc.write("check_that_eta_ascends.json");
+
+    Figure figc1 = Figure();
+    ScatterPlot pc1 = ScatterPlot();
+    pc1.x = Eigen::ArrayXd::LinSpaced(lambda_e.rows(), 1, lambda_e.rows());
+    pc1.y = lambda_e;
+    figc1.add(pc1);
+    figc1.write("check_that_lambda_e_ascends.json");
+
+    // Get the Reynolds Stresses, trim the zero point, and flip back
     Eigen::ArrayXd r13a;
     Eigen::ArrayXd r13b;
-    reynolds_stress_13(r13a, r13b, data.beta, eta, data.kappa, data.pi_coles, data.shear_ratio, data.zeta);
+    reynolds_stress_13(r13a, r13b, data.beta, eta_with_zero, data.kappa, data.pi_coles, data.shear_ratio, data.zeta);
+    r13a = r13a.bottomRows(eta.rows());
+    r13b = r13b.bottomRows(eta.rows());
     r13a.reverseInPlace();
     r13b.reverseInPlace();
 
+    Figure figr = Figure();
+    ScatterPlot pr = ScatterPlot();
+    pr.x =  Eigen::ArrayXd::LinSpaced(r13a.rows(), 1, r13a.rows());
+    pr.y = r13a;
+    figr.add(pr);
+    figr.write("check_that_r13a_ascends_to_1_at_the_wall.json");
+    Figure figrb = Figure();
+    ScatterPlot prb = ScatterPlot();
+    prb.x =  Eigen::ArrayXd::LinSpaced(r13b.rows(), 1, r13b.rows());
+    prb.y = r13b;
+    figr.add(prb);
+    figr.write("check_that_r13b_tends_to_0_at_the_wall.json");
+
+    // Show Reynolds Stresses behaving as part of validation
+    cpplot::Figure fig = cpplot::Figure();
+    cpplot::Layout lay = cpplot::Layout();
+    cpplot::ScatterPlot pa = cpplot::ScatterPlot();
+    pa.x = eta;
+    pa.y = -1.0*r13a;
+    pa.name = "Type A";
+    cpplot::ScatterPlot pb = cpplot::ScatterPlot();
+    pb.x = eta;
+    pb.y = -1.0*r13b;
+    pb.name = "Type B";
+    cpplot::ScatterPlot pab = cpplot::ScatterPlot();
+    pab.x = eta;
+    pab.y = -1.0*(r13a + r13b);
+    pab.name = "Total";
+    fig.add(pa);
+    fig.add(pb);
+    fig.add(pab);
+    lay.xTitle("$z/\\delta_{c}$");
+    lay.yTitle("$-\\overline{u_1u_3}/U_\\tau^2$");
+    fig.setLayout(lay);
+    fig.write("check_r13_analytic.json");
+
+    // Double check plot of J13
+    Figure figc2 = Figure();
+    ScatterPlot pc2 = ScatterPlot();
+    pc2.x = signature_a.lambda;
+    pc2.y = signature_a.j.col(2);
+    pc2.name = "Type A";
+    figc2.add(pc2);
+    figc2.write("check_that_j13a_behaves.json");
+    Figure figc3 = Figure();
+    ScatterPlot pc3 = ScatterPlot();
+    pc3.x = signature_a.lambda;
+    pc3.y = signature_b.j.col(2);
+    pc3.name = "Type B";
+    figc3.add(pc3);
+    Layout layc3 = Layout();
+    layc3.xTitle("$\\lambda");
+    layc3.xTitle("$J_{13}$");
+    figc3.write("check_that_j13b_behaves.json");
+
     // Extract J13 signature terms and trim so that array sizes match after the deconv
-    auto len = signature_a.j.rows() - 2;
-    Eigen::ArrayXd j13a = signature_a.j.col(2).tail(len);
-    Eigen::ArrayXd j13b = signature_b.j.col(2).tail(len);
+//    auto len = signature_a.j.rows() - 2;
+//    Eigen::ArrayXd j13a = signature_a.j.col(2).tail(len);
+//    Eigen::ArrayXd j13b = signature_b.j.col(2).tail(len);
+    auto len = signature_a.j.rows();
+    Eigen::ArrayXd j13a = signature_a.j.col(2);
+    Eigen::ArrayXd j13b = signature_b.j.col(2);
+    Eigen::ArrayXd j13a_tmp(len);
+    Eigen::ArrayXd j13b_tmp(len);
+
+
+
+//    for (auto i = 0; i<len; i++) {
+//        if (j13a(i) > -0.00001) {
+//            j13a(i) = -0.00001;
+//        }
+//        if (j13b(i) > -0.00001) {
+//            j13b(i) = -0.00001;
+//        }
+//    }
+
+    // We multiply both Reynolds Stresses and Signatures by -1. The distributions are entirely negative, which
+    // destabilises the deconvolution algorithm (it iteratively normalises on the first coefficient).
+//    r13a = -1.0 * r13a;
+//    r13b = -1.0 * r13b;
+//    j13a = -1.0 * j13a * pow((0.25 / M_PI), 2.0);
+//    j13b = -1.0 * j13b * pow((0.25 / M_PI), 2.0);
+
+//    // Deconvolution is unstable where there are small values of j (a divide-by-0 error, effectively) so limit the
+//    // kernel to sensible magnitude elements.
+//    double cutoff_factor = 0.001;
+//    double cutoff_j13a = j13a.minCoeff() * cutoff_factor;
+//    double cutoff_j13b = j13b.minCoeff() * cutoff_factor;
+//    Eigen::Index ctr = 0;
+//    for (auto i = 0; i < j13a.rows(); i++) {
+//        if ((j13a(i) <= cutoff_j13a) && (j13b(i) <= cutoff_j13b)) {
+//            j13a_tmp(ctr) = j13a(i);
+//            j13b_tmp(ctr) = j13b(i);
+//            ctr++;
+//        }
+//    };
+//    j13a = j13a_tmp.head(ctr);
+//    j13b = j13b_tmp.head(ctr);
 
     // Deconvolve out the A and B structure contributions to the Reynolds Stresses
     // NOTE: it's actually -1*T^2w in this variable
     Eigen::ArrayXd minus_t2wa;
     Eigen::ArrayXd minus_t2wb;
-    deconv(minus_t2wa, r13a, j13a);
-    deconv(minus_t2wb, r13b, j13b);
+
+
+
+    minus_t2wa = utilities::lowpass_fft_deconv(r13a, j13a, "Type_A");
+    minus_t2wb = utilities::lowpass_fft_deconv(r13b, j13b, "Type_B");
+//    deconv(minus_t2wa, r13a, j13a);
+//    deconv(minus_t2wb, r13b, j13b);
+//    std::cout << "r13a = [" << r13a << "];" << std::endl;
+//    std::cout << "r13b = [" << r13b << "];" << std::endl;
+//    std::cout << "j13a = [" << j13a << "];" << std::endl;
+//    std::cout << "j13b = [" << j13b << "];" << std::endl;
+//    std::cout << "minus_t2wa = [" << minus_t2wa << "];" << std::endl;
+//    std::cout << "minus_t2wb = [" << minus_t2wb << "];" << std::endl;
+
+    // Create a plot to show the t2w terms
+    Figure figt = Figure();
+    ScatterPlot pt = ScatterPlot();
+    pt.x = lambda_e;
+    pt.y = minus_t2wa;
+    pt.name = "t2wa";
+    figt.add(pt);
+    ScatterPlot pt2 = ScatterPlot();
+    pt2.x = lambda_e;
+    pt2.y = minus_t2wb;
+    pt2.name = "t2wb";
+    figt.add(pt2);
+    Layout layt = Layout();
+    layt.xTitle("lambda_e");
+    figt.setLayout(layt);
+    figt.write("check_t2w_plot.json");
+
+
 
     // Extend by padding out to the same length as lambda_e.
     // The T^2w distributions converge to a constant at high lambda (close to the wall) so padding with the last value
     // in the vector is physically valid. This will result in the Reynolds Stresses and Spectra, which are obtained by
     // convolution, having the same number of points in the z direction as the axes variables (eta, lambda_e, etc)
-    double pad_value_a = minus_t2wa(minus_t2wa.rows()-1);
-    double pad_value_b = minus_t2wb(minus_t2wb.rows()-1);
-    auto last_n = 10001 - minus_t2wa.rows();
-    minus_t2wa.conservativeResize(10001,1);
-    minus_t2wb.conservativeResize(10001,1);
-    minus_t2wa.tail(last_n) = pad_value_a;
-    minus_t2wb.tail(last_n) = pad_value_b;
+//    double pad_value_a = minus_t2wa(minus_t2wa.rows()-1);
+//    double pad_value_b = minus_t2wb(minus_t2wb.rows()-1);
+//
+//    auto last_n = lambda_e.rows() - minus_t2wa.rows();
+//    minus_t2wa.conservativeResize(lambda_e.rows(),1);
+//    minus_t2wb.conservativeResize(lambda_e.rows(),1);
+//    minus_t2wa.tail(last_n) = pad_value_a;
+//    minus_t2wb.tail(last_n) = pad_value_b;
 
     // Store in the data object
     data.eta = eta;
@@ -369,6 +514,7 @@ void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, con
     // Trim the zero-padded ends
     data.reynolds_stress_a = data.reynolds_stress_a.topRows(data.lambda_e.rows());
     data.reynolds_stress_b = data.reynolds_stress_b.topRows(data.lambda_e.rows());
+//    std::cout << "BODGED HERE _ REMOVE!!!!!" << std::endl;
     data.reynolds_stress = data.reynolds_stress_a + data.reynolds_stress_b;
 
     // FlipUD to match the reversal of z compared to the lambda_e basis on which these are calculated
@@ -465,7 +611,8 @@ AdemData adem(const double beta,
               const double u_inf,
               const double zeta,
               const EddySignature& signature_a,
-              const EddySignature& signature_b){
+              const EddySignature& signature_b,
+              bool compute_spectra=true){
 
     // Data will contain computed outputs and useful small variables from the large signature files
     AdemData data = AdemData();
@@ -497,7 +644,9 @@ AdemData adem(const double beta,
     get_reynolds_stresses(data, signature_a, signature_b);
 
     // Determine Spectra by convolution and add them to the data structure
-    get_spectra(data, signature_a, signature_b);
+    if (compute_spectra) {
+        get_spectra(data, signature_a, signature_b);
+    }
 
     return data;
 
