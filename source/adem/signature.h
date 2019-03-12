@@ -105,8 +105,6 @@ public:
 
     /** @brief Save eddy signature data to a *.mat file.
      *
-     * @note NOT IMPLEMENTED YET
-     *
      * @param[in] filename File name (including relative or absolute path)
      */
     void save(std::string file_name) {
@@ -150,12 +148,14 @@ public:
         return result;
     }
 
-    /** @brief Get k1z wavenumber array (wavenumber space for each vertical coord, e.g. 50 x 801)
+    /** @brief Get k1z wavenumber array (wavenumber space for each vertical coord, e.g. 50 x 801).
      *
      * @param[in] eta vertical heights at which to get the k1z value, normalised (i.e. z/delta)
      * @return k1z the wavenumber-length matrix
      */
     Eigen::ArrayXXd k1z(Eigen::ArrayXd &eta) const {
+
+        // TODO we store eta, so can use it directly. Make optional
 
         double dx = domain_spacing[0];
         auto nx = Eigen::Index((domain_extents(0,1) - domain_extents(0,0)) / dx) + 1;
@@ -173,7 +173,7 @@ public:
         return k1z;
     }
 
-    /** @brief Calculate eddy intensity functions Jij and gij, with i=1:3, j = 1:3
+    /** @brief Calculate eddy intensity functions @f$J_{i,j}@f$ and @f$g_{i,j}@f$.
      *
      * Eddy intensity functions @f$J_{i,j}(\lambda)@f$ are computed for type ``A``, ``B1``, ``B2``, ``B3`` or ``B4``,
      * which are the eddies described in Ref 1. These functions are the signatures (in terms of turbulent fluctuations)
