@@ -13,8 +13,8 @@ set(SOURCE_FILES
         relations/spectra.h
         profile.cpp
         profile.h
-        readers.h
-        variable_readers.h
+        io/readers.h
+        io/variable_readers.h
         utilities/conv.h
         utilities/cumtrapz.h
         utilities/filter.h

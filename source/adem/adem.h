@@ -22,7 +22,7 @@
 
 #include "adem/signature.h"
 #include "profile.h"
-#include "variable_readers.h"
+#include "io/variable_readers.h"
 #include "relations/stress.h"
 #include "relations/velocity.h"
 #include "utilities/conv.h"

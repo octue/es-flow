@@ -26,10 +26,9 @@
 #include "utilities/filter.h"
 #include "utilities/conv.h"
 #include "utilities/tensors.h"
-#include "variable_readers.h"
+#include "io/variable_readers.h"
 
 #include "cpplot.h"
-
 
 
 typedef Eigen::Array<double, 5, 3> Array53d;
@@ -108,8 +107,36 @@ public:
      * @param[in] filename File name (including relative or absolute path)
      */
     void save(std::string file_name) {
-        std::cout << "Writing signature data..." << std::endl;
-        throw std::invalid_argument("Error writing mat file - function not implemented");
+        std::cout << "Writing signature data to file " << file_name << std::endl;
+
+        static enum mat_ft            mat_file_ver = MAT_FT_DEFAULT;
+        static enum matio_compression compression  = MAT_COMPRESSION_NONE;
+        mat_t *mat = Mat_Create73(file_name.c_str(), NULL);
+        if ( !mat ) {
+            throw std::runtime_error("Unable to create MAT file");
+        }
+//        matvar_t *matvar;
+
+
+        // Open the MAT file for reading
+        mat_t *matfp = Mat_Open(file_name.c_str(), MAT_ACC_RDONLY);
+        if (matfp == NULL) {
+            std::string msg = "Error reading MAT file: ";
+            throw std::invalid_argument(msg + file_name);
+        }
+
+        // Use the variable readers to assist
+        eddy_type = readString(matfp, "type", print_var);
+        lambda = readVectorXd(matfp, "lambda", print_var);
+        domain_spacing = readArray3d(matfp, "domain_spacing", print_var);
+        domain_extents = readArray32d(matfp, "domain_extents", print_var);
+        g = readTensor3d(matfp, "g", print_var);
+        j = readArrayXXd(matfp, "J", print_var);
+
+        // Close the file
+        Mat_Close(matfp);
+        std::cout << "Finished reading eddy signature (Type " + eddy_type + ")" << std::endl;
+    }
     }
 
     /** @brief Define overloaded + (plus) operator for eddy signatures.
