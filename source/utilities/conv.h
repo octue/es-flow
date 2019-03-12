@@ -235,10 +235,18 @@ Eigen::VectorXd lowpass_fft_deconv(const Eigen::VectorXd &input, const Eigen::Ve
     out.setZero();
     fft.inv(out, inter);
 
-
+    // Smooth the output
+    std::cout << "Smoothing the out" <<std::endl;
+    Eigen::ArrayXd inter_sm_imag(out.size());
+    Eigen::ArrayXd out_sm(out.size());
+    out_sm.segment(2, M-5) = (out.segment(0, M-5) + out.segment(1, M-5) + out.segment(2, M-5) + out.segment(3, M-5)  + out.segment(4, M-5)) / 5.0;
+    out_sm(1) = (out(0) + out(1) + out(2))/3.0;
+    out_sm(M-2) = (out(M-3) + out(M-2) + out(M-1))/3.0;
+    out = out_sm;
 
     // Crop to the size of the input vector
     out = out.topRows(input_len);
+
     return out;
 }
 

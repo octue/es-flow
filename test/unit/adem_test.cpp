@@ -485,7 +485,7 @@ void getStressTraces(
     std::cout << data << std::endl;
 
     r11.x = data.eta;
-    r11.y = data.reynolds_stress.col(0);
+    r11.y = data.reynolds_stress.col(0).reverse();
     r11.name = name;
     r11.setDash("solid");
     r11.setColor(color);
@@ -493,7 +493,7 @@ void getStressTraces(
     std::cout << "trace1 " << name << std::endl;
 
     r22.x = data.eta;
-    r22.y = data.reynolds_stress.col(3);
+    r22.y = data.reynolds_stress.col(3).reverse();
     r22.name = name;
     r22.setDash("solid");
     r22.setColor(color);
@@ -501,7 +501,7 @@ void getStressTraces(
     std::cout << "trace2 " << name << std::endl;
 
     r33.x = data.eta;
-    r33.y = data.reynolds_stress.col(5);
+    r33.y = data.reynolds_stress.col(5).reverse();
     r33.name = name;
     r33.setDash("solid");
     r33.setColor(color);
@@ -573,37 +573,37 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     EddySignature signature_a = EddySignature();
     EddySignature signature_b = EddySignature();
     load_ensemble(signature_a, signature_b, data_path, is_coarse);
-    
+
     // Run ADEM for all measurement locations in the "10APG" flow case in Perry and Marusic 1995
-//    ScatterPlot r11_trace_1 = ScatterPlot();
-//    ScatterPlot r22_trace_1 = ScatterPlot();
-//    ScatterPlot r33_trace_1 = ScatterPlot();
-//    getStressTraces(r11_trace_1, r22_trace_1, r33_trace_1, signature_a, signature_b, 3.23, 38.4, 15.32, 7.16, "diamond", "es-flow, $R_\\theta = 7257$", "#1f77b4");
-//
-//    ScatterPlot r11_trace_2 = ScatterPlot();
-//    ScatterPlot r22_trace_2 = ScatterPlot();
-//    ScatterPlot r33_trace_2 = ScatterPlot();
-//    getStressTraces(r11_trace_2, r22_trace_2, r33_trace_2, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "lefttriangle", "es-flow, $R_\\theta = 6395$", "#ff7f0e");
+    ScatterPlot r11_trace_1 = ScatterPlot();
+    ScatterPlot r22_trace_1 = ScatterPlot();
+    ScatterPlot r33_trace_1 = ScatterPlot();
+    getStressTraces(r11_trace_1, r22_trace_1, r33_trace_1, signature_a, signature_b, 3.23, 38.4, 15.32, 7.16, "diamond", "es-flow, $R_\\theta = 7257$", "#1f77b4");
+
+    ScatterPlot r11_trace_2 = ScatterPlot();
+    ScatterPlot r22_trace_2 = ScatterPlot();
+    ScatterPlot r33_trace_2 = ScatterPlot();
+    getStressTraces(r11_trace_2, r22_trace_2, r33_trace_2, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "lefttriangle", "es-flow, $R_\\theta = 6395$", "#ff7f0e");
 
     ScatterPlot r11_trace_3 = ScatterPlot();
     ScatterPlot r22_trace_3 = ScatterPlot();
     ScatterPlot r33_trace_3 = ScatterPlot();
     getStressTraces(r11_trace_3, r22_trace_3, r33_trace_3, signature_a, signature_b, 1.87, 31.5, 4.64, 2.90, "uptriangle", "es-flow, $R_\\theta = 5395$", "#2ca02c");
 
-//    ScatterPlot r11_trace_4 = ScatterPlot();
-//    ScatterPlot r22_trace_4 = ScatterPlot();
-//    ScatterPlot r33_trace_4 = ScatterPlot();
-//    getStressTraces(r11_trace_4, r22_trace_4, r33_trace_4, signature_a, signature_b, 1.19, 28.1, 2.18, 1.45, "square", "es-flow, $R_\\theta = 4155$", "#d62728");
-//
-//    ScatterPlot r11_trace_5 = ScatterPlot();
-//    ScatterPlot r22_trace_5 = ScatterPlot();
-//    ScatterPlot r33_trace_5 = ScatterPlot();
-//    getStressTraces(r11_trace_5, r22_trace_5, r33_trace_5, signature_a, signature_b, 0.68, 25.4, 0.94, 0.65, "downtriangle", "es-flow, $R_\\theta = 3153$", "#9467bd");
-//
-//    ScatterPlot r11_trace_6 = ScatterPlot();
-//    ScatterPlot r22_trace_6 = ScatterPlot();
-//    ScatterPlot r33_trace_6 = ScatterPlot();
-//    getStressTraces(r11_trace_6, r22_trace_6, r33_trace_6, signature_a, signature_b, 0.42, 23.6, 0.15, 0.0, "circle", "es-flow, $R_\\theta = 2206$", "#e377c2");
+    ScatterPlot r11_trace_4 = ScatterPlot();
+    ScatterPlot r22_trace_4 = ScatterPlot();
+    ScatterPlot r33_trace_4 = ScatterPlot();
+    getStressTraces(r11_trace_4, r22_trace_4, r33_trace_4, signature_a, signature_b, 1.19, 28.1, 2.18, 1.45, "square", "es-flow, $R_\\theta = 4155$", "#d62728");
+
+    ScatterPlot r11_trace_5 = ScatterPlot();
+    ScatterPlot r22_trace_5 = ScatterPlot();
+    ScatterPlot r33_trace_5 = ScatterPlot();
+    getStressTraces(r11_trace_5, r22_trace_5, r33_trace_5, signature_a, signature_b, 0.68, 25.4, 0.94, 0.65, "downtriangle", "es-flow, $R_\\theta = 3153$", "#9467bd");
+
+    ScatterPlot r11_trace_6 = ScatterPlot();
+    ScatterPlot r22_trace_6 = ScatterPlot();
+    ScatterPlot r33_trace_6 = ScatterPlot();
+    getStressTraces(r11_trace_6, r22_trace_6, r33_trace_6, signature_a, signature_b, 0.42, 23.6, 0.15, 0.0, "circle", "es-flow, $R_\\theta = 2206$", "#e377c2");
 
     
     // Digitally extracted from Perry and Marusic 1995 Part 1, Figure 6a:
@@ -696,22 +696,22 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     std::cout << "trace4 " << std::endl;
 
     // Traces from the paper
-//    fig_6a.add(trace1_6a);
-//    fig_6a.add(trace2_6a);
+    fig_6a.add(trace1_6a);
+    fig_6a.add(trace2_6a);
     fig_6a.add(trace3_6a);
     std::cout << "trace5 " << std::endl;
-//    fig_6a.add(trace4_6a);
-//    fig_6a.add(trace5_6a);
-//    fig_6a.add(trace6_6a);
+    fig_6a.add(trace4_6a);
+    fig_6a.add(trace5_6a);
+    fig_6a.add(trace6_6a);
 
     // Traces recreated with es-flow
-//    fig_6a.add(r11_trace_1);
-//    fig_6a.add(r11_trace_2);
+    fig_6a.add(r11_trace_1);
+    fig_6a.add(r11_trace_2);
     fig_6a.add(r11_trace_3);
     std::cout << "trac6" << std::endl;
-//    fig_6a.add(r11_trace_4);
-//    fig_6a.add(r11_trace_5);
-//    fig_6a.add(r11_trace_6);
+    fig_6a.add(r11_trace_4);
+    fig_6a.add(r11_trace_5);
+    fig_6a.add(r11_trace_6);
     Layout lay_6a = Layout();
     lay_6a.xLog();
     lay_6a.xTitle("$z/\\delta_{c}$");
@@ -730,20 +730,20 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     Figure fig_6b = Figure();
 
     // Traces from the paper
-//    fig_6b.add(trace1_6b);
-//    fig_6b.add(trace2_6b);
+    fig_6b.add(trace1_6b);
+    fig_6b.add(trace2_6b);
     fig_6b.add(trace3_6b);
-//    fig_6b.add(trace4_6b);
-//    fig_6b.add(trace5_6b);
-//    fig_6b.add(trace6_6b);
+    fig_6b.add(trace4_6b);
+    fig_6b.add(trace5_6b);
+    fig_6b.add(trace6_6b);
 
     // Traces recreated with es-flow
-//    fig_6b.add(r22_trace_1);
-//    fig_6b.add(r22_trace_2);
+    fig_6b.add(r22_trace_1);
+    fig_6b.add(r22_trace_2);
     fig_6b.add(r22_trace_3);
-//    fig_6b.add(r22_trace_4);
-//    fig_6b.add(r22_trace_5);
-//    fig_6b.add(r22_trace_6);
+    fig_6b.add(r22_trace_4);
+    fig_6b.add(r22_trace_5);
+    fig_6b.add(r22_trace_6);
 
     Layout lay_6b = Layout();
     lay_6b.xLog();
@@ -763,20 +763,20 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     Figure fig_6c = Figure();
 
     // Traces from the paper
-//    fig_6c.add(trace1_6c);
-//    fig_6c.add(trace2_6c);
+    fig_6c.add(trace1_6c);
+    fig_6c.add(trace2_6c);
     fig_6c.add(trace3_6c);
-//    fig_6c.add(trace4_6c);
-//    fig_6c.add(trace5_6c);
-//    fig_6c.add(trace6_6c);
+    fig_6c.add(trace4_6c);
+    fig_6c.add(trace5_6c);
+    fig_6c.add(trace6_6c);
 
     // Traces recreated with es-flow
-//    fig_6c.add(r33_trace_1);
-//    fig_6c.add(r33_trace_2);
+    fig_6c.add(r33_trace_1);
+    fig_6c.add(r33_trace_2);
     fig_6c.add(r33_trace_3);
-//    fig_6c.add(r33_trace_4);
-//    fig_6c.add(r33_trace_5);
-//    fig_6c.add(r33_trace_6);
+    fig_6c.add(r33_trace_4);
+    fig_6c.add(r33_trace_5);
+    fig_6c.add(r33_trace_6);
 
     Layout lay_6c = Layout();
     lay_6c.xTitle("$z/\\delta_{c}$");

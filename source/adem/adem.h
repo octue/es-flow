@@ -240,34 +240,76 @@ std::ostream &operator<<(std::ostream &os, AdemData const &data) {
  */
 void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b) {
 
-    // Define a range for lambda_e, choose from the smallest grid unit size to full b.l. scale (eta=1)
-    Eigen::ArrayXd lambda_e = Eigen::ArrayXd::LinSpaced(500, 0, signature_a.lambda.maxCoeff());
+    // Define a range for lambda, choose from the smallest grid unit size to full b.l. scale (eta=1)
+    //    Eigen::ArrayXd lambda_e = Eigen::ArrayXd::LinSpaced(500, 0, signature_a.lambda.maxCoeff());
+    /* Let's talk eddy scales.
+     * lambda_e is the scale of a given eddy, which contributes to the stresses and spectra in the boundary layer.
+     * lambda, as far as the signatures are concerned, is mapped for a domain spanning the actual eddy.
+     * For a signature, values lambda < 0 are valid; since an eddy exerts an influence a short distance above itself.
+     * lambda, as far as the deconvolution is concerned, is mapped over the whole boundary layer.
+     * For a boundary layer profile, values < 0 are valid but worthless: R_ij and S_ij must definitively be 0 outside
+     * the boundary layer.
+     *
+     * Here, we need a lambda distribution which is valid. So we have two strategies:
+     *  - Take the part of signature.lambda which is >0 and use that for the deconvolution.
+     *  - Take the whole of signature.lambda and ensure R_ij_ and S_ij are 0 outside the boundary layer.
+     *
+     * Let's do the first; as it'll lead to shorter t^2w vector and therefore be more computationally efficient at the
+     * next step (which involves many convolutions).
+     *
+     * Why don't we define a totally separate lambda distribution? Because for teh deconvolution we need to ensure the
+     * distributions are mapped consistently (i.e. d_lambda is consistent) to avoid biasing the result.
+     */
+    Eigen::Index start_idx = 0;
+    for (Eigen::Index i=0; i<signature_a.lambda.rows(); i++) {
+        if (signature_a.lambda(i) >= 0) {
+            start_idx = i;
+            break;
+        }
+    }
 
-    // Re-express as eta and flip so that eta ascends (required for the integration in reynolds_stress_13). Add a zero
-    // first element, so that the integration goes from zero.
-    Eigen::ArrayXd eta;
-    eta = -1.0 * lambda_e; // *-1 inverts 1/eta in the subsequent exp() operator
-    eta = eta.exp().reverse();
+    Eigen::Index n_lambda = signature_a.lambda.rows() - start_idx;
+    Eigen::ArrayXd lambda = signature_a.lambda.tail(n_lambda);
 
+    // But we upsample and see what happens
+//    lambda = Eigen::ArrayXd::LinSpaced(n_lambda*4, lambda.minCoeff(), lambda.maxCoeff());
+//    n_lambda = lambda.size();
+    Eigen::ArrayXd eta = signature_a.eta.tail(n_lambda);
+
+    // Store real space vertical coordinates too
+//    Eigen::ArrayXd eta = lambda.exp().inverse();
+
+
+    // Get an ascending version of eta, containing the point eta=0, for use in determining R13
     Eigen::ArrayXd eta_with_zero = Eigen::ArrayXd(eta.rows()+1);
     eta_with_zero.setZero();
-    eta_with_zero.bottomRows(eta.rows()) = eta;
+    eta_with_zero.bottomRows(eta.rows()) = eta.reverse();
 
+    // Produce visual check that eta is ascending exponentially
     Figure figc = Figure();
     ScatterPlot pc = ScatterPlot();
     pc.x = Eigen::ArrayXd::LinSpaced(eta_with_zero.rows(), 1, eta_with_zero.rows());
     pc.y = eta_with_zero;
     figc.add(pc);
+    Layout layc = Layout("Check that eta ascends exponentially");
+    layc.xTitle("Row number");
+    layc.yTitle("$\\eta$");
+    figc.setLayout(layc);
     figc.write("check_that_eta_ascends.json");
 
+    // Produce a visual check that lambda is ascending linearly
     Figure figc1 = Figure();
     ScatterPlot pc1 = ScatterPlot();
-    pc1.x = Eigen::ArrayXd::LinSpaced(lambda_e.rows(), 1, lambda_e.rows());
-    pc1.y = lambda_e;
+    pc1.x = Eigen::ArrayXd::LinSpaced(lambda.rows(), 1, lambda.rows());
+    pc1.y = lambda;
     figc1.add(pc1);
-    figc1.write("check_that_lambda_e_ascends.json");
+    Layout layc1 = Layout("Check that lambda ascends linearly");
+    layc1.xTitle("Row number");
+    layc1.yTitle("$\\lambda$");
+    figc1.setLayout(layc1);
+    figc1.write("check_that_lambda_ascends.json");
 
-    // Get the Reynolds Stresses, trim the zero point, and flip back
+    // Get the Reynolds Stresses, trim the zero point, and reverse so the ordering is consistent with lambda coordinates
     Eigen::ArrayXd r13a;
     Eigen::ArrayXd r13b;
     reynolds_stress_13(r13a, r13b, data.beta, eta_with_zero, data.kappa, data.pi_coles, data.shear_ratio, data.zeta);
@@ -276,31 +318,18 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     r13a.reverseInPlace();
     r13b.reverseInPlace();
 
-    Figure figr = Figure();
-    ScatterPlot pr = ScatterPlot();
-    pr.x =  Eigen::ArrayXd::LinSpaced(r13a.rows(), 1, r13a.rows());
-    pr.y = r13a;
-    figr.add(pr);
-    figr.write("check_that_r13a_ascends_to_1_at_the_wall.json");
-    Figure figrb = Figure();
-    ScatterPlot prb = ScatterPlot();
-    prb.x =  Eigen::ArrayXd::LinSpaced(r13b.rows(), 1, r13b.rows());
-    prb.y = r13b;
-    figr.add(prb);
-    figr.write("check_that_r13b_tends_to_0_at_the_wall.json");
-
     // Show Reynolds Stresses behaving as part of validation
-    cpplot::Figure fig = cpplot::Figure();
-    cpplot::Layout lay = cpplot::Layout();
-    cpplot::ScatterPlot pa = cpplot::ScatterPlot();
+    Figure fig = Figure();
+    Layout lay = Layout();
+    ScatterPlot pa = ScatterPlot();
     pa.x = eta;
     pa.y = -1.0*r13a;
     pa.name = "Type A";
-    cpplot::ScatterPlot pb = cpplot::ScatterPlot();
+    ScatterPlot pb = ScatterPlot();
     pb.x = eta;
     pb.y = -1.0*r13b;
     pb.name = "Type B";
-    cpplot::ScatterPlot pab = cpplot::ScatterPlot();
+    ScatterPlot pab = ScatterPlot();
     pab.x = eta;
     pab.y = -1.0*(r13a + r13b);
     pab.name = "Total";
@@ -312,45 +341,29 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     fig.setLayout(lay);
     fig.write("check_r13_analytic.json");
 
-    // Double check plot of J13
-    Figure figc2 = Figure();
-    ScatterPlot pc2 = ScatterPlot();
-    pc2.x = signature_a.lambda;
-    pc2.y = signature_a.j.col(2);
-    pc2.name = "Type A";
-    figc2.add(pc2);
-    figc2.write("check_that_j13a_behaves.json");
-    Figure figc3 = Figure();
-    ScatterPlot pc3 = ScatterPlot();
-    pc3.x = signature_a.lambda;
-    pc3.y = signature_b.j.col(2);
-    pc3.name = "Type B";
-    figc3.add(pc3);
-    Layout layc3 = Layout();
-    layc3.xTitle("$\\lambda");
-    layc3.xTitle("$J_{13}$");
-    figc3.write("check_that_j13b_behaves.json");
+    // Double check J13 (although this should've already been checked at the eddy signature stage)
+    Figure figj = Figure();
+    ScatterPlot pja = ScatterPlot();
+    pja.x = signature_a.lambda;
+    pja.y = signature_a.j.col(2);
+    pja.name = "Type A";
+    figj.add(pja);
+    ScatterPlot pjb = ScatterPlot();
+    pjb.x = signature_a.lambda;
+    pjb.y = signature_b.j.col(2);
+    pjb.name = "Type B";
+    figj.add(pjb);
+    Layout layj = Layout();
+    layj.xTitle("$\\lambda");
+    layj.yTitle("$J_{13}$");
+    figj.setLayout(layj);
+    figj.write("check_j13_behaves.json");
 
-    // Extract J13 signature terms and trim so that array sizes match after the deconv
-//    auto len = signature_a.j.rows() - 2;
-//    Eigen::ArrayXd j13a = signature_a.j.col(2).tail(len);
-//    Eigen::ArrayXd j13b = signature_b.j.col(2).tail(len);
     auto len = signature_a.j.rows();
     Eigen::ArrayXd j13a = signature_a.j.col(2);
     Eigen::ArrayXd j13b = signature_b.j.col(2);
     Eigen::ArrayXd j13a_tmp(len);
     Eigen::ArrayXd j13b_tmp(len);
-
-
-
-//    for (auto i = 0; i<len; i++) {
-//        if (j13a(i) > -0.00001) {
-//            j13a(i) = -0.00001;
-//        }
-//        if (j13b(i) > -0.00001) {
-//            j13b(i) = -0.00001;
-//        }
-//    }
 
     // We multiply both Reynolds Stresses and Signatures by -1. The distributions are entirely negative, which
     // destabilises the deconvolution algorithm (it iteratively normalises on the first coefficient).
@@ -359,31 +372,14 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
 //    j13a = -1.0 * j13a * pow((0.25 / M_PI), 2.0);
 //    j13b = -1.0 * j13b * pow((0.25 / M_PI), 2.0);
 
-//    // Deconvolution is unstable where there are small values of j (a divide-by-0 error, effectively) so limit the
-//    // kernel to sensible magnitude elements.
-//    double cutoff_factor = 0.001;
-//    double cutoff_j13a = j13a.minCoeff() * cutoff_factor;
-//    double cutoff_j13b = j13b.minCoeff() * cutoff_factor;
-//    Eigen::Index ctr = 0;
-//    for (auto i = 0; i < j13a.rows(); i++) {
-//        if ((j13a(i) <= cutoff_j13a) && (j13b(i) <= cutoff_j13b)) {
-//            j13a_tmp(ctr) = j13a(i);
-//            j13b_tmp(ctr) = j13b(i);
-//            ctr++;
-//        }
-//    };
-//    j13a = j13a_tmp.head(ctr);
-//    j13b = j13b_tmp.head(ctr);
-
     // Deconvolve out the A and B structure contributions to the Reynolds Stresses
     // NOTE: it's actually -1*T^2w in this variable
     Eigen::ArrayXd minus_t2wa;
     Eigen::ArrayXd minus_t2wb;
+    double stability = -0.050;
+    minus_t2wa = utilities::lowpass_fft_deconv(r13a, j13a, "Type_A", stability);
+    minus_t2wb = utilities::lowpass_fft_deconv(r13b, j13b, "Type_B", stability);
 
-
-
-    minus_t2wa = utilities::lowpass_fft_deconv(r13a, j13a, "Type_A");
-    minus_t2wb = utilities::lowpass_fft_deconv(r13b, j13b, "Type_B");
 //    deconv(minus_t2wa, r13a, j13a);
 //    deconv(minus_t2wb, r13b, j13b);
 //    std::cout << "r13a = [" << r13a << "];" << std::endl;
@@ -396,19 +392,19 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     // Create a plot to show the t2w terms
     Figure figt = Figure();
     ScatterPlot pt = ScatterPlot();
-    pt.x = lambda_e;
+    pt.x = lambda;
     pt.y = minus_t2wa;
-    pt.name = "t2wa";
+    pt.name = "$-T_{A}^2(\\lambda - \\lambda_E)\\omega_{A}(\\lambda-\\lambda_E)$";
     figt.add(pt);
     ScatterPlot pt2 = ScatterPlot();
-    pt2.x = lambda_e;
+    pt2.x = lambda;
     pt2.y = minus_t2wb;
-    pt2.name = "t2wb";
+    pt2.name = "$-T_{B}^2(\\lambda - \\lambda_E)\\omega_{B}(\\lambda-\\lambda_E)$";
     figt.add(pt2);
     Layout layt = Layout();
-    layt.xTitle("lambda_e");
+    layt.xTitle("$\\lambda");
     figt.setLayout(layt);
-    figt.write("check_t2w_plot.json");
+    figt.write("check_t2w.json");
 
 
 
@@ -427,7 +423,8 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
 
     // Store in the data object
     data.eta = eta;
-    data.lambda_e = lambda_e;
+    // TODO it's not lambda e!!!
+    data.lambda_e = lambda;
     data.t2wa = minus_t2wa.matrix();
     data.t2wb = minus_t2wb.matrix();
 
