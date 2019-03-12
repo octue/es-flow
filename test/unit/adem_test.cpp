@@ -91,7 +91,7 @@ TEST_F(AdemTest, test_get_type_a_eddy_intensity) {
     int n_lambda = 200;
     double dx = 0.01;
     EddySignature sig = EddySignature();
-    sig.getEddyIntensity("A", n_lambda, dx);
+    sig.computeSignature("A", n_lambda, dx);
     plotEddyIntensities(sig, "A");
 };
 
@@ -100,7 +100,7 @@ TEST_F(AdemTest, test_get_type_b1_eddy_intensity) {
     int n_lambda = 200;
     double dx = 0.01;
     EddySignature sig = EddySignature();
-    sig.getEddyIntensity("B1", n_lambda, dx);
+    sig.computeSignature("B1", n_lambda, dx);
     plotEddyIntensities(sig, "B1");
 };
 
@@ -109,7 +109,7 @@ TEST_F(AdemTest, test_get_type_b2_eddy_intensity) {
     int n_lambda = 200;
     double dx = 0.01;
     EddySignature sig = EddySignature();
-    sig.getEddyIntensity("B2", n_lambda, dx);
+    sig.computeSignature("B2", n_lambda, dx);
     plotEddyIntensities(sig, "B2");
 };
 
@@ -118,7 +118,7 @@ TEST_F(AdemTest, test_get_type_b3_eddy_intensity) {
     int n_lambda = 200;
     double dx = 0.01;
     EddySignature sig = EddySignature();
-    sig.getEddyIntensity("B3", n_lambda, dx);
+    sig.computeSignature("B3", n_lambda, dx);
     plotEddyIntensities(sig, "B3");
 };
 
@@ -127,7 +127,7 @@ TEST_F(AdemTest, test_get_type_b4_eddy_intensity) {
     int n_lambda = 200;
     double dx = 0.01;
     EddySignature sig = EddySignature();
-    sig.getEddyIntensity("B4", n_lambda, dx);
+    sig.computeSignature("B4", n_lambda, dx);
     plotEddyIntensities(sig, "B4");
 };
 
@@ -501,16 +501,16 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     int n_lambda = 200;
     double dx = 0.01;
     EddySignature signature_a = EddySignature();
-    signature_a.getEddyIntensity("A", n_lambda, dx);
+    signature_a.computeSignature("A", n_lambda, dx);
 
     EddySignature signature_b = EddySignature();
-    signature_b.getEddyIntensity("B1", n_lambda, dx);
+    signature_b.computeSignature("B1", n_lambda, dx);
     EddySignature sig = EddySignature();
-    sig.getEddyIntensity("B2", n_lambda, dx);
+    sig.computeSignature("B2", n_lambda, dx);
     signature_b = signature_b + sig;
-    sig.getEddyIntensity("B3", n_lambda, dx);
+    sig.computeSignature("B3", n_lambda, dx);
     signature_b = signature_b + sig;
-    sig.getEddyIntensity("B4", n_lambda, dx);
+    sig.computeSignature("B4", n_lambda, dx);
     signature_b = signature_b + sig;
     Figure fig_i = Figure();
 
