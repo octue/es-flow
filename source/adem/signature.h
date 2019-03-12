@@ -178,12 +178,12 @@ public:
      * Eddy intensity functions @f$J_{i,j}(\lambda)@f$ are computed for type ``A``, ``B1``, ``B2``, ``B3`` or ``B4``,
      * which are the eddies described in Ref 1. These functions are the signatures (in terms of turbulent fluctuations)
      * that an individual structure will contribute to Reynolds Stress in a boundary layer. They are used in the
-     * convolution integral (36) of Ref. 1 to determine Reynolds Stress profiles.
+     * convolution integral (36) of Perry and Marusic (1995a) to determine Reynolds Stress profiles.
      *
      * Eddy spectral functions @f$g_{i,j}(k1z,\lambda)@f$ are then computed from @f$J@f$. These functions are the
      * signatures (in terms of turbulent fluctuations) that an individual structure will contribute to turbulent spectra
-     * in a boundary layer. They are used in the convolution integral (43) of Ref. 1 to determine Spectral Tensor
-     * profiles.
+     * in a boundary layer. They are used in the convolution integral (43) of Perry and Marusic (1995a) to determine
+     * Spectral Tensor profiles.
      *
      * This method updates class properties ``j``, ``lambda``, ``eta``, ``g``, ``eddy_type``, ``domain_spacing``,
      * ``domain_extents``.
@@ -192,7 +192,7 @@ public:
      * normalised to the eddy scale and surrounding the unit eddy, then integrating for @f$J@f$ and taking ffts for
      * @f$g@f$.
      *
-     * [1] Perry AE and Marusic I (1995) A wall-wake model for turbulent boundary layers. Part 1. Extension of the
+     * Perry AE and Marusic I (1995a) A wall-wake model for turbulent boundary layers. Part 1. Extension of the
      * attached eddy hypothesis J Fluid Mech vol 298 pp 361-388
      *
      * @param[in] type, string one of 'A', 'B1', 'B2', 'B3', 'B4'
