@@ -15,6 +15,7 @@ set(SOURCE_FILES
         profile.h
         io/readers.h
         io/variable_readers.h
+        io/variable_writers.h
         utilities/conv.h
         utilities/cumtrapz.h
         utilities/filter.h
