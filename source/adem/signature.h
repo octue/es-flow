@@ -359,14 +359,13 @@ public:
             j.block<1,1>(lam_ctr, 5) = trapz(trapz(ww,2) * domain_spacing(0),1) * domain_spacing(1);
         };
 
-        // TODO Use this scaling factor to show eddy signature agains P&M Appendix C with correct scaling.
+        // TODO Use this scaling factor to show eddy signature against P&M Appendix C with correct scaling.
         // I11 = I11*(0.25/pi)^2;
         // I12 = I12*(0.25/pi)^2;
         // I13 = I13*(0.25/pi)^2;
         // I22 = I22*(0.25/pi)^2;
         // I23 = I23*(0.25/pi)^2;
         // I33 = I33*(0.25/pi)^2;
-
 
     }
 };
