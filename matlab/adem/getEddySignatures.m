@@ -16,7 +16,7 @@ for i = 1:5
     type = types{i};
     
     % Get the eddy intensity functions
-    [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity(type); %#ok<ASGLU>
+    [J, lambda, X, Y, Z, U, V, W, I] = getEddyIntensity(type, 200); %#ok<ASGLU>
 
     % Get the spectra
     [g] = getEddySpectra(type, J, lambda, X, Y, Z, U, V, W);
