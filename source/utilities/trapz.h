@@ -75,6 +75,8 @@ EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eig
  * TODO make the function also accept an array the same size as in_y so we can integrate a different spacing for
  * each column.
  *
+ * TODO add dimension argument, for optional integration along the second dimension.
+ *
  * @tparam DerivedX Type of the in_x array
  * @tparam DerivedY Type of the in_y array
  * @tparam DerivedOut Type of the output array
@@ -118,6 +120,7 @@ EIGEN_STRONG_INLINE void trapz(Eigen::ArrayBase<DerivedOut> const & out, const E
 
 /*
  * Overload method to return result by value.
+ * TODO add dimension argument, for optional integration along the second dimension.
  */
 template<typename DerivedX, typename DerivedY, typename DerivedOut>
 EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<DerivedOut>::Scalar, Eigen::ArrayBase<DerivedOut>::RowsAtCompileTime, Eigen::ArrayBase<DerivedOut>::ColsAtCompileTime> trapz(const Eigen::ArrayBase<DerivedX>& x, const Eigen::ArrayBase<DerivedY>& y)
