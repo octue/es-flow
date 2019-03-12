@@ -118,7 +118,7 @@ EIGEN_STRONG_INLINE void trapz(Eigen::ArrayBase<DerivedOut> const & out, const E
     out_.derived() = inter.colwise().sum();
 }
 
-/*
+/* @brief Trapezoidal numerical integration with non-unit spacing
  * Overload method to return result by value.
  * TODO add dimension argument, for optional integration along the second dimension.
  */
