@@ -510,72 +510,69 @@ void getStressTraces(
 
 }
 
+/** @brief Helper to make all 5 signature files, if no
+* TODO refactor out to signatures.h
+ *
+ * Signature files are named as "<data_path>/
+ *
+ * @param[in] data_path, std::string the path to the folder where signature files will be stored
+ * @param[in] is_coarse, bool If true (the default), make coarse-grained signatures which are very quick for the purposes of unit testing, but which won't validate correctly.
+ */
+void make_signatures(const std::string &data_path, const bool is_coarse=true) {
+
+    int n_lambda = 400;
+    double dx = 0.005;
+    std::string level = "fine";
+    if (is_coarse) {
+        n_lambda = 200;
+        dx = 0.01;
+        level = "coarse";
+    }
+
+    std::vector<std::string> types = {"A", "B1", "B2", "B3", "B4"};
+    for (auto type : types) {
+        EddySignature sig = EddySignature();
+        sig.computeSignature(type, n_lambda, dx);
+        sig.save(data_path + std::string("/signatures_"+type+"_"+level+".mat"));
+    }
+
+}
+
+/** @brief Helper function to load eddy signatures for type A and ensembled Type B eddies
+ *
+ * @param sig_a, EddySignature to which the type A eddy data is loaded
+ * @param sig_b
+ * @param data_path
+ * @param is_coarse
+ */
+void load_ensemble(EddySignature &sig_a, EddySignature &sig_b, const std::string &data_path, const bool is_coarse=true) {
+    std::string level = "fine";
+    if (is_coarse) {
+        level = "coarse";
+    }
+    sig_a.load(data_path + "/signatures_A_" + level + ".mat");
+    sig_b.load(data_path + "/signatures_B1_" + level + ".mat");
+    EddySignature sig_bx = EddySignature();
+    sig_bx.load(data_path + "/signatures_B2_" + level + ".mat");
+    sig_b = sig_b + sig_bx;
+    sig_bx.load(data_path + "/signatures_B3_" + level + ".mat");
+    sig_b = sig_b + sig_bx;
+    sig_bx.load(data_path + "/signatures_B4_" + level + ".mat");
+    sig_b = sig_b + sig_bx;
+    sig_b = sig_b / 4.0;
+}
 
 TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
 
-    // Load the eddy signatures. We only want to do this once.
-//    EddySignature signature_a = EddySignature();
-//    signature_a.load(data_path + std::string("/signatures_A.mat"));
-//    EddySignature signature_b = EddySignature();
-//    signature_b.load(data_path + std::string("/signatures_B1.mat"));
-//    EddySignature signature_bx = EddySignature();
-//    signature_bx.load(data_path + std::string("/signatures_B2.mat"));
-//    signature_b = signature_b + signature_bx;
-//    signature_bx.load(data_path + std::string("/signatures_B3.mat"));
-//    signature_b = signature_b + signature_bx;
-//    signature_bx.load(data_path + std::string("/signatures_B4.mat"));
-//    signature_b = signature_b + signature_bx;
-//    signature_b = signature_b / 4.0;
-    int n_lambda = 200;
-    double dx = 0.01;
+    // Uncomment to make the signatures as part of the test
+    // TODO Make only if not found, to avoid commenting/uncommenting
+    bool is_coarse = false;
+//    make_signatures(data_path, is_coarse);
+
+    // Load the eddy signatures
     EddySignature signature_a = EddySignature();
-    signature_a.computeSignature("A", n_lambda, dx);
-
     EddySignature signature_b = EddySignature();
-    signature_b.computeSignature("B1", n_lambda, dx);
-    EddySignature sig = EddySignature();
-    sig.computeSignature("B2", n_lambda, dx);
-    signature_b = signature_b + sig;
-    sig.computeSignature("B3", n_lambda, dx);
-    signature_b = signature_b + sig;
-    sig.computeSignature("B4", n_lambda, dx);
-    signature_b = signature_b + sig;
-    Figure fig_i = Figure();
-
-    // Plot the J and I functions
-    std::vector<std::string> labels = {"11", "12", "13", "22", "23", "33"};
-
-    std::vector<ScatterPlot> p;
-    for (auto i=0; i<6; i++) {
-        ScatterPlot pij = ScatterPlot();
-        pij.x = signature_a.eta;
-        pij.y = signature_a.j.col(i);
-        pij.name = "$I_{"+labels[i]+"}$";
-        p[i] = pij;
-        fig_i.add(p[i]);
-    }
-    Layout lay = Layout();
-    lay.xTitle("$\\eta$");
-    lay.yTitle("$Type A Eddy Intensity I_{ij}");
-    fig_i.setLayout(lay);
-    fig_i.write("check_type_a_iij_from_cpp.json");
-
-    Figure fig_j = Figure();
-    std::vector<ScatterPlot> pa;
-    for (auto i=0; i<6; i++) {
-        ScatterPlot pij = ScatterPlot();
-
-        pij.x = signature_a.lambda;
-        pij.y = signature_a.j.col(i);
-        pij.name = "$J_{"+labels[i]+"}$";
-        pa[i] = pij;
-        fig_j.add(pa[i]);
-    }
-    Layout lay_j = Layout();
-    lay_j.xTitle("$\\lambda$");
-    lay_j.yTitle("$Eddy Intensity J_{ij}");
-    fig_j.setLayout(lay);
-    fig_j.write("check_Jij_from_cpp.json");
+    load_ensemble(signature_a, signature_b, data_path, is_coarse);
     
     // Run ADEM for all measurement locations in the "10APG" flow case in Perry and Marusic 1995
 //    ScatterPlot r11_trace_1 = ScatterPlot();
