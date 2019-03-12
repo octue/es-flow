@@ -87,6 +87,34 @@ void plotEddyIntensities(const EddySignature &sig, const std::string &type) {
 };
 
 
+TEST_F(AdemTest, test_save_load_signatures) {
+
+    // Create a signature for test
+    int n_lambda = 10;
+    double dx = 0.05;
+    EddySignature sig = EddySignature();
+    sig.computeSignature("A", n_lambda, dx);
+
+    // Save the signature
+    std::string test_file_name = "test_signature_load_save.mat";
+    sig.save(test_file_name);
+
+    // Load from the file
+    EddySignature sig2 = EddySignature();
+    sig2.load(test_file_name);
+
+    // Test for equality on all properties
+    ASSERT_EQ(sig.eddy_type, sig2.eddy_type);
+    ASSERT_TRUE(sig.lambda.isApprox(sig2.lambda));
+    ASSERT_TRUE(sig.eta.isApprox(sig2.eta));
+    ASSERT_TRUE(sig.domain_spacing.isApprox(sig2.domain_spacing));
+    ASSERT_TRUE(sig.domain_extents.isApprox(sig2.domain_extents));
+    // TODO Figure out how to assert equality of tensors
+    // ASSERT_TRUE(sig.g.isApprox(sig2.g));
+    ASSERT_TRUE(sig.j.isApprox(sig2.j));
+
+};
+
 TEST_F(AdemTest, test_get_type_a_eddy_intensity) {
     int n_lambda = 200;
     double dx = 0.01;

@@ -27,6 +27,7 @@
 #include "utilities/conv.h"
 #include "utilities/tensors.h"
 #include "io/variable_readers.h"
+#include "io/variable_writers.h"
 
 #include "cpplot.h"
 
@@ -90,12 +91,13 @@ public:
         }
 
         // Use the variable readers to assist
-        eddy_type = readString(matfp, "type", print_var);
+        eddy_type = readString(matfp, "eddy_type", print_var);
         lambda = readVectorXd(matfp, "lambda", print_var);
+        eta = readVectorXd(matfp, "eta", print_var);
         domain_spacing = readArray3d(matfp, "domain_spacing", print_var);
         domain_extents = readArray32d(matfp, "domain_extents", print_var);
         g = readTensor3d(matfp, "g", print_var);
-        j = readArrayXXd(matfp, "J", print_var);
+        j = readArrayXXd(matfp, "j", print_var);
 
         // Close the file
         Mat_Close(matfp);
@@ -109,34 +111,24 @@ public:
     void save(std::string file_name) {
         std::cout << "Writing signature data to file " << file_name << std::endl;
 
-        static enum mat_ft            mat_file_ver = MAT_FT_DEFAULT;
-        static enum matio_compression compression  = MAT_COMPRESSION_NONE;
-        mat_t *mat = Mat_Create73(file_name.c_str(), NULL);
-        if ( !mat ) {
-            throw std::runtime_error("Unable to create MAT file");
-        }
-//        matvar_t *matvar;
-
-
-        // Open the MAT file for reading
-        mat_t *matfp = Mat_Open(file_name.c_str(), MAT_ACC_RDONLY);
-        if (matfp == NULL) {
-            std::string msg = "Error reading MAT file: ";
-            throw std::invalid_argument(msg + file_name);
+        mat_t *matfp = Mat_CreateVer(file_name.c_str(), NULL, MAT_FT_MAT73);
+        if ( NULL == matfp ) {
+            throw std::runtime_error("Unable to create/overwrite MAT file '" + file_name + "'");
         }
 
-        // Use the variable readers to assist
-        eddy_type = readString(matfp, "type", print_var);
-        lambda = readVectorXd(matfp, "lambda", print_var);
-        domain_spacing = readArray3d(matfp, "domain_spacing", print_var);
-        domain_extents = readArray32d(matfp, "domain_extents", print_var);
-        g = readTensor3d(matfp, "g", print_var);
-        j = readArrayXXd(matfp, "J", print_var);
+        // Use the variable writers to assist
+        writeString(matfp, "eddy_type", eddy_type);
+        writeArrayXd(matfp, "lambda", lambda);
+        writeArrayXd(matfp, "eta", eta);
+        writeArray3d(matfp, "domain_spacing", domain_spacing);
+        writeArray32d(matfp, "domain_extents", domain_extents);
+        writeTensor3d(matfp, "g", g);
+        writeArrayXXd(matfp, "j", j);
 
         // Close the file
         Mat_Close(matfp);
-        std::cout << "Finished reading eddy signature (Type " + eddy_type + ")" << std::endl;
-    }
+        std::cout << "Finished writing eddy signature (Type " + eddy_type + ")" << std::endl;
+
     }
 
     /** @brief Define overloaded + (plus) operator for eddy signatures.
