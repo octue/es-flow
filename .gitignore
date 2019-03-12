@@ -1,8 +1,9 @@
-####################### OAS Build directories
+####################### Build directories
 build/
 lib/
 bin/
 cmake-build-debug
+cmake-build-release
 
 ####################### Google style lint
 
