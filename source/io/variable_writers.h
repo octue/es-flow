@@ -99,7 +99,7 @@ void writeArray3d(mat_t *mat_fp, const std::string &var_name, const Eigen::Array
 }
 
 
-void writeArrayXd(mat_t *mat_fp, const std::string &var_name, const Eigen::Array3Xd &var) {
+void writeArrayXd(mat_t *mat_fp, const std::string &var_name, const Eigen::ArrayXd &var) {
 
     // Create the variable
     size_t dims[2];

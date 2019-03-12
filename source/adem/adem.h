@@ -247,11 +247,11 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     // first element, so that the integration goes from zero.
     Eigen::ArrayXd eta;
     eta = -1.0 * lambda_e; // *-1 inverts 1/eta in the subsequent exp() operator
-    eta = eta.exp();
+    eta = eta.exp().reverse();
 
     Eigen::ArrayXd eta_with_zero = Eigen::ArrayXd(eta.rows()+1);
     eta_with_zero.setZero();
-    eta_with_zero.bottomRows(eta.rows()) = eta.reverse();
+    eta_with_zero.bottomRows(eta.rows()) = eta;
 
     Figure figc = Figure();
     ScatterPlot pc = ScatterPlot();

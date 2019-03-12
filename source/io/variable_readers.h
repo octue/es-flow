@@ -31,6 +31,7 @@
 #include <unsupported/Eigen/CXX11/Tensor>
 
 using Eigen::Array;
+using Eigen::ArrayXd;
 using Eigen::Array3d;
 using Eigen::ArrayXXd;
 using Eigen::Vector3d;
@@ -141,34 +142,11 @@ Vector3d readVector3d(mat_t *matfp, const std::string var_name, bool print_var) 
 
 }
 
+
 Array3d readArray3d(mat_t *matfp, const std::string var_name, bool print_var) {
-
-    // Get the variable's structure pointer and check validity
-    matvar_t *mat_var = getVariable(matfp, var_name, print_var);
-
-    // Check for three elements always
-    if (mat_var->dims[1]*mat_var->dims[0] != 3) {
-        std::string msg = "Number of elements in variable '" + var_name + "' not equal to 3";
-        throw std::invalid_argument(msg);
-    }
-
-    // Read a vector, with automatic transpose to column vector always.
-    Eigen::Array3d var;
-    if (mat_var->dims[0] == 1) {
-        if (print_var) std::cout << "Converting row vector '" << mat_var->name << "' to column vector" << std::endl;
-    }
-    var =  Eigen::Array3d();
-    double *var_d = (double *) mat_var->data;
-    long int i = 0;
-    for (i = 0; i < 3; i++) {
-        var[i] = var_d[i];
-    }
-
-    // Free the data pointer and return the new variable
-    Mat_VarFree(mat_var);
-    return var;
-
+    return readVector3d(matfp, var_name, print_var).array();
 }
+
 
 VectorXd readVectorXd(mat_t *matfp, const std::string var_name, bool print_var) {
 
@@ -198,6 +176,11 @@ VectorXd readVectorXd(mat_t *matfp, const std::string var_name, bool print_var) 
     Mat_VarFree(mat_var);
     return var;
 
+}
+
+
+ArrayXd readArrayXd(mat_t *matfp, const std::string var_name, bool print_var) {
+    return readVectorXd(matfp, var_name, print_var).array();
 }
 
 

@@ -92,8 +92,8 @@ public:
 
         // Use the variable readers to assist
         eddy_type = readString(matfp, "eddy_type", print_var);
-        lambda = readVectorXd(matfp, "lambda", print_var);
-        eta = readVectorXd(matfp, "eta", print_var);
+        lambda = readArrayXd(matfp, "lambda", print_var);
+        eta = readArrayXd(matfp, "eta", print_var);
         domain_spacing = readArray3d(matfp, "domain_spacing", print_var);
         domain_extents = readArray32d(matfp, "domain_extents", print_var);
         g = readTensor3d(matfp, "g", print_var);
