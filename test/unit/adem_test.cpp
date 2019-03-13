@@ -485,7 +485,7 @@ void getStressTraces(
     std::cout << data << std::endl;
 
     r11.x = data.eta;
-    r11.y = data.reynolds_stress.col(0).reverse();
+    r11.y = data.reynolds_stress.col(0);
     r11.name = name;
     r11.setDash("solid");
     r11.setColor(color);
@@ -493,7 +493,7 @@ void getStressTraces(
     std::cout << "trace1 " << name << std::endl;
 
     r22.x = data.eta;
-    r22.y = data.reynolds_stress.col(3).reverse();
+    r22.y = data.reynolds_stress.col(3);
     r22.name = name;
     r22.setDash("solid");
     r22.setColor(color);
@@ -501,12 +501,11 @@ void getStressTraces(
     std::cout << "trace2 " << name << std::endl;
 
     r33.x = data.eta;
-    r33.y = data.reynolds_stress.col(5).reverse();
+    r33.y = data.reynolds_stress.col(5);
     r33.name = name;
     r33.setDash("solid");
     r33.setColor(color);
     std::cout << "trace3 " << name << std::endl;
-
 
 }
 
@@ -693,13 +692,11 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     ScatterPlot trace6_6a = getTrace(fig_6a_trace_6, "#e377c2", "dash");
     Figure fig_6a = Figure();
 
-    std::cout << "trace4 " << std::endl;
 
     // Traces from the paper
     fig_6a.add(trace1_6a);
     fig_6a.add(trace2_6a);
     fig_6a.add(trace3_6a);
-    std::cout << "trace5 " << std::endl;
     fig_6a.add(trace4_6a);
     fig_6a.add(trace5_6a);
     fig_6a.add(trace6_6a);
@@ -708,7 +705,6 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     fig_6a.add(r11_trace_1);
     fig_6a.add(r11_trace_2);
     fig_6a.add(r11_trace_3);
-    std::cout << "trac6" << std::endl;
     fig_6a.add(r11_trace_4);
     fig_6a.add(r11_trace_5);
     fig_6a.add(r11_trace_6);
