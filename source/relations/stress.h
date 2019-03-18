@@ -172,7 +172,7 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
     Eigen::ArrayXd f1;
     Eigen::ArrayXd f2;
     Eigen::ArrayXd f3;
-    f1 = 1
+    f1 = 1.0
         - a1 / (b1 + e1_coeff * b2)
         - e1_coeff * a2 / (b1 + e1_coeff * b2);
 
@@ -183,7 +183,10 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
         - a1 * b3
         - e1_coeff * a2 * b3) / (b1 + e1_coeff * b2);
 
-    f3 = (e1_coeff * a2 * b1 + a4 * b1 - e1_coeff * a1 * b2 + e1_coeff * a4 * b2 - a1 * b4 - e1_coeff * a2 * b4) / (b1 + e1_coeff * b2);
+    f3 = (e1_coeff * a2 * b1
+        + a4 * b1 - e1_coeff * a1 * b2
+        + e1_coeff * a4 * b2 - a1 * b4
+        - e1_coeff * a2 * b4) / (b1 + e1_coeff * b2);
 
     // Convert f2 and f3 into g1 and g2 ready for application of eq. 15
     Eigen::ArrayXd g1 = f2 / shear_ratio;
@@ -192,7 +195,7 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
     // Top 3 boxes of figure 18
     Eigen::ArrayXd minus_r13 = f1 + g1 * zeta + g2 * beta;
 
-    // Get the component due to equilibrium sink flow (OLD version - see P&M eqns 51,53)
+    // Get the component due to equilibrium sink flow (OLD version - see P&M eqn 53)
     // minusReynStressA = ones(size(eta)) - eta + eta.*log(eta);
 
     // Lewkowicz 1982 shear stress for equilibrium sink flow, Perry and Marusic eqn. 51
@@ -200,7 +203,7 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
 
     // Handle the log(0) singularity
     for (int i = 0; i < minus_r13_a.size(); i++) {
-        if (std::isinf(minus_r13_a(i))) {
+        if (std::isinf(minus_r13_a(i)) || std::isnan(minus_r13_a(i))) {
             minus_r13_a(i) = 1.0;
         }
     }
