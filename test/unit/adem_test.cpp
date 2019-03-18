@@ -15,6 +15,8 @@
 #include "cpplot.h"
 
 #include "adem/adem.h"
+
+#include "definitions.h"
 #include "utilities/filter.h"
 #include "utilities/tensors.h"
 
@@ -362,6 +364,43 @@ TEST_F(AdemTest, test_analysis) {
 }
 
 
+// Helper function to plot a trace digitised from a graph
+ScatterPlot getTrace(const ArrayXXd &data, const std::string &color, const std::string &dash, std::string name="") {
+    ScatterPlot p = ScatterPlot();
+    p.x = data.row(0);
+    p.y = data.row(1);
+    p.name = name;
+    p.setDash(dash);
+    p.setColor(color);
+    return p;
+}
+
+
+// Helper function to plot a trace of R13, calculated from parameters
+ScatterPlot getStress13Trace(
+    const ArrayXd &eta,
+    const double pi_coles, const double shear_ratio, const double zeta, const double beta,
+    const std::string &color, const std::string &dash, const std::string &name
+) {
+    Eigen::ArrayXd r13;
+    Eigen::ArrayXd r13_a;
+    Eigen::ArrayXd r13_b;
+    reynolds_stress_13(r13_a, r13_b, beta, eta, KAPPA_VON_KARMAN, pi_coles, shear_ratio, zeta);
+    std::cout << "R13A" <<std::endl;
+    std::cout << r13_a<<std::endl;
+    std::cout << "R13B" <<std::endl;
+    std::cout << r13_b<<std::endl;
+    r13 = r13_a + r13_b;
+    ScatterPlot p = ScatterPlot();
+    p.x = eta;
+    p.y = -1.0*r13;
+    p.name = name;
+    p.setDash(dash);
+    p.setColor(color);
+    return p;
+}
+
+
 TEST_F(AdemTest, test_get_reynolds_stress_13) {
 
     // Results obtained and validated against MATLAB implementation:
@@ -401,6 +440,127 @@ TEST_F(AdemTest, test_get_reynolds_stress_13) {
 
     ASSERT_TRUE(r13_a.isApprox(r13_a_correct));
     ASSERT_TRUE(r13_b.isApprox(r13_b_correct));
+}
+
+
+TEST_F(AdemTest, test_reynolds_stress_13a_analytic) {
+
+    // Digitally extracted from Perry and Marusic 1995, Figure 11 (eq. 51 for typ a eddy shear stress):
+    ArrayXXd fig_11_trace_1 = Eigen::ArrayXXd(2, 25);
+    fig_11_trace_1 << 0.0, 0.012063814, 0.029733311, 0.046593536, 0.070664416, 0.093932194, 0.12360629, 0.156486629, 0.189363266, 0.224635643, 0.263913665, 0.301583013, 0.343258007, 0.384925599, 0.424186349, 0.467447811, 0.511511141, 0.557169574, 0.622848832, 0.677310555, 0.738973065, 0.797429331, 0.852680587, 0.921535246, 0.998398729,
+                      1.0, 0.933830986, 0.864629672, 0.806207948, 0.741678448, 0.680224425, 0.617278925, 0.54973563, 0.486814803, 0.431616593, 0.373367579, 0.324351164, 0.272283946, 0.229461662, 0.192784164, 0.159219152, 0.124119486, 0.096736269, 0.063343967, 0.040651068, 0.024176974, 0.012300674, 0.003481346, 0.004011813, 0.001522318;
+
+    Eigen::ArrayXd eta(25);
+    eta = fig_11_trace_1.row(0);
+    Eigen::ArrayXd r13_a(25);
+    Eigen::ArrayXd r13_b(25);
+    reynolds_stress_13(r13_a, r13_b, 0.0, eta, KAPPA_VON_KARMAN, 2.4, 20, 0.0); // params other than eta don't matter for r13a
+
+    // Recreate P&M Figure 11
+    Figure fig_11 = Figure();
+
+    // Get the R13 profiles from our analytical function
+    ScatterPlot r13a_validation_trace_1 = getTrace(fig_11_trace_1, "#1f77b4", "dash", "P&M 1995, Eqn. 51");
+
+    ScatterPlot r13a_analytic_trace_1 = ScatterPlot();
+    r13a_analytic_trace_1.x = eta;
+    r13a_analytic_trace_1.y = -1.0 * r13_a;
+    r13a_analytic_trace_1.name="es-flow, Eqn. 51 reproduction";
+    r13a_analytic_trace_1.setDash("solid");
+
+    // Traces from the paper
+    fig_11.add(r13a_validation_trace_1);
+
+    // Traces from es-flow
+    fig_11.add(r13a_analytic_trace_1);
+
+    Layout lay_11 = Layout();
+    lay_11.xTitle("$z/\\delta_{c}$");
+    lay_11.yTitle("$-\\overline{u_1u_3} / U_{\\tau}^2$");
+    fig_11.setLayout(lay_11);
+    fig_11.write("validation_perry_and_marusic_11.json");
+}
+
+
+TEST_F(AdemTest, test_reynolds_stress_13_analytic) {
+
+    // Digitally extracted from Marusic and Perry 1995, Figure 4:
+    ArrayXXd fig_4_trace_1 = Eigen::ArrayXXd(2, 28);
+    fig_4_trace_1 << 0.000738437, 0.014580769, 0.02882141, 0.05082235, 0.070625881, 0.099317505, 0.128027031, 0.164496856, 0.212096937, 0.263049072, 0.325171742, 0.380706662, 0.435176442, 0.486343395, 0.526447224, 0.566555528, 0.603343105, 0.647935734, 0.681411533, 0.717107118, 0.751697286, 0.78738392, 0.818608606, 0.857629394, 0.89327575, 0.931110564, 0.965584372, 0.99778469,
+                     1.004045738, 1.300138737, 1.553912596, 1.819642418, 2.055170176, 2.278439885, 2.47751572, 2.688547517, 2.857038645, 2.995227013, 3.036438497, 2.980995323, 2.865087605, 2.712949495, 2.512625031, 2.306252098, 2.087842646, 1.820904473, 1.578361565, 1.335778379, 1.087166864, 0.856680615, 0.656517264, 0.419922128, 0.243872094, 0.110121059, 0.01876972, 4.02784E-05;
+
+    ArrayXXd fig_4_trace_2 = Eigen::ArrayXXd(2, 24);
+    fig_4_trace_2 << 0.000733961, 0.016845309, 0.036684643, 0.06427085, 0.088549755, 0.136122983, 0.195954262, 0.235865649, 0.293557699, 0.342415359, 0.399078073, 0.443554342, 0.491378192, 0.537018058, 0.593797131, 0.641688111, 0.69961288, 0.743055338, 0.789827474, 0.836586185, 0.883326993, 0.928917631, 0.973358097, 0.998890107,
+                     0.99799727, 1.239613775, 1.426753787, 1.643995167, 1.831054622, 2.035836559, 2.173863814, 2.233623487, 2.262818591, 2.231690125, 2.152032939, 2.042354942, 1.908422654, 1.726142899, 1.489225536, 1.264566224, 0.979240977, 0.766759158, 0.554216921, 0.35982009, 0.189617132, 0.073870527, 0.012580277, 0.006068607;
+
+    ArrayXXd fig_4_trace_3 = Eigen::ArrayXXd(2, 20);
+    fig_4_trace_3 << 0.000738437, 0.023518092, 0.065515004, 0.11755018, 0.166313858, 0.236192352, 0.2983553, 0.376123878, 0.460609994, 0.546259706, 0.601893083, 0.656421043, 0.723198102, 0.77883148, 0.77883148, 0.827778648, 0.866705453, 0.898946049, 0.92005639, 0.998890107,
+                     1.004045738, 1.221347535, 1.462520978, 1.636980017, 1.732869386, 1.792085301, 1.77886057, 1.674626866, 1.491642239, 1.236055853, 1.047546376, 0.85300857, 0.603813019, 0.415303542, 0.415303542, 0.263205711, 0.15362841, 0.080462754, 0.049837768, 0.006068607;
+
+    ArrayXXd fig_4_trace_4 = Eigen::ArrayXXd(2, 22);
+    fig_4_trace_4 << 0.000733961, 0.015833874, 0.043514064, 0.06900132, 0.113352279, 0.153286044, 0.195466446, 0.236541431, 0.283188257, 0.354288527, 0.412079035, 0.469878494, 0.532144376, 0.624431068, 0.705605406, 0.757850925, 0.827868155, 0.862315111, 0.897867484, 0.998890107, 0.998890107, 0.996670322,
+                     0.99799727, 1.106567612, 1.196791157, 1.25076417, 1.310443286, 1.339960617, 1.333146859, 1.320304773, 1.277119649, 1.185103717, 1.081232518, 0.965264383, 0.812924881, 0.587460001, 0.380341919, 0.270522947, 0.142236345, 0.087175815, 0.038143615, 0.006068607, 0.006068607, 0.006108886;
+
+    ArrayXXd fig_4_trace_5 = Eigen::ArrayXXd(2, 21);
+    fig_4_trace_5 << 0.000733961, 0.022520083, 0.056890958, 0.091284209, 0.134565553, 0.181198953, 0.238935756, 0.301138983, 0.353371076, 0.418930833, 0.47228177, 0.532296538, 0.584542057, 0.584542057, 0.64789098, 0.697903287, 0.745686858, 0.805688201, 0.854559288, 0.925623755, 0.998890107,
+                     0.99799727, 1.070155967, 1.117919399, 1.135440489, 1.140703529, 1.11566381, 1.084374231, 1.016713285, 0.925039719, 0.821027546, 0.717236904, 0.607276959, 0.497457987, 0.497457987, 0.381389156, 0.289755868, 0.210259795, 0.118445255, 0.069171384, 0.025543199, 0.006068607;
+
+    ArrayXXd fig_4_trace_6 = Eigen::ArrayXXd(2, 18);
+    fig_4_trace_6 << 0.000733961, 0.030347513, 0.090308577, 0.090308577, 0.161381996, 0.206923404, 0.262458323, 0.322441764, 0.400214818, 0.463545839, 0.525766967, 0.556875294, 0.617982054, 0.681308599, 0.746850455, 0.811268992, 0.869014746, 0.997780214,
+                     0.99799727, 0.991384905, 0.954006579, 0.954006579, 0.898281456, 0.849068003, 0.793624829, 0.726004162, 0.61572199, 0.523847032, 0.431992213, 0.389089038, 0.303302826, 0.217476336, 0.137658037, 0.076005281, 0.032618765, 0.006088747;
+
+    // We want to ensure that the analytical function to get R13 works appropriately with nonuniformly spaced eta
+    double lambda_max = log(1/0.01);
+    double lambda_min = log(1/1);
+    Eigen::ArrayXd lambda = Eigen::ArrayXd::LinSpaced(10000, lambda_min, lambda_max);
+    Eigen::ArrayXd eta(10001);
+    eta.setZero(10001);
+    eta.topRows(10000) = lambda.exp().inverse();
+    eta.reverseInPlace();
+//    eta = Eigen::ArrayXd::LinSpaced(10001, 0, 1);
+    std::cout << "ETA" << std::endl;
+    std::cout << eta << std::endl;
+
+    // Get the R13 profiles from our analytical function
+    ScatterPlot r13_analytic_trace_1 = getStress13Trace(eta, 3.23, 38.4, 15.32, 7.16, "#1f77b4", "solid", "es-flow, 10APG, R_theta = 7257");
+    ScatterPlot r13_analytic_trace_2 = getStress13Trace(eta, 2.46, 34.5, 8.01,  4.48, "#ff7f0e", "solid", "es-flow, 10APG, R_theta = 6395");
+    ScatterPlot r13_analytic_trace_3 = getStress13Trace(eta, 1.87, 31.5, 4.64,  2.90, "#2ca02c", "solid", "es-flow, 10APG, R_theta = 5395");
+    ScatterPlot r13_analytic_trace_4 = getStress13Trace(eta, 1.19, 28.1, 2.18,  1.45, "#d62728", "solid", "es-flow, 10APG, R_theta = 4155");
+    ScatterPlot r13_analytic_trace_5 = getStress13Trace(eta, 0.68, 25.4, 0.94,  0.65, "#9467bd", "solid", "es-flow, 10APG, R_theta = 3153");
+    ScatterPlot r13_analytic_trace_6 = getStress13Trace(eta, 0.42, 23.6, 0.15,  0.0,  "#e377c2", "solid", "es-flow, 10APG, R_theta = 2206");
+
+    // Recreate M&P Figure 4
+    Figure fig_4 = Figure();
+
+    // Get the R13 profiles from our analytical function
+    ScatterPlot r13_validation_trace_1 = getTrace(fig_4_trace_1, "#1f77b4", "dash", "M&P 1995, 10APG, R_theta = 7257");
+    ScatterPlot r13_validation_trace_2 = getTrace(fig_4_trace_2, "#ff7f0e", "dash", "M&P 1995, 10APG, R_theta = 6395");
+    ScatterPlot r13_validation_trace_3 = getTrace(fig_4_trace_3, "#2ca02c", "dash", "M&P 1995, 10APG, R_theta = 5395");
+    ScatterPlot r13_validation_trace_4 = getTrace(fig_4_trace_4, "#d62728", "dash", "M&P 1995, 10APG, R_theta = 4155");
+    ScatterPlot r13_validation_trace_5 = getTrace(fig_4_trace_5, "#9467bd", "dash", "M&P 1995, 10APG, R_theta = 3153");
+    ScatterPlot r13_validation_trace_6 = getTrace(fig_4_trace_6, "#e377c2", "dash", "M&P 1995, 10APG, R_theta = 2206");
+
+    // Traces from the paper
+    fig_4.add(r13_validation_trace_1);
+    fig_4.add(r13_validation_trace_2);
+    fig_4.add(r13_validation_trace_3);
+    fig_4.add(r13_validation_trace_4);
+    fig_4.add(r13_validation_trace_5);
+    fig_4.add(r13_validation_trace_6);
+
+    // Traces from es-flow
+    fig_4.add(r13_analytic_trace_1);
+    fig_4.add(r13_analytic_trace_2);
+    fig_4.add(r13_analytic_trace_3);
+    fig_4.add(r13_analytic_trace_4);
+    fig_4.add(r13_analytic_trace_5);
+    fig_4.add(r13_analytic_trace_6);
+
+    Layout lay_4 = Layout();
+    lay_4.xTitle("$z/\\delta_{c}$");
+    lay_4.yTitle("$-\\overline{u_1u_3} / U_{\\tau}^2$");
+    fig_4.setLayout(lay_4);
+    fig_4.write("validation_marusic_and_perry_4.json");
 
 }
 
@@ -454,25 +614,15 @@ TEST_F(AdemTest, test_signature_k1z) {
 }
 
 
-// Helper function to keep code dry whist plotting data
-ScatterPlot getTrace(const ArrayXXd &data, const std::string &color, const std::string &dash, std::string name="") {
-    ScatterPlot p = ScatterPlot();
-    p.x = data.row(0);
-    p.y = data.row(1);
-    p.name = name;
-    p.setDash(dash);
-    p.setColor(color);
-    return p;
-}
 
 
 // Helper function to run ADEM for Reynolds Stress comparisons
 void getStressTraces(
-    ScatterPlot &r11, ScatterPlot &r22, ScatterPlot &r33,
+    ScatterPlot &r11, ScatterPlot &r22, ScatterPlot &r33, ScatterPlot &r13,
     const EddySignature &signature_a, const EddySignature &signature_b,
     const double pi_coles, const double shear_ratio, const double zeta, const double beta,
-    const std::string marker, const std::string name, const std::string color
-    ) {
+    const std::string &dash, const std::string &name, const std::string &color,
+    const std::string &type = "composite") {
 
     // TODO should use the K_tau values given in M&P with the shear ratio, to fix at least the ratio of delta_c to U1
     // Use these same parameters for all. The outputs are nondimensional so it shouldn't matter
@@ -483,29 +633,47 @@ void getStressTraces(
     AdemData data = adem(beta, delta_c, kappa, pi_coles, shear_ratio, u_inf, zeta, signature_a, signature_b, false);
     std::cout << "Computed stresses using ADEM for case " << name << std::endl;
     std::cout << data << std::endl;
-
+    Eigen::ArrayXXd stress;
+    if (type == "type_a") {
+        stress = data.reynolds_stress_a;
+        std::cout << "Using type a reynolds stresses" << std::endl;
+    } else if (type == "type_b") {
+        stress = data.reynolds_stress_b;
+        std::cout << "Using type b reynolds stresses" << std::endl;
+    } else {
+        // type == composite by default
+        stress = data.reynolds_stress;
+        std::cout << "Using composite (type a + b) reynolds stresses" << std::endl;
+    }
     r11.x = data.eta;
-    r11.y = data.reynolds_stress.col(0);
+    r11.y = stress.col(0);
     r11.name = name;
-    r11.setDash("solid");
+    r11.setDash(dash);
     r11.setColor(color);
 
     std::cout << "trace1 " << name << std::endl;
 
     r22.x = data.eta;
-    r22.y = data.reynolds_stress.col(3);
+    r22.y = stress.col(3);
     r22.name = name;
-    r22.setDash("solid");
+    r22.setDash(dash);
     r22.setColor(color);
 
     std::cout << "trace2 " << name << std::endl;
 
     r33.x = data.eta;
-    r33.y = data.reynolds_stress.col(5);
+    r33.y = stress.col(5);
     r33.name = name;
-    r33.setDash("solid");
+    r33.setDash(dash);
     r33.setColor(color);
     std::cout << "trace3 " << name << std::endl;
+
+    r13.x = data.eta;
+    r13.y = stress.col(2);
+    r13.name = name;
+    r13.setDash(dash);
+    r13.setColor(color);
+    std::cout << "trace4 " << name << std::endl;
 
 }
 
@@ -573,38 +741,63 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     EddySignature signature_b = EddySignature();
     load_ensemble(signature_a, signature_b, data_path, is_coarse);
 
-    // Run ADEM for all measurement locations in the "10APG" flow case in Perry and Marusic 1995
+    // Run ADEM for all measurement locations in the "10APG" flow case in Marusic and Perry 1995, for reconstruction of their Figure 6
     ScatterPlot r11_trace_1 = ScatterPlot();
     ScatterPlot r22_trace_1 = ScatterPlot();
     ScatterPlot r33_trace_1 = ScatterPlot();
-    getStressTraces(r11_trace_1, r22_trace_1, r33_trace_1, signature_a, signature_b, 3.23, 38.4, 15.32, 7.16, "diamond", "es-flow, $R_\\theta = 7257$", "#1f77b4");
+    ScatterPlot r13_trace_1 = ScatterPlot();
+    getStressTraces(r11_trace_1, r22_trace_1, r33_trace_1, r13_trace_1, signature_a, signature_b, 3.23, 38.4, 15.32, 7.16, "solid", "es-flow, $R_\\theta = 7257$", "#1f77b4");
 
     ScatterPlot r11_trace_2 = ScatterPlot();
     ScatterPlot r22_trace_2 = ScatterPlot();
     ScatterPlot r33_trace_2 = ScatterPlot();
-    getStressTraces(r11_trace_2, r22_trace_2, r33_trace_2, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "lefttriangle", "es-flow, $R_\\theta = 6395$", "#ff7f0e");
+    ScatterPlot r13_trace_2 = ScatterPlot();
+    getStressTraces(r11_trace_2, r22_trace_2, r33_trace_2, r13_trace_2, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "solid", "es-flow, $R_\\theta = 6395$", "#ff7f0e");
 
     ScatterPlot r11_trace_3 = ScatterPlot();
     ScatterPlot r22_trace_3 = ScatterPlot();
     ScatterPlot r33_trace_3 = ScatterPlot();
-    getStressTraces(r11_trace_3, r22_trace_3, r33_trace_3, signature_a, signature_b, 1.87, 31.5, 4.64, 2.90, "uptriangle", "es-flow, $R_\\theta = 5395$", "#2ca02c");
+    ScatterPlot r13_trace_3 = ScatterPlot();
+    getStressTraces(r11_trace_3, r22_trace_3, r33_trace_3, r13_trace_3, signature_a, signature_b, 1.87, 31.5, 4.64, 2.90, "solid", "es-flow, $R_\\theta = 5395$", "#2ca02c");
 
     ScatterPlot r11_trace_4 = ScatterPlot();
     ScatterPlot r22_trace_4 = ScatterPlot();
     ScatterPlot r33_trace_4 = ScatterPlot();
-    getStressTraces(r11_trace_4, r22_trace_4, r33_trace_4, signature_a, signature_b, 1.19, 28.1, 2.18, 1.45, "square", "es-flow, $R_\\theta = 4155$", "#d62728");
+    ScatterPlot r13_trace_4 = ScatterPlot();
+    getStressTraces(r11_trace_4, r22_trace_4, r33_trace_4, r13_trace_4, signature_a, signature_b, 1.19, 28.1, 2.18, 1.45, "solid", "es-flow, $R_\\theta = 4155$", "#d62728");
 
     ScatterPlot r11_trace_5 = ScatterPlot();
     ScatterPlot r22_trace_5 = ScatterPlot();
     ScatterPlot r33_trace_5 = ScatterPlot();
-    getStressTraces(r11_trace_5, r22_trace_5, r33_trace_5, signature_a, signature_b, 0.68, 25.4, 0.94, 0.65, "downtriangle", "es-flow, $R_\\theta = 3153$", "#9467bd");
+    ScatterPlot r13_trace_5 = ScatterPlot();
+    getStressTraces(r11_trace_5, r22_trace_5, r33_trace_5, r13_trace_5, signature_a, signature_b, 0.68, 25.4, 0.94, 0.65, "solid", "es-flow, $R_\\theta = 3153$", "#9467bd");
 
     ScatterPlot r11_trace_6 = ScatterPlot();
     ScatterPlot r22_trace_6 = ScatterPlot();
     ScatterPlot r33_trace_6 = ScatterPlot();
-    getStressTraces(r11_trace_6, r22_trace_6, r33_trace_6, signature_a, signature_b, 0.42, 23.6, 0.15, 0.0, "circle", "es-flow, $R_\\theta = 2206$", "#e377c2");
+    ScatterPlot r13_trace_6 = ScatterPlot();
+    getStressTraces(r11_trace_6, r22_trace_6, r33_trace_6, r13_trace_6, signature_a, signature_b, 0.42, 23.6, 0.15, 0.0, "solid", "es-flow, $R_\\theta = 2206$", "#e377c2");
 
-    
+    // Rerun ADEM for the Pi=2.46 location in the "10APG" flow case in Marusic and Perry 1995, for reconstruction of their Figure 7
+    ScatterPlot r11_fig7_composite = ScatterPlot();
+    ScatterPlot r22_fig7_composite = ScatterPlot();
+    ScatterPlot r33_fig7_composite = ScatterPlot();
+    ScatterPlot r13_fig7_composite = ScatterPlot();
+    getStressTraces(r11_fig7_composite, r22_fig7_composite, r33_fig7_composite, r13_fig7_composite, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "solid", "es-flow, composite", "#ff7f0e");
+
+    ScatterPlot r11_fig7_type_a = ScatterPlot();
+    ScatterPlot r22_fig7_type_a = ScatterPlot();
+    ScatterPlot r33_fig7_type_a = ScatterPlot();
+    ScatterPlot r13_fig7_type_a = ScatterPlot();
+    getStressTraces(r11_fig7_type_a, r22_fig7_type_a, r33_fig7_type_a, r13_fig7_type_a, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "dash", "es-flow, Type A only", "#ff7f0e", "type_a");
+
+    ScatterPlot r11_fig7_type_b = ScatterPlot();
+    ScatterPlot r22_fig7_type_b = ScatterPlot();
+    ScatterPlot r33_fig7_type_b = ScatterPlot();
+    ScatterPlot r13_fig7_type_b = ScatterPlot();
+    getStressTraces(r11_fig7_type_b, r22_fig7_type_b, r33_fig7_type_b, r13_fig7_type_b, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "dot", "es-flow, Type B only", "#ff7f0e", "type_b");
+
+
     // Digitally extracted from Marusic and Perry 1995 Part 2, Figure 6a:
     ArrayXXd fig_6a_trace_1 = Eigen::ArrayXXd(2, 32);
     fig_6a_trace_1 << 0.0100961,   0.012242,   0.0152986,   0.0194686,   0.0246286,   0.0330971,   0.0450213,   0.0562821,   0.0716523,   0.0879855,   0.108698,   0.138418,   0.167934,   0.206221,   0.24866,   0.285682,   0.32615,   0.376796,   0.422329,   0.456479,   0.505256,   0.542659,   0.579328,   0.610986,   0.644355,   0.679589,   0.712374,   0.769516,   0.811594,   0.871647,   0.936379,   1,
@@ -683,6 +876,63 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
         1.00629, 1.12159, 1.19497, 1.21593, 1.22642, 1.20545, 1.16352, 1.12159, 1.04822, 1.00629, 0.922432, 0.828092, 0.712788, 0.618449, 0.513627, 0.429769, 0.324948, 0.220126, 0.146751, 0.104822, 0.0628931, 0;
 
 
+    // Digitally extracted from Marusic and Perry 1995 Part 2 Figure 7a:
+    ArrayXXd fig_7a_trace_1 = Eigen::ArrayXXd(2, 20);
+    fig_7a_trace_1 << 0.009985513, 0.015040939, 0.025460285, 0.038780015, 0.0525426, 0.087827416, 0.153750845, 0.242368482, 0.302693743, 0.369466454, 0.420463673, 0.507941934, 0.565361995, 0.621904302, 0.709029073, 0.789252447, 0.847588291, 0.899251072, 0.942719924, 0.999728212,
+                      8.430250861, 8.076242007, 7.837038859, 7.831726513, 7.944171176, 8.286522381, 8.977127398, 9.436497787, 9.317412691, 8.907919331, 8.441170684, 7.159714707, 5.937432366, 4.773438269, 3.143876045, 1.863453025, 1.10673881, 0.640875553, 0.349581899, 0.174422036;
+
+
+    ArrayXXd fig_7a_trace_2 = Eigen::ArrayXXd(2, 18);
+    fig_7a_trace_2 << 0.010029037, 0.013761695, 0.020738304, 0.026524657, 0.034321259, 0.043897496, 0.069324284, 0.069324284, 0.094003308, 0.123064505, 0.163018943, 0.223631363, 0.306780216, 0.306780216, 0.387712311, 0.507481904, 0.656471592, 1,
+                      5.639498278, 5.112247909, 4.467535662, 4.057452041, 3.705361535, 3.295277914, 2.591834727, 2.591834727, 2.181013281, 1.828775209, 1.418248893, 1.065420561, 0.712592228, 0.712592228, 0.47707821, 0.241121495, 0.063453025, 3.55E-15;
+
+    ArrayXXd fig_7a_trace_3 = Eigen::ArrayXXd(2, 30);
+    fig_7a_trace_3 << 0.009957505, 0.011863571, 0.015884154, 0.021018279, 0.021018279, 0.027486194, 0.039453415, 0.051580318, 0.074017763, 0.109966201, 0.152336418, 0.194541076, 0.251404954, 0.29952892, 0.356994144, 0.40143965, 0.441068108, 0.441068108, 0.496340411, 0.496340411, 0.53924427, 0.600094132, 0.668052548, 0.734931608, 0.798748823, 0.857708851, 0.909988507, 0.942719924, 0.999728212, 0.999728212,
+                      2.732611904, 2.846679784, 3.075553369, 3.362715199, 3.362715199, 3.708165273, 4.284997541, 4.804869651, 5.556123955, 6.539498278, 7.407476636, 7.985784555, 8.447663551, 8.561731431, 8.443236596, 8.15105755, 7.742892277, 7.742892277, 6.985587801, 6.985587801, 6.286866699, 5.180865716, 3.842302017, 2.620167241, 1.688883424, 0.990309887, 0.524446631, 0.349581899, 0.174422036, 0.174422036;
+
+
+    // Digitally extracted from Marusic and Perry 1995 Part 2 Figure 7b:
+    ArrayXXd fig_7b_trace_1 = Eigen::ArrayXXd(2, 30);
+    fig_7b_trace_1 << 0.010041006, 0.011780178, 0.013820786, 0.015616988, 0.018668711, 0.022212254, 0.027828982, 0.034700683, 0.045559599, 0.045559599, 0.066321695, 0.087884441, 0.115907277, 0.145855159, 0.191453291, 0.236445735, 0.292041284, 0.350746841, 0.40770645, 0.454336627, 0.506373463, 0.55390373, 0.603110226, 0.650551333, 0.69844786, 0.749870745, 0.824235936, 0.893085952, 0.953946793, 1.004603406,
+                      4.513144026, 4.400145581, 4.27478222, 4.162187115, 4.073716833, 3.985296968, 3.896322509, 3.856858133, 3.866298828, 3.866298828, 3.911725085, 4.044714109, 4.214848298, 4.385486664, 4.59276602, 4.738876223, 4.798432013, 4.722276229, 4.498094372, 4.224906609, 3.828069683, 3.381974763, 2.861740762, 2.341607597, 1.809159933, 1.276712268, 0.706917767, 0.347478096, 0.173663422, 0.086554414;
+    
+    ArrayXXd fig_7b_trace_2 = Eigen::ArrayXXd(2, 21);
+    fig_7b_trace_2 << 0.01000225, 0.011196887, 0.012831892, 0.015198018, 0.017665334, 0.021929294, 0.027869799, 0.035089575, 0.045226948, 0.060528242, 0.081006308, 0.109425699, 0.138407062, 0.180067793, 0.233164521, 0.299092186, 0.364325674, 0.467312253, 0.593800739, 0.743942051, 1.009433058,
+                      3.808394215, 3.671170114, 3.533693924, 3.33404023, 3.146953123, 2.909700504, 2.647465964, 2.360602427, 2.110581551, 1.798332753, 1.486083955, 1.247923819, 1.047564279, 0.834537316, 0.646290604, 0.470509643, 0.357107857, 0.230786562, 0.116931018, 0.040321475, 5.04176E-05;
+
+    ArrayXXd fig_7b_trace_3 = Eigen::ArrayXXd(2, 25);
+    fig_7b_trace_3 << 0.010038748, 0.012634005, 0.015457921, 0.020292237, 0.025296678, 0.033204117, 0.042973209, 0.059666194, 0.075422785, 0.093565435, 0.12221108, 0.15887917, 0.202715614, 0.261101985, 0.330134976, 0.409779474, 0.483151488, 0.548783293, 0.614720622, 0.675751523, 0.728896072, 0.778827818, 0.847978715, 0.918718682, 0.981283589,
+                      0.704800228, 0.776519263, 0.885635553, 1.018725412, 1.189464612, 1.421473801, 1.665999159, 2.021052499, 2.340019442, 2.671552972, 3.089086323, 3.506670091, 3.88736078, 4.21849097, 4.327254336, 4.176556131, 3.828573859, 3.295521184, 2.614240766, 1.957891851, 1.450123602, 0.991915853, 0.508776601, 0.235891344, 0.099171418;
+
+
+    // Digitally extracted from Marusic and Perry 1995 Part 2 Figure 7c:
+    ArrayXXd fig_7c_trace_1 = Eigen::ArrayXXd(2, 30);
+    fig_7c_trace_1 << 0.00204232, 0.012115212, 0.028305497, 0.04551455, 0.069912376, 0.094329335, 0.12285963, 0.152442174, 0.18715204, 0.232116551, 0.281223096, 0.330382253, 0.380603226, 0.380603226, 0.421645717, 0.463730892, 0.504835562, 0.540817693, 0.576818956, 0.608716448, 0.645750827, 0.677657885, 0.710588494, 0.740405403, 0.780491305, 0.818482274, 0.856463678, 0.904671029, 0.949759896, 1.000985288,
+                      1.000019132, 1.168111117, 1.350202797, 1.536957853, 1.700281237, 1.844912855, 1.970814441, 2.068668809, 2.157129465, 2.226802694, 2.24970824, 2.221211426, 2.15532151, 2.15532151, 2.056807094, 1.939591345, 1.780328684, 1.625786795, 1.452553139, 1.288703629, 1.106114523, 0.93291913, 0.759714171, 0.628594387, 0.46466835, 0.347490865, 0.239659263, 0.141077886, 0.089254625, 0.042046911;
+
+    ArrayXXd fig_7c_trace_2 = Eigen::ArrayXXd(2, 25);
+    fig_7c_trace_2 << 0.001018768, 0.009278922, 0.032892345, 0.059581205, 0.085232164, 0.122170885, 0.15498192, 0.189844841, 0.225740879, 0.26263177, 0.307734986, 0.34667298, 0.394827718, 0.436836366, 0.488061757, 0.541319903, 0.595596816, 0.652949167, 0.706192963, 0.761483862, 0.82393962, 0.872056094, 0.925280759, 0.96928868, 1.001013985,
+                      1.000009566, 0.939165662, 0.868851518, 0.793835734, 0.732848342, 0.643718074, 0.587336662, 0.526263177, 0.455834242, 0.413433393, 0.347591307, 0.305171325, 0.257992309, 0.21554363, 0.168335916, 0.135127896, 0.106583252, 0.073336968, 0.054147774, 0.034939448, 0.01566416, 0.005868679, 0.005371253, 0.009632861, 0.01400926;
+
+    ArrayXXd fig_7c_trace_3 = Eigen::ArrayXXd(2, 29);
+    fig_7c_trace_3 << 4.78295E-06, 0.008006658, 0.018055635, 0.033241501, 0.045361495, 0.063608449, 0.079813082, 0.107243299, 0.134716562, 0.164236928, 0.192786355, 0.229509843, 0.274450439, 0.320471981, 0.37165911, 0.424950736, 0.477271423, 0.528630737, 0.571796859, 0.620114217, 0.658181714, 0.697263196, 0.742500335, 0.788732327, 0.844157149, 0.892369282, 0.942595037, 0.982556582, 1.003027607,
+                      0.009345884, 0.182168207, 0.364317282, 0.52772676, 0.686491993, 0.859218657, 1.027291511, 1.227969733, 1.386591479, 1.545194092, 1.652403911, 1.773556027, 1.866593966, 1.903547036, 1.893722857, 1.827804243, 1.710492835, 1.532442748, 1.35914213, 1.153083089, 0.961138533, 0.778530295, 0.581845836, 0.413189462, 0.263138763, 0.159884444, 0.089321586, 0.046892039, 0.046700721;
+
+
+    // Digitally extracted from Marusic and Perry 1995 Part 2 Figure 7d:
+    ArrayXXd fig_7d_trace_1 = Eigen::ArrayXXd(2, 22);
+    fig_7d_trace_1 << 1.90243E-05, 0.015894783, 0.04092756, 0.072140057, 0.111483846, 0.153988836, 0.194573959, 0.25154057, 0.31370715, 0.379050784, 0.440419929, 0.497838367, 0.553225962, 0.607625881, 0.658999355, 0.706216024, 0.759588632, 0.806702253, 0.860959489, 0.918227318, 0.966233494, 0.999889025,
+                      1.018662815, 1.407217811, 1.850063335, 2.230604354, 2.634347063, 2.936951962, 3.122945973, 3.238700769, 3.253286047, 3.15118117, 2.948049457, 2.620562389, 2.285330856, 1.919010484, 1.52163298, 1.202080622, 0.843552276, 0.625090167, 0.39874091, 0.21900113, 0.124941936, 0.108866423;
+    
+    ArrayXXd fig_7d_trace_2 = Eigen::ArrayXXd(2, 17);
+    fig_7d_trace_2 << 1.10975E-05, 0.044913146, 0.104132548, 0.159266487, 0.216423341, 0.287891207, 0.35630092, 0.421620773, 0.494084243, 0.554291322, 0.626746865, 0.702236779, 0.766481761, 0.82257167, 0.884793737, 0.93780964, 0.999992073,
+                      1.010886642, 0.940203528, 0.845969945, 0.759575949, 0.688702592, 0.57872642, 0.468797808, 0.39002145, 0.303357943, 0.240213199, 0.161325865, 0.10571949, 0.081392197, 0.057191731, 0.017343799, 0.00874324, 0.007776173;
+    
+    ArrayXXd fig_7d_trace_3 = Eigen::ArrayXXd(2, 28);
+    fig_7d_trace_3 << 0.001035238, 0.009940185, 0.019864515, 0.032870779, 0.05191408, 0.070989088, 0.092158352, 0.117357591, 0.148720697, 0.185172796, 0.22776498, 0.279618817, 0.334610074, 0.387673537, 0.444909658, 0.500194206, 0.54320651, 0.586306009, 0.625327971, 0.669423073, 0.710452096, 0.760703137, 0.810874911, 0.852812343, 0.895761233, 0.943775336, 0.982567421, 0.999904879,
+                      0.0155682, 0.248679002, 0.51291035, 0.753765618, 1.072287495, 1.35970468, 1.592656946, 1.872202837, 2.104996568, 2.345487204, 2.562554199, 2.693940609, 2.747517728, 2.692260132, 2.543625044, 2.30948376, 2.114413585, 1.833805505, 1.55326084, 1.295965427, 1.046493747, 0.750222346, 0.531712676, 0.391091565, 0.258230774, 0.156395407, 0.10135976, 0.093314077;
+
+
     // Recreate Figure 6a
     ScatterPlot trace1_6a = getTrace(fig_6a_trace_1, "#1f77b4", "dash");
     ScatterPlot trace2_6a = getTrace(fig_6a_trace_2, "#ff7f0e", "dash");
@@ -691,7 +941,6 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     ScatterPlot trace5_6a = getTrace(fig_6a_trace_5, "#9467bd", "dash");
     ScatterPlot trace6_6a = getTrace(fig_6a_trace_6, "#e377c2", "dash");
     Figure fig_6a = Figure();
-
 
     // Traces from the paper
     fig_6a.add(trace1_6a);
@@ -780,6 +1029,101 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     fig_6c.setLayout(lay_6c);
     fig_6c.write("validation_perry_marusic_6c.json");
 
+
+    // Recreate P&M Figure 7a
+    ScatterPlot trace1_7a = getTrace(fig_7a_trace_1, "#1f77b4", "solid", "M&P 1995, composite");
+    ScatterPlot trace2_7a = getTrace(fig_7a_trace_2, "#1f77b4", "dash", "M&P 1995, Type A only");
+    ScatterPlot trace3_7a = getTrace(fig_7a_trace_3, "#1f77b4", "dot", "M&P 1995, Type B only");
+    Figure fig_7a = Figure();
+
+    // Traces from the paper
+    fig_7a.add(trace1_7a);
+    fig_7a.add(trace2_7a);
+    fig_7a.add(trace3_7a);
+
+    // Traces recreated with es-flow
+    fig_7a.add(r11_fig7_composite);
+    fig_7a.add(r11_fig7_type_a);
+    fig_7a.add(r11_fig7_type_b);
+
+    Layout lay_7a = Layout();
+    lay_7a.xTitle("$z/\\delta_{c}$");
+    lay_7a.yTitle("$\\overline{u_1^2} / U_{\\tau}^2$");
+    // TODO M&P display these on an x log axis. But for debug, its better to show linear.
+    //  Uncomment for to show the formal validation figures.
+    // lay_7a.xLog();
+    fig_7a.setLayout(lay_7a);
+    fig_7a.write("validation_perry_marusic_7a.json");
+
+
+    // Recreate P&M Figure 7b
+    ScatterPlot trace1_7b = getTrace(fig_7b_trace_1, "#1f77b4", "solid", "M&P 1995, composite");
+    ScatterPlot trace2_7b = getTrace(fig_7b_trace_2, "#1f77b4", "dash", "M&P 1995, Type A only");
+    ScatterPlot trace3_7b = getTrace(fig_7b_trace_3, "#1f77b4", "dot", "M&P 1995, Type B only");
+    Figure fig_7b = Figure();
+
+    // Traces from the paper
+    fig_7b.add(trace1_7b);
+    fig_7b.add(trace2_7b);
+    fig_7b.add(trace3_7b);
+
+    // Traces recreated with es-flow
+    fig_7b.add(r22_fig7_composite);
+    fig_7b.add(r22_fig7_type_a);
+    fig_7b.add(r22_fig7_type_b);
+
+    Layout lay_7b = Layout();
+    lay_7b.xTitle("$z/\\delta_{c}$");
+    lay_7b.yTitle("$\\overline{u_2^2} / U_{\\tau}^2$");
+    // TODO M&P display these on an x log axis. But for debug, its better to show linear.
+    //  Uncomment for to show the formal validation figures.
+    // lay_7b.xLog();
+    fig_7b.setLayout(lay_7b);
+    fig_7b.write("validation_perry_marusic_7b.json");
+
+    // Recreate P&M Figure 7c
+    ScatterPlot trace1_7c = getTrace(fig_7c_trace_1, "#1f77b4", "solid", "M&P 1995, composite");
+    ScatterPlot trace2_7c = getTrace(fig_7c_trace_2, "#1f77b4", "dash", "M&P 1995, Type A only");
+    ScatterPlot trace3_7c = getTrace(fig_7c_trace_3, "#1f77b4", "dot", "M&P 1995, Type B only");
+    Figure fig_7c = Figure();
+
+    // Traces from the paper
+    fig_7c.add(trace1_7c);
+    fig_7c.add(trace2_7c);
+    fig_7c.add(trace3_7c);
+
+    // Traces recreated with es-flow
+    fig_7c.add(r13_fig7_composite);
+    fig_7c.add(r13_fig7_type_a);
+    fig_7c.add(r13_fig7_type_b);
+
+    Layout lay_7c = Layout();
+    lay_7c.xTitle("$z/\\delta_{c}$");
+    lay_7c.yTitle("$\\overline{u_1u_3} / U_{\\tau}^2$");
+    fig_7c.setLayout(lay_7c);
+    fig_7c.write("validation_perry_marusic_7c.json");
+
+    // Recreate P&M Figure 7d
+    ScatterPlot trace1_7d = getTrace(fig_7d_trace_1, "#1f77b4", "solid", "M&P 1995, composite");
+    ScatterPlot trace2_7d = getTrace(fig_7d_trace_2, "#1f77b4", "dash", "M&P 1995, Type A only");
+    ScatterPlot trace3_7d = getTrace(fig_7d_trace_3, "#1f77b4", "dot", "M&P 1995, Type B only");
+    Figure fig_7d = Figure();
+
+    // Traces from the paper
+    fig_7d.add(trace1_7d);
+    fig_7d.add(trace2_7d);
+    fig_7d.add(trace3_7d);
+
+    // Traces recreated with es-flow
+    fig_7d.add(r33_fig7_composite);
+    fig_7d.add(r33_fig7_type_a);
+    fig_7d.add(r33_fig7_type_b);
+
+    Layout lay_7d = Layout();
+    lay_7d.xTitle("$z/\\delta_{c}$");
+    lay_7d.yTitle("$\\overline{u_3^2} / U_{\\tau}^2$");
+    fig_7d.setLayout(lay_7d);
+    fig_7d.write("validation_perry_marusic_7d.json");
 }
 
 
