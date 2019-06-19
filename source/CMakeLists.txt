@@ -19,6 +19,7 @@ set(SOURCE_FILES
         utilities/conv.h
         utilities/cumtrapz.h
         utilities/filter.h
+        utilities/interp.h
         utilities/tensors.h
         )
 add_library(flow STATIC ${SOURCE_FILES})

@@ -10,6 +10,8 @@
 #ifndef SOURCE_ADEM_H_
 #define SOURCE_ADEM_H_
 
+#include <vector>
+#include <iostream>
 #include <boost/algorithm/string/classification.hpp> // Include boost::for is_any_of
 #include <boost/algorithm/string/split.hpp> // Include for boost::split
 #include <Eigen/Dense>
@@ -17,6 +19,7 @@
 #include <stdexcept>
 #include <unsupported/Eigen/CXX11/Tensor>
 #include <unsupported/Eigen/FFT>
+#include <unsupported/Eigen/Splines>
 
 #include "cpplot.h"
 
@@ -26,11 +29,14 @@
 #include "relations/stress.h"
 #include "relations/velocity.h"
 #include "utilities/conv.h"
+#include "utilities/interp.h"
 #include "utilities/filter.h"
 #include "utilities/tensors.h"
 
+
 using namespace utilities;
 using namespace cpplot;
+
 
 namespace es {
 
@@ -129,8 +135,31 @@ public:
 
     Eigen::Index start_idx;
 
+    // TODO consider whether we can tidy these variables up
 
+    /// Reynolds Stress profile @f$R_{13A}@f$ determined analytically from the parameter set, finely interpolated
+    Eigen::ArrayXXd ja_fine;
 
+    /// Reynolds Stress profile @f$R_{13B}@f$ determined analytically from the parameter set, finely interpolated
+    Eigen::ArrayXXd jb_fine;
+
+    /// Reynolds Stress profile @f$R_{13A}@f$ determined analytically from the parameter set, finely interpolated
+    Eigen::ArrayXd r13a_analytic_fine;
+
+    /// Reynolds Stress profile @f$R_{13B}@f$ determined analytically from the parameter set, finely interpolated
+    Eigen::ArrayXd r13b_analytic_fine;
+
+    /// Negated convolution function @f$ -(T^2)\omega @f$ encapsulating variation of eddy strength and scale for Type A eddies, on the grid of lambda_fine
+    Eigen::ArrayXd minus_t2wa_fine;
+
+    /// Negated convolution function @f$ -(T^2)\omega @f$ encapsulating variation of eddy strength and scale for Type B eddies, on the grid of lambda_fine
+    Eigen::ArrayXd minus_t2wb_fine;
+
+    /// Linearly, finely, spaced values of @f$ \lambda @f$ at which final
+    Eigen::ArrayXd lambda_fine;
+
+    /// Linearly, finely, spaced values of @f$ \lambda @f$ at which final
+    Eigen::ArrayXd eta_fine;
 
     /** @brief Load data from a *.mat file containing eddy signature data.
      *
@@ -238,18 +267,309 @@ std::ostream &operator<<(std::ostream &os, AdemData const &data) {
  *
  * These distributions are used for calculation of Spectra and Stress terms.
  *
- * Updates `t2wa`, `t2wb`, `lambda_e`, `residual_a` and `residual_b` in the input data structure.
- *
- * Legacy MATLAB equivalent is:
- * @code
- *    [t2wa, t2wb, lambda_e, residual_a, residual_b] = get_tw(pi_coles, s, beta, zeta, JA(:,3), JB(:,3), lambda);
- * @endcode
+ * Updates `t2wa`, `t2wb`, `lambda_fine`, `residual_a` and `residual_b` in the input data structure.
  *
  * @param data
  * @param[in] signature_a
  * @param[in] signature_b
  */
 void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b) {
+
+    /* On the largest eddy scales:
+     * lambda_e is the scale of a given eddy, which contributes to the stresses and spectra in the boundary layer.
+     *
+     * As far as the signatures are concerned, lambda is mapped for a domain spanning the actual eddy.
+     * For a signature, values lambda < 0 are valid; since an eddy exerts an influence a short distance above itself
+     * (eddies accelerate flow above them, and decelerate flow below).
+     *
+     * As far as the deconvolution is concerned, lambda is mapped over the whole boundary layer.
+     * For a boundary layer profile, values < 0 are not meaningful: R_ij and S_ij must definitively be 0 outside
+     * the boundary layer.
+     *
+     * Since values of lambda < 0 are theoretically valid for an eddy signature, the signatures as produced by
+     * EddySignature().computeSignatures() extend out beyond lambda_e (to z/delta = 1.5, in our implementation).
+     * Having an eddy whose scale is of the same size as the boundary layer would therefore create an influence outside
+     * the boundary layer, breaking all assumptions about boundary layers ever.
+     *
+     * For us to maintain the fundamental boundary layer top condition that U = U_inf and u' = 0 for all z/delta >= 1,
+     * we assume that eddies can have no influence above their own scale (following Perry & Marusic 1995 pp. 371-2).
+     *
+     * This is equivalent to clipping the eddy signatures for values of lambda < 0.
+     *
+     */
+    data.start_idx = 0;
+    for (Eigen::Index i=0; i<signature_a.lambda.rows(); i++) {
+        if (signature_a.lambda(i) >= 0) {
+            data.start_idx = i;
+            break;
+        }
+    }
+    Eigen::Index n_lambda_signature = signature_a.lambda.rows() - data.start_idx;
+    Eigen::ArrayXd lambda_signature = signature_a.lambda.bottomRows(n_lambda_signature);
+
+    /* On the smallest eddy scales:
+     *
+     * So the smallest scale we want to go to is lambda_1, which can be defined by the physics of the problem (i.e. the
+     * cutoff beyond which viscosity takes over). This scale is defined by the Karman number K_tau.
+     *  P&M 1995 again give us an approximate relation: lambda_1 ~= 100 nu/u_tau.
+     *
+     * As far as this function goes, we take lambda_1 as the smallest scale in the eddy signature array, which assumes
+     * that signatures were computed on an appropriate grid.
+     *
+     */
+    double d_lambda_signature = signature_a.domain_spacing(2);
+    double d_lambda_fine = d_lambda_signature/10.0;
+    double lambda_min = lambda_signature(0);
+    double lambda_max = lambda_signature(n_lambda_signature-1);
+    Eigen::Index n_lambda_fine = round((lambda_max - lambda_min)/d_lambda_fine);
+
+    Eigen::ArrayXd lambda_fine = Eigen::ArrayXd::LinSpaced(n_lambda_fine, lambda_min, lambda_max);
+    Eigen::ArrayXd eta_fine = lambda_fine.exp().inverse();
+
+    double eta_min = 1./exp(lambda_max);
+    double eta_max = 1./exp(lambda_min);
+
+    std::cout << "Determined lambda sizes, with n_lambda_fine = " << lambda_fine.rows() << std::endl;
+
+    /* On the signatures:
+     *
+     * To avoid warping the reconstruction, we need to do the convolution and the deconvolution with
+     * both the input and the signature on the same, linearly spaced, basis.
+     *
+     * To do this, we interpolate to a fine distribution and store the fine values.
+     *
+     * TODO refactor this out to a separate function, which should be a method of the signature class
+     *
+     */
+    Eigen::ArrayXXd ja_fine(lambda_fine.rows(), 6);
+    Eigen::ArrayXXd jb_fine(lambda_fine.rows(), 6);
+    std::cout << "Preallocated ja,b_fine" << std::endl;
+    for (int k = 0; k < 6; k++) {
+        std::cout << "k: " << k << std::endl;
+        Eigen::ArrayXd ja_signature = signature_a.j.bottomRows(lambda_signature.rows()).col(k);
+        Eigen::ArrayXd jb_signature = signature_b.j.bottomRows(lambda_signature.rows()).col(k);
+        utilities::CubicSplineInterpolant s_a(lambda_signature.matrix(), ja_signature.matrix());
+        utilities::CubicSplineInterpolant s_b(lambda_signature.matrix(), jb_signature.matrix());
+        ja_fine.col(k) = s_a(lambda_fine);
+        jb_fine.col(k) = s_b(lambda_fine);
+    }
+    Eigen::ArrayXd j13a_fine = ja_fine.col(2);
+    Eigen::ArrayXd j13b_fine = jb_fine.col(2);
+
+    std::cout << "Interpolated signatures to fine, linearly spaced, values" << std::endl;
+
+    // Get an ascending version of eta, containing the point eta=0, for use in determining analytic R13 distributions
+    Eigen::ArrayXd eta_with_zero = Eigen::ArrayXd(eta_fine.rows()+1);
+    eta_with_zero.setZero();
+    eta_with_zero.bottomRows(eta_fine.rows()) = eta_fine.reverse();
+
+    // Get Reynolds Stresses, trim the zero point, reverse back so the ordering is consistent with lambda coordinates
+    Eigen::ArrayXd r13a_fine;
+    Eigen::ArrayXd r13b_fine;
+    reynolds_stress_13(r13a_fine, r13b_fine, data.beta, eta_with_zero, data.kappa, data.pi_coles, data.shear_ratio, data.zeta);
+    r13a_fine = r13a_fine.bottomRows(eta_fine.rows());
+    r13b_fine = r13b_fine.bottomRows(eta_fine.rows());
+    r13a_fine.reverseInPlace();
+    r13b_fine.reverseInPlace();
+
+    std::cout << "Determined R13a,b analytically" << std::endl;
+
+//    // Produce visual check that eta is ascending exponentially
+//    Figure figc = Figure();
+//    ScatterPlot pc = ScatterPlot();
+//    pc.x = Eigen::ArrayXd::LinSpaced(eta_with_zero.rows(), 1, eta_with_zero.rows());
+//    pc.y = eta_with_zero;
+//    figc.add(pc);
+//    Layout layc = Layout("Check that eta ascends exponentially");
+//    layc.xTitle("Row number");
+//    layc.yTitle("$\\eta$");
+//    figc.setLayout(layc);
+//    figc.write("check_that_eta_ascends.json");
+//
+//    // Produce a visual check that lambda is ascending linearly
+//    Figure figc1 = Figure();
+//    ScatterPlot pc1 = ScatterPlot();
+//    pc1.x = Eigen::ArrayXd::LinSpaced(lambda_fine.rows(), 1, lambda_fine.rows());
+//    pc1.y = lambda_fine;
+//    figc1.add(pc1);
+//    Layout layc1 = Layout("Check that lambda ascends linearly");
+//    layc1.xTitle("Row number");
+//    layc1.yTitle("$\\lambda$");
+//    figc1.setLayout(layc1);
+//    figc1.write("check_that_lambda_ascends.json");
+
+    // Double check J13 and interpolations
+    Figure figj = Figure();
+
+    ScatterPlot pja = ScatterPlot();
+    pja.x = lambda_signature;
+    pja.y = signature_a.j.bottomRows(n_lambda_signature).col(2);
+    pja.name = "Type A (signature)";
+    figj.add(pja);
+
+    ScatterPlot pjaf = ScatterPlot();
+    pjaf.x = lambda_fine;
+    pjaf.y = j13a_fine;
+    pjaf.name = "Type A (fine)";
+    figj.add(pjaf);
+
+    ScatterPlot pjb = ScatterPlot();
+    pjb.x = lambda_signature;
+    pjb.y = signature_b.j.bottomRows(n_lambda_signature).col(2);
+    pjb.name = "Type B (signature)";
+    figj.add(pjb);
+
+    ScatterPlot pjbf = ScatterPlot();
+    pjbf.x = lambda_fine;
+    pjbf.y = j13b_fine;
+    pjbf.name = "Type B (fine)";
+    figj.add(pjbf);
+
+    Layout layj = Layout();
+    layj.xTitle("$\\lambda$");
+    layj.yTitle("$J_{13}$");
+    figj.setLayout(layj);
+    figj.write("check_j13.json");
+
+    std::cout << "Wrote figure check_j13" << std::endl;
+
+    // We multiply both Reynolds Stresses and Signatures by -1. The distributions are entirely negative, which
+    // destabilises the deconvolution algorithm (it iteratively normalises on the first coefficient).
+//    r13a = -1.0 * r13a;
+//    r13b = -1.0 * r13b;
+//    j13a = -1.0 * j13a * pow((0.25 / M_PI), 2.0);
+//    j13b = -1.0 * j13b * pow((0.25 / M_PI), 2.0);
+
+    // Deconvolve out the A and B structure contributions to the Reynolds Stresses
+    // NOTE: it's actually -1*T^2w in this variable
+    Eigen::ArrayXd minus_t2wa_fine;
+    Eigen::ArrayXd minus_t2wb_fine;
+    double stability = 0.005;
+    minus_t2wa_fine = utilities::lowpass_fft_deconv(r13a_fine, j13a_fine, "Type_A", stability);
+    minus_t2wb_fine = utilities::lowpass_fft_deconv(r13b_fine, j13b_fine, "Type_B", stability);
+
+    // Test the roundtripping convolution without any of the remapping
+    Eigen::ArrayXd r13a_fine_recon = conv(minus_t2wa_fine.matrix(), j13a_fine.matrix()).matrix();
+    Eigen::ArrayXd r13b_fine_recon = conv(minus_t2wb_fine.matrix(), j13b_fine.matrix()).matrix();
+
+    // Show Reynolds Stresses behaving as part of validation
+    ScatterPlot pa = ScatterPlot();
+    pa.x = lambda_fine;
+    pa.y = -1.0*r13a_fine;
+    pa.name = "Type A (input)";
+
+    ScatterPlot pb = ScatterPlot();
+    pb.x = lambda_fine;
+    pb.y = -1.0*r13b_fine;
+    pb.name = "Type B (input)";
+
+    ScatterPlot par = ScatterPlot();
+    par.x = lambda_fine;
+    par.y = -1.0*r13a_fine_recon;
+    par.name = "Type A (reconstructed)";
+
+    ScatterPlot pbr = ScatterPlot();
+    pbr.x = lambda_fine;
+    pbr.y = -1.0*r13b_fine_recon;
+    pbr.name = "Type B (reconstructed)";
+
+    Layout lay = Layout();
+    lay.xTitle("$\\lambda$");
+    lay.yTitle("$-\\overline{u_1u_3}/U_\\tau^2$");
+
+    Figure fig = Figure();
+    fig.add(pa);
+    fig.add(pb);
+    fig.add(par);
+    fig.add(pbr);
+    fig.setLayout(lay);
+    fig.write("check_r13_fine_reconstruction.json");
+
+    std::cout << "Wrote figure checkr13_fine_reconstruction" << std::endl;
+
+
+    // Now we want to map fine variables back onto the space where we're working
+//    Eigen::ArrayXd minus_t2wa(n_lambda_signature);
+//    Eigen::ArrayXd minus_t2wb(n_lambda_signature);
+//    Eigen::ArrayXd r13a(n_lambda_signature);
+//    Eigen::ArrayXd r13b(n_lambda_signature);
+//    for (auto ind=0; ind < n_lambda_signature; ind++) {
+//        minus_t2wa(ind) = minus_t2wa_fine(ind*10);
+//        minus_t2wb(ind) = minus_t2wb_fine(ind*10);
+//        r13a(ind) = r13a_fine(ind*10);
+//        r13b(ind) = r13b_fine(ind*10);
+//    };
+
+//    // Show Reynolds Stresses behaving as part of validation
+//    Figure fig = Figure();
+//    Layout lay = Layout();
+//    ScatterPlot pa = ScatterPlot();
+//    pa.x = eta_fine;
+//    pa.y = -1.0*r13a_fine;
+//    pa.name = "Type A";
+//    ScatterPlot pb = ScatterPlot();
+//    pb.x = eta_fine;
+//    pb.y = -1.0*r13b_fine;
+//    pb.name = "Type B";
+//    ScatterPlot pab = ScatterPlot();
+//    pab.x = eta_fine;
+//    pab.y = -1.0*(r13a_fine + r13b_fine);
+//    pab.name = "Total";
+//    fig.add(pa);
+//    fig.add(pb);
+//    fig.add(pab);
+//    lay.xTitle("$z/\\delta_{c}$");
+//    lay.yTitle("$-\\overline{u_1u_3}/U_\\tau^2$");
+//    fig.setLayout(lay);
+//    fig.write("check_r13_analytic.json");
+
+    // Create a plot to show the t2w terms
+    Figure figt = Figure();
+    ScatterPlot pt = ScatterPlot();
+    pt.x = lambda_fine;
+    pt.y = minus_t2wa_fine;
+    pt.name = "$-T_{A}^2(\\lambda - \\lambda_E)\\omega_{A}(\\lambda-\\lambda_E)$";
+    figt.add(pt);
+    ScatterPlot pt2 = ScatterPlot();
+    pt2.x = lambda_fine;
+    pt2.y = minus_t2wb_fine;
+    pt2.name = "$-T_{B}^2(\\lambda - \\lambda_E)\\omega_{B}(\\lambda-\\lambda_E)$";
+    figt.add(pt2);
+    Layout layt = Layout();
+    layt.xTitle("$\\lambda - \\lambda_E$");
+    figt.setLayout(layt);
+    figt.write("check_t2w.json");
+    std::cout << "Wrote figure check_t2w" << std::endl;
+
+
+    // Extend by padding out to the same length as lambda_e.
+    // The T^2w distributions converge to a constant at high lambda (close to the wall) so padding with the last value
+    // in the vector is physically valid. This will result in the Reynolds Stresses and Spectra, which are obtained by
+    // convolution, having the same number of points in the z direction as the axes variables (eta, lambda_e, etc)
+//    double pad_value_a = minus_t2wa(minus_t2wa.rows()-1);
+//    double pad_value_b = minus_t2wb(minus_t2wb.rows()-1);
+//
+//    auto last_n = lambda_e.rows() - minus_t2wa.rows();
+//    minus_t2wa.conservativeResize(lambda_e.rows(),1);
+//    minus_t2wb.conservativeResize(lambda_e.rows(),1);
+//    minus_t2wa.tail(last_n) = pad_value_a;
+//    minus_t2wb.tail(last_n) = pad_value_b;
+
+    // Store in the data object
+    data.lambda_fine = lambda_fine;
+    data.r13a_analytic_fine = r13a_fine;
+    data.r13b_analytic_fine = r13b_fine;
+    data.minus_t2wa_fine = minus_t2wa_fine;
+    data.minus_t2wb_fine = minus_t2wb_fine;
+    data.ja_fine = ja_fine;
+    data.jb_fine = jb_fine;
+    data.eta_fine = eta_fine;
+    data.eta = eta_fine;
+
+}
+
+
+void get_t2w_upsampled(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b) {
 
     /* Let's talk eddy scales.
      * lambda_e is the scale of a given eddy, which contributes to the stresses and spectra in the boundary layer.
@@ -507,88 +827,43 @@ void get_mean_speed(AdemData& data) {
  */
 void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, const EddySignature& signature_b){
 
-    // Get eddy signatures and trim the initial terms. See get_t2w() comments for why we trim.
-    Eigen::Index n_lambda = signature_a.j.rows() - data.start_idx;
-    Eigen::ArrayXXd ja = signature_a.j.bottomRows(n_lambda);
-    Eigen::ArrayXXd jb = signature_b.j.bottomRows(n_lambda);
-
-    // Map the input signature data to tensors (shared memory)
-    auto input_rows = data.t2wa.rows();
-    auto kernel_rows = n_lambda;
-
-    // Compute cumulative length of input and kernel;
-    auto N = input_rows + kernel_rows - 1 ;
-    auto M = fft_next_good_size(N);
-
     // Allocate the output and set zero
-    data.reynolds_stress_a = Eigen::ArrayXXd(M, 6);
-    data.reynolds_stress_b = Eigen::ArrayXXd(M, 6);
+    data.reynolds_stress_a = Eigen::ArrayXXd(data.lambda_fine.rows(), 6);
+    data.reynolds_stress_b = Eigen::ArrayXXd(data.lambda_fine.rows(), 6);
     data.reynolds_stress_a.setZero();
     data.reynolds_stress_b.setZero();
-
-    Eigen::FFT<double> fft;
 
     // Column-wise convolution of T2w with J
     // TODO refactor to use the conv() function
     for (int k = 0; k < 6; k++) {
-        Eigen::VectorXd in_a1(M);
-        Eigen::VectorXd in_a2(M);
-        Eigen::VectorXd in_b1(M);
-        Eigen::VectorXd in_b2(M);
-        in_a1.setZero();
-        in_a2.setZero();
-        in_b1.setZero();
-        in_b2.setZero();
-        in_a1.topRows(input_rows) = data.t2wa.matrix();
-        in_b1.topRows(input_rows) = data.t2wb.matrix();
-        in_a2.topRows(kernel_rows) = ja.col(k).bottomRows(kernel_rows).matrix();
-        in_b2.topRows(kernel_rows) = jb.col(k).bottomRows(kernel_rows).matrix();
+        std::cout << "Convolving, k: " << k << std::endl;
+        Eigen::ArrayXd ra_fine_recon = conv(data.minus_t2wa_fine.matrix(), data.ja_fine.col(k).matrix());
+        Eigen::ArrayXd rb_fine_recon = conv(data.minus_t2wb_fine.matrix(), data.jb_fine.col(k).matrix());
 
-        // Take the forward ffts
-        Eigen::VectorXcd out_a1(M);
-        Eigen::VectorXcd out_a2(M);
-        Eigen::VectorXcd out_b1(M);
-        Eigen::VectorXcd out_b2(M);
-        fft.fwd(out_a1, in_a1);
-        fft.fwd(out_a2, in_a2);
-        fft.fwd(out_b1, in_b1);
-        fft.fwd(out_b2, in_b2);
-
-        // Convolve by element-wise multiplication
-        Eigen::VectorXcd inter_a = out_a1.array() * out_a2.array();
-        Eigen::VectorXcd inter_b = out_b1.array() * out_b2.array();
-
-        // Inverse FFT to deconvolve
-        Eigen::VectorXd out_a(M);
-        Eigen::VectorXd out_b(M);
-        fft.inv(out_a, inter_a);
-        fft.inv(out_b, inter_b);
-        data.reynolds_stress_a.col(k) = out_a;
-        data.reynolds_stress_b.col(k) = out_b;
+        data.reynolds_stress_a.col(k) = ra_fine_recon;
+        data.reynolds_stress_b.col(k) = rb_fine_recon;
     }
 
     // Trim the zero-padded ends
-    data.reynolds_stress_a = data.reynolds_stress_a.topRows(n_lambda);
-    data.reynolds_stress_b = data.reynolds_stress_b.topRows(n_lambda);
     data.reynolds_stress = data.reynolds_stress_a + data.reynolds_stress_b;
 
     // Check that R13 stacks up against the analytical solution
     Figure fig = Figure();
     Layout lay = Layout();
     ScatterPlot paa = ScatterPlot();
-    paa.x = data.eta;
-    paa.y = -1.0*data.r13a_analytic;
+    paa.x = data.eta_fine;
+    paa.y = -1.0*data.r13a_analytic_fine;
     paa.name = "Type A - analytic";
     ScatterPlot pba = ScatterPlot();
-    pba.x = data.eta;
-    pba.y = -1.0*data.r13b_analytic;
+    pba.x = data.eta_fine;
+    pba.y = -1.0*data.r13b_analytic_fine;
     pba.name = "Type B - analytic";
     ScatterPlot par = ScatterPlot();
-    par.x = data.eta;
+    par.x = data.eta_fine;
     par.y = -1.0*(data.reynolds_stress_a.col(2));
     par.name = "Type A - reconstructed";
     ScatterPlot pbr = ScatterPlot();
-    pbr.x = data.eta;
+    pbr.x = data.eta_fine;
     pbr.y = -1.0*(data.reynolds_stress_b.col(2));
     pbr.name = "Type B - reconstructed";
     fig.add(paa);

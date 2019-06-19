@@ -51,7 +51,11 @@ protected:
 };
 
 
-// Helper to plot eddy intensities for different eddy types
+/** @brief Helper to plot eddy intensities for different eddy types
+ *
+ * @param sig
+ * @param type
+ */
 void plotEddyIntensities(const EddySignature &sig, const std::string &type) {
 
     // Plot the intensity functions as figures
@@ -89,6 +93,187 @@ void plotEddyIntensities(const EddySignature &sig, const std::string &type) {
 };
 
 
+/** @brief Helper function to run ADEM for Reynolds Stress comparisons
+ *
+ * @param r11
+ * @param r22
+ * @param r33
+ * @param r13
+ * @param signature_a
+ * @param signature_b
+ * @param pi_coles
+ * @param shear_ratio
+ * @param zeta
+ * @param beta
+ * @param dash
+ * @param name
+ * @param color
+ * @param type
+ */
+void getStressTraces(
+    ScatterPlot &r11, ScatterPlot &r22, ScatterPlot &r33, ScatterPlot &r13,
+    const EddySignature &signature_a, const EddySignature &signature_b,
+    const double pi_coles, const double shear_ratio, const double zeta, const double beta,
+    const std::string &dash, const std::string &name, const std::string &color,
+    const std::string &type = "composite"
+) {
+
+    // TODO should use the K_tau values given in M&P with the shear ratio, to fix at least the ratio of delta_c to U1
+    // Use these same parameters for all. The outputs are nondimensional so it shouldn't matter
+    double delta_c = 1000.0;
+    double kappa = KAPPA_VON_KARMAN;
+    double u_inf = 2.2;
+
+    AdemData data = adem(beta, delta_c, kappa, pi_coles, shear_ratio, u_inf, zeta, signature_a, signature_b, false);
+    std::cout << "Computed stresses using ADEM for case " << name << std::endl;
+    std::cout << data << std::endl;
+    Eigen::ArrayXXd stress;
+    if (type == "type_a") {
+        stress = data.reynolds_stress_a;
+        std::cout << "Using type a reynolds stresses" << std::endl;
+    } else if (type == "type_b") {
+        stress = data.reynolds_stress_b;
+        std::cout << "Using type b reynolds stresses" << std::endl;
+    } else {
+        // type == composite by default
+        stress = data.reynolds_stress;
+        std::cout << "Using composite (type a + b) reynolds stresses" << std::endl;
+    }
+    r11.x = data.eta;
+    r11.y = stress.col(0);
+    r11.name = name;
+    r11.setDash(dash);
+    r11.setColor(color);
+
+    std::cout << "trace1 " << name << std::endl;
+
+    r22.x = data.eta;
+    r22.y = stress.col(3);
+    r22.name = name;
+    r22.setDash(dash);
+    r22.setColor(color);
+
+    std::cout << "trace2 " << name << std::endl;
+
+    r33.x = data.eta;
+    r33.y = stress.col(5);
+    r33.name = name;
+    r33.setDash(dash);
+    r33.setColor(color);
+    std::cout << "trace3 " << name << std::endl;
+
+    r13.x = data.eta;
+    r13.y = stress.col(2);
+    r13.name = name;
+    r13.setDash(dash);
+    r13.setColor(color);
+    std::cout << "trace4 " << name << std::endl;
+
+}
+
+
+/** @brief Helper to make all 5 signature files, if no files already present
+* TODO refactor out to signatures.h
+ *
+ * Signature files are named as "<data_path>/
+ *
+ * @param[in] data_path, std::string the path to the folder where signature files will be stored
+ * @param[in] is_coarse, bool If true (the default), make coarse-grained signatures which are very quick for the purposes of unit testing, but which won't validate correctly.
+ */
+void make_signatures(const std::string &data_path, const bool is_coarse=true) {
+    int n_lambda = 400;
+    double dx = 0.005;
+    std::string level = "fine";
+    if (is_coarse) {
+        n_lambda = 200;
+        dx = 0.01;
+        level = "coarse";
+    }
+    std::vector<std::string> types = {"A", "B1", "B2", "B3", "B4"};
+    for (auto type : types) {
+        EddySignature sig = EddySignature();
+        sig.computeSignature(type, n_lambda, dx);
+        sig.save(data_path + std::string("/signatures_"+type+"_"+level+".mat"));
+    }
+};
+
+
+/** @brief Helper function to load eddy signatures for type A and ensembled Type B eddies
+ *
+ * @param sig_a, EddySignature to which the type A eddy data is loaded
+ * @param sig_b
+ * @param data_path
+ * @param is_coarse
+ */
+void load_ensemble(EddySignature &sig_a, EddySignature &sig_b, const std::string &data_path, const bool is_coarse=true) {
+    std::string level = "fine";
+    if (is_coarse) {
+        level = "coarse";
+    }
+    sig_a.load(data_path + "/signatures_A_" + level + ".mat");
+    sig_b.load(data_path + "/signatures_B1_" + level + ".mat");
+    EddySignature sig_bx = EddySignature();
+    sig_bx.load(data_path + "/signatures_B2_" + level + ".mat");
+    sig_b = sig_b + sig_bx;
+    sig_bx.load(data_path + "/signatures_B3_" + level + ".mat");
+    sig_b = sig_b + sig_bx;
+    sig_bx.load(data_path + "/signatures_B4_" + level + ".mat");
+    sig_b = sig_b + sig_bx;
+    sig_b = sig_b / 4.0;
+};
+
+
+/** @brief Helper function to plot a trace digitised from a graph
+ *
+ * @param data
+ * @param color
+ * @param dash
+ * @param name
+ * @return
+ */
+ScatterPlot getTrace(const ArrayXXd &data, const std::string &color, const std::string &dash, std::string name="") {
+    ScatterPlot p = ScatterPlot();
+    p.x = data.row(0);
+    p.y = data.row(1);
+    p.name = name;
+    p.setDash(dash);
+    p.setColor(color);
+    return p;
+}
+
+
+/** @brief Helper function to plot a trace of R13, calculated from parameters
+ *
+ * @param eta
+ * @param pi_coles
+ * @param shear_ratio
+ * @param zeta
+ * @param beta
+ * @param color
+ * @param dash
+ * @param name
+ * @return
+ */
+ScatterPlot getStress13Trace(
+    const ArrayXd &eta,
+    const double pi_coles, const double shear_ratio, const double zeta, const double beta,
+    const std::string &color, const std::string &dash, const std::string &name
+) {
+    Eigen::ArrayXd r13;
+    Eigen::ArrayXd r13_a;
+    Eigen::ArrayXd r13_b;
+    reynolds_stress_13(r13_a, r13_b, beta, eta, KAPPA_VON_KARMAN, pi_coles, shear_ratio, zeta);
+    r13 = r13_a + r13_b;
+    ScatterPlot p = ScatterPlot();
+    p.x = eta;
+    p.y = -1.0*r13;
+    p.name = name;
+    p.setDash(dash);
+    p.setColor(color);
+    return p;
+}
+
+
 TEST_F(AdemTest, test_save_load_signatures) {
 
     // Create a signature for test
@@ -116,6 +301,7 @@ TEST_F(AdemTest, test_save_load_signatures) {
     ASSERT_TRUE(sig.j.isApprox(sig2.j));
 
 };
+
 
 TEST_F(AdemTest, test_get_type_a_eddy_intensity) {
     int n_lambda = 200;
@@ -199,7 +385,6 @@ TEST_F(AdemTest, test_analysis) {
     Eigen::Tensor<double, 3> psi;
     psi = data.psi_a + data.psi_b;
 
-
     // Print useful diagnostics values
     // std::cout << "speed = ["     << speed.transpose()     << "];" << std::endl;
     // std::cout << "dspeed_dz = [" << dspeed_dz.transpose() << "];" << std::endl;
@@ -250,8 +435,6 @@ TEST_F(AdemTest, test_analysis) {
 
     // Create a plot to show Reynolds Stress variations with eta
     Figure fig_rs = Figure();
-    std::cout << "sizea " << data.reynolds_stress_a.rows() << " " << data.reynolds_stress_a.cols() << std::endl;
-    std::cout << "sizeb " << data.reynolds_stress_b.rows() << " " << data.reynolds_stress_b.cols() << std::endl;
     std::vector<std::string> term_labels = { "11", "12", "13", "22", "23", "33" };
     for (Eigen::Index k = 0; k < 6; k++) {
         ScatterPlot p_rs = ScatterPlot();
@@ -273,7 +456,6 @@ TEST_F(AdemTest, test_analysis) {
     fig_rs.setLayout(lay_rs);
     fig_rs.write("test_rs_plot.json");
 
-
     // Initialise dimensions and spectral tensor arrays
     Eigen::array<Eigen::Index, 2> dims = {psi.dimensions()[0], psi.dimensions()[1]};
     std::vector<Eigen::ArrayXXd> spectra;
@@ -287,7 +469,6 @@ TEST_F(AdemTest, test_analysis) {
     // For each of the 6 auto / cross spectra terms, map a slice out of the psi tensor
     for (Eigen::Index j = 0; j < 6; j++) {
 
-        std::cout << "j: " << j << std::endl;
         Eigen::Tensor<double, 2> slice_tens = psi.chip(j, 2);
         Eigen::ArrayXXd slice = tensor_to_array(slice_tens, dims[0], dims[1]);
 
@@ -298,13 +479,6 @@ TEST_F(AdemTest, test_analysis) {
         spectra.push_back(slice);
 
         // Create a surface plot to show the spectrum term
-        Figure fig = Figure();
-        Layout lay = Layout();
-        lay.xTitle("k1z");
-        lay.yTitle("z");
-        lay.zTitle("Psi");
-        lay.xLog();
-        fig.setLayout(lay);
         SurfacePlot p = SurfacePlot();
 
         // x direction is frequency
@@ -323,6 +497,15 @@ TEST_F(AdemTest, test_analysis) {
         p.x = p.x.topRows(150);
         p.y = p.y.topRows(150);
         p.z = p.z.topRows(150);
+
+        Layout lay = Layout();
+        lay.xTitle("k1z");
+        lay.yTitle("z");
+        lay.zTitle("Psi");
+        lay.xLog();
+
+        Figure fig = Figure();
+        fig.setLayout(lay);
         fig.add(p);
         fig.write("test_spectrum_surface_plot_" + term_labels[j] + ".json");
     }
@@ -361,43 +544,6 @@ TEST_F(AdemTest, test_analysis) {
         fig_ls.setLayout(lay);
         fig_ls.write("test_spectrum_line_plot_" + term_labels[spectrum_ind] + ".json");
     }
-}
-
-
-// Helper function to plot a trace digitised from a graph
-ScatterPlot getTrace(const ArrayXXd &data, const std::string &color, const std::string &dash, std::string name="") {
-    ScatterPlot p = ScatterPlot();
-    p.x = data.row(0);
-    p.y = data.row(1);
-    p.name = name;
-    p.setDash(dash);
-    p.setColor(color);
-    return p;
-}
-
-
-// Helper function to plot a trace of R13, calculated from parameters
-ScatterPlot getStress13Trace(
-    const ArrayXd &eta,
-    const double pi_coles, const double shear_ratio, const double zeta, const double beta,
-    const std::string &color, const std::string &dash, const std::string &name
-) {
-    Eigen::ArrayXd r13;
-    Eigen::ArrayXd r13_a;
-    Eigen::ArrayXd r13_b;
-    reynolds_stress_13(r13_a, r13_b, beta, eta, KAPPA_VON_KARMAN, pi_coles, shear_ratio, zeta);
-    std::cout << "R13A" <<std::endl;
-    std::cout << r13_a<<std::endl;
-    std::cout << "R13B" <<std::endl;
-    std::cout << r13_b<<std::endl;
-    r13 = r13_a + r13_b;
-    ScatterPlot p = ScatterPlot();
-    p.x = eta;
-    p.y = -1.0*r13;
-    p.name = name;
-    p.setDash(dash);
-    p.setColor(color);
-    return p;
 }
 
 
@@ -447,7 +593,7 @@ TEST_F(AdemTest, test_reynolds_stress_13a_analytic) {
 
     // Digitally extracted from Perry and Marusic 1995, Figure 11 (eq. 51 for typ a eddy shear stress):
     ArrayXXd fig_11_trace_1 = Eigen::ArrayXXd(2, 25);
-    fig_11_trace_1 << 0.0, 0.012063814, 0.029733311, 0.046593536, 0.070664416, 0.093932194, 0.12360629, 0.156486629, 0.189363266, 0.224635643, 0.263913665, 0.301583013, 0.343258007, 0.384925599, 0.424186349, 0.467447811, 0.511511141, 0.557169574, 0.622848832, 0.677310555, 0.738973065, 0.797429331, 0.852680587, 0.921535246, 0.998398729,
+    fig_11_trace_1 << 0.0, 0.012063814, 0.029733311, 0.046593536, 0.070664416, 0.093932194, 0.12360629, 0.156486629, 0.189363266, 0.224635643, 0.263913665, 0.301583013, 0.343258007, 0.384925599, 0.424186349, 0.467447811, 0.511511141, 0.557169574, 0.622848832, 0.677310555, 0.738973065, 0.797429331, 0.852680587, 0.921535246, 1.0,
                       1.0, 0.933830986, 0.864629672, 0.806207948, 0.741678448, 0.680224425, 0.617278925, 0.54973563, 0.486814803, 0.431616593, 0.373367579, 0.324351164, 0.272283946, 0.229461662, 0.192784164, 0.159219152, 0.124119486, 0.096736269, 0.063343967, 0.040651068, 0.024176974, 0.012300674, 0.003481346, 0.004011813, 0.001522318;
 
     Eigen::ArrayXd eta(25);
@@ -517,28 +663,34 @@ TEST_F(AdemTest, test_reynolds_stress_13_analytic) {
     eta.setZero(10001);
     eta.topRows(10000) = lambda.exp().inverse();
     eta.reverseInPlace();
+
+//    Eigen::ArrayXd eta(10001);
 //    eta = Eigen::ArrayXd::LinSpaced(10001, 0, 1);
-    std::cout << "ETA" << std::endl;
-    std::cout << eta << std::endl;
+
+    // Get the R13 profiles from our analytical function     // Get the R13 profiles from our analytical function
+    //-    ScatterPlot r13_analytic_trace_1 = getStress13Trace(eta, 3.23, 38.4, 15.32, 7.16, "#1f77b4", "solid", "es-flow, 10APG, R_theta = 7257");
+    //-    ScatterPlot r13_analytic_trace_2 = getStress13Trace(eta, 2.46, 34.5, 8.01,  4.48, "#ff7f0e", "solid", "es-flow, 10APG, R_theta = 6395");
+    //-    ScatterPlot r13_analytic_trace_3 = getStress13Trace(eta, 1.87, 31.5, 4.64,  2.90, "#2ca02c", "solid", "es-flow, 10APG, R_theta = 5395");
+    //-    ScatterPlot r13_analytic_trace_4 = getStress13Trace(eta, 1.19, 28.1, 2.18,  1.45, "#d62728", "solid", "es-flow, 10APG, R_theta = 4155");
+    //-    ScatterPlot r13_analytic_trace_5 = getStress13Trace(eta, 0.68, 25.4, 0.94,  0.65, "#9467bd", "solid", "es-flow, 10APG, R_theta = 3153");
+    //-    ScatterPlot r13_analytic_trace_6 = getStress13Trace(eta, 0.42, 23.6, 0.15,  0.0,  "#e377c2", "solid", "es-flow, 10APG, R_theta = 2206");
+    ScatterPlot r13_analytic_trace_1 = getStress13Trace(eta, 3.23, 38.4, 15.32, 7.16, "#1f77b4", "solid", "es-flow, R_theta = 7257, zeta=15.32, beta=7.16");
+    ScatterPlot r13_analytic_trace_2 = getStress13Trace(eta, 2.46, 34.5, 8.01,  4.48, "#ff7f0e", "solid", "es-flow, R_theta = 6395, zeta=8.01, beta=4.48");
+    ScatterPlot r13_analytic_trace_3 = getStress13Trace(eta, 1.87, 31.5, 4.64,  2.90, "#2ca02c", "solid", "es-flow, R_theta = 5395, zeta=4.64, beta=2.90");
+    ScatterPlot r13_analytic_trace_4 = getStress13Trace(eta, 1.19, 28.1, 2.18,  1.45, "#d62728", "solid", "es-flow, R_theta = 4155, zeta=2.18, beta=1.45");
+    ScatterPlot r13_analytic_trace_5 = getStress13Trace(eta, 0.68, 25.4, 0.94,  0.65, "#9467bd", "solid", "es-flow, R_theta = 3153, zeta=0.94, beta=0.65");
+    ScatterPlot r13_analytic_trace_6 = getStress13Trace(eta, 0.42, 23.6, 0.15,  0.0,  "#e377c2", "solid", "es-flow, R_theta = 2206, zeta=0.15, beta=0.00");
 
     // Get the R13 profiles from our analytical function
-    ScatterPlot r13_analytic_trace_1 = getStress13Trace(eta, 3.23, 38.4, 15.32, 7.16, "#1f77b4", "solid", "es-flow, 10APG, R_theta = 7257");
-    ScatterPlot r13_analytic_trace_2 = getStress13Trace(eta, 2.46, 34.5, 8.01,  4.48, "#ff7f0e", "solid", "es-flow, 10APG, R_theta = 6395");
-    ScatterPlot r13_analytic_trace_3 = getStress13Trace(eta, 1.87, 31.5, 4.64,  2.90, "#2ca02c", "solid", "es-flow, 10APG, R_theta = 5395");
-    ScatterPlot r13_analytic_trace_4 = getStress13Trace(eta, 1.19, 28.1, 2.18,  1.45, "#d62728", "solid", "es-flow, 10APG, R_theta = 4155");
-    ScatterPlot r13_analytic_trace_5 = getStress13Trace(eta, 0.68, 25.4, 0.94,  0.65, "#9467bd", "solid", "es-flow, 10APG, R_theta = 3153");
-    ScatterPlot r13_analytic_trace_6 = getStress13Trace(eta, 0.42, 23.6, 0.15,  0.0,  "#e377c2", "solid", "es-flow, 10APG, R_theta = 2206");
+    ScatterPlot r13_validation_trace_1 = getTrace(fig_4_trace_1, "#1f77b4", "dash", "M&P 1995, R_theta = 7257, zeta=15.32, beta=7.16");
+    ScatterPlot r13_validation_trace_2 = getTrace(fig_4_trace_2, "#ff7f0e", "dash", "M&P 1995, R_theta = 6395, zeta=8.01, beta=4.48");
+    ScatterPlot r13_validation_trace_3 = getTrace(fig_4_trace_3, "#2ca02c", "dash", "M&P 1995, R_theta = 5395, zeta=4.64, beta=2.90");
+    ScatterPlot r13_validation_trace_4 = getTrace(fig_4_trace_4, "#d62728", "dash", "M&P 1995, R_theta = 4155, zeta=2.18, beta=1.45");
+    ScatterPlot r13_validation_trace_5 = getTrace(fig_4_trace_5, "#9467bd", "dash", "M&P 1995, R_theta = 3153, zeta=0.94, beta=0.65");
+    ScatterPlot r13_validation_trace_6 = getTrace(fig_4_trace_6, "#e377c2", "dash", "M&P 1995, R_theta = 2206, zeta=0.15, beta=0.00");
 
     // Recreate M&P Figure 4
     Figure fig_4 = Figure();
-
-    // Get the R13 profiles from our analytical function
-    ScatterPlot r13_validation_trace_1 = getTrace(fig_4_trace_1, "#1f77b4", "dash", "M&P 1995, 10APG, R_theta = 7257");
-    ScatterPlot r13_validation_trace_2 = getTrace(fig_4_trace_2, "#ff7f0e", "dash", "M&P 1995, 10APG, R_theta = 6395");
-    ScatterPlot r13_validation_trace_3 = getTrace(fig_4_trace_3, "#2ca02c", "dash", "M&P 1995, 10APG, R_theta = 5395");
-    ScatterPlot r13_validation_trace_4 = getTrace(fig_4_trace_4, "#d62728", "dash", "M&P 1995, 10APG, R_theta = 4155");
-    ScatterPlot r13_validation_trace_5 = getTrace(fig_4_trace_5, "#9467bd", "dash", "M&P 1995, 10APG, R_theta = 3153");
-    ScatterPlot r13_validation_trace_6 = getTrace(fig_4_trace_6, "#e377c2", "dash", "M&P 1995, 10APG, R_theta = 2206");
 
     // Traces from the paper
     fig_4.add(r13_validation_trace_1);
@@ -556,7 +708,7 @@ TEST_F(AdemTest, test_reynolds_stress_13_analytic) {
     fig_4.add(r13_analytic_trace_5);
     fig_4.add(r13_analytic_trace_6);
 
-    Layout lay_4 = Layout();
+    Layout lay_4 = Layout("Marusic & Perry Figure 4, 10APG flow case");
     lay_4.xTitle("$z/\\delta_{c}$");
     lay_4.yTitle("$-\\overline{u_1u_3} / U_{\\tau}^2$");
     fig_4.setLayout(lay_4);
@@ -614,120 +766,71 @@ TEST_F(AdemTest, test_signature_k1z) {
 }
 
 
+TEST_F(AdemTest, test_validate_reynolds_stress_13_skare_krogstad) {
+    /* The Skare and Krogstad data is a very useful validation case, as it is taken for an equilibrium flow case.
+     *
+     * This means that the value of zeta is zero. Considering the formulation for f2 in the appendix of P&M 1995, that
+     * can be very sensitive to errors in the coles wake function. This case with zeta = 0 still contains some error
+     * (from the integration of the velocity deficit distribution, f) but is not highly sensitive to it.
+     *
+     * Also, the case includes a before-and-after distribution showing both the analytically derived and the
+     * reconstructed (i.e. roundtripped through convolution-deconvolution cycle) R13 profiles, so we get to compare how
+     * our cycle compares to that of P&M.
+     *
+     */
 
+    // Digitally extracted from Marusic and Perry 1995, Figure 15:
 
-// Helper function to run ADEM for Reynolds Stress comparisons
-void getStressTraces(
-    ScatterPlot &r11, ScatterPlot &r22, ScatterPlot &r33, ScatterPlot &r13,
-    const EddySignature &signature_a, const EddySignature &signature_b,
-    const double pi_coles, const double shear_ratio, const double zeta, const double beta,
-    const std::string &dash, const std::string &name, const std::string &color,
-    const std::string &type = "composite") {
+    // This is the input profile (solid)
+    ArrayXXd fig_15_trace_1 = Eigen::ArrayXXd(2, 21);
+    fig_15_trace_1 << 0.000804653, 0.044885426, 0.07285776, 0.113558991, 0.17122183, 0.221257033, 0.278096286, 0.331564281, 0.39863919, 0.47340445, 0.538861771, 0.601803369, 0.646902974, 0.690305709, 0.735419514, 0.779684884, 0.82649556, 0.875003106, 0.924347255, 0.962603762, 1.000001183,
+        1.086328594, 3.424933587, 4.956187839, 6.849204518, 9.465982712, 11.63729092, 13.64127869, 15.00469184, 16.06131928, 16.08709183, 15.22175876, 13.57655147, 11.93184118, 10.23146784, 8.252495311, 6.245691262, 4.322381772, 2.454735322, 0.893472254, 0.335303549, 3.55E-15;
 
-    // TODO should use the K_tau values given in M&P with the shear ratio, to fix at least the ratio of delta_c to U1
-    // Use these same parameters for all. The outputs are nondimensional so it shouldn't matter
-    double delta_c = 1000.0;
-    double kappa = 0.41;
-    double u_inf = 2.2;
+    // This is the reconstructed profile (dotted)
+    ArrayXXd fig_15_trace_2 = Eigen::ArrayXXd(2, 22);
+    fig_15_trace_2 << 0.000804653, 0.049124053, 0.088968565, 0.133050522, 0.169507209, 0.216152221, 0.263657502, 0.308632859, 0.357869327, 0.419024122, 0.471715863, 0.524432454, 0.57292935, 0.618884491, 0.666553069, 0.698897744, 0.742307579, 0.798468793, 0.859714703, 0.925186224, 0.980437471, 1.000833052,
+        1.086328594, 3.647656745, 5.707828207, 8.018578013, 9.828147464, 11.80456404, 13.53026027, 14.81034452, 15.78390339, 16.20002722, 15.83644249, 14.88789885, 13.27094908, 11.48693918, 9.368619725, 7.974961099, 6.107456646, 4.072466083, 2.34374057, 1.144145263, 0.529792861, 0.417804126;
 
-    AdemData data = adem(beta, delta_c, kappa, pi_coles, shear_ratio, u_inf, zeta, signature_a, signature_b, false);
-    std::cout << "Computed stresses using ADEM for case " << name << std::endl;
-    std::cout << data << std::endl;
-    Eigen::ArrayXXd stress;
-    if (type == "type_a") {
-        stress = data.reynolds_stress_a;
-        std::cout << "Using type a reynolds stresses" << std::endl;
-    } else if (type == "type_b") {
-        stress = data.reynolds_stress_b;
-        std::cout << "Using type b reynolds stresses" << std::endl;
-    } else {
-        // type == composite by default
-        stress = data.reynolds_stress;
-        std::cout << "Using composite (type a + b) reynolds stresses" << std::endl;
-    }
-    r11.x = data.eta;
-    r11.y = stress.col(0);
-    r11.name = name;
-    r11.setDash(dash);
-    r11.setColor(color);
+    // Get the R13 profiles from the paper as traces for plotting
+    ScatterPlot r13_validation_trace_1 = getTrace(fig_15_trace_1, "#1f77b4", "solid", "P&M 1995 Figure 15.   Skare & Krogstad");
+    ScatterPlot r13_validation_trace_2 = getTrace(fig_15_trace_2, "#1f77b4", "dash", "P&M 1995 Figure 15.   Skare & Krogstad (reconstructed)");
 
-    std::cout << "trace1 " << name << std::endl;
+    // Get the R13 profiles from our analytical function, using the skare and krogstad parameters
+    Eigen::ArrayXd eta(10001);
+    eta = Eigen::ArrayXd::LinSpaced(100000, 0, 1);
+    ScatterPlot r13_analytic_trace_1 = getStress13Trace(eta, 6.85, 59.4, 0.0, 19.0, "#ff7f0e", "solid", "es-flow reproduction. Skare & Krogstad");
 
-    r22.x = data.eta;
-    r22.y = stress.col(3);
-    r22.name = name;
-    r22.setDash(dash);
-    r22.setColor(color);
+    // Run ADEM to do the roundtripping
+    // Uncomment to make the signatures as part of the test
+    // TODO Make only if not found, to avoid commenting/uncommenting
+    bool is_coarse = false;
+//    make_signatures(data_path, is_coarse);
+    EddySignature signature_a = EddySignature();
+    EddySignature signature_b = EddySignature();
+    load_ensemble(signature_a, signature_b, data_path, is_coarse);
+    ScatterPlot r11_trace_1 = ScatterPlot();
+    ScatterPlot r22_trace_1 = ScatterPlot();
+    ScatterPlot r33_trace_1 = ScatterPlot();
+    ScatterPlot r13_trace_1 = ScatterPlot();
+    getStressTraces(r11_trace_1, r22_trace_1, r33_trace_1, r13_trace_1, signature_a, signature_b, 6.85, 59.4, 0.0, 19.0, "dash", "es-flow reproduction. Skare & Krogstad (reconstructed)",  "#ff7f0e");
 
-    std::cout << "trace2 " << name << std::endl;
+    // Negate to plot on the positive x axis as per the validation figure
+    r13_trace_1.y = -1.0 * r13_trace_1.y;
 
-    r33.x = data.eta;
-    r33.y = stress.col(5);
-    r33.name = name;
-    r33.setDash(dash);
-    r33.setColor(color);
-    std::cout << "trace3 " << name << std::endl;
-
-    r13.x = data.eta;
-    r13.y = stress.col(2);
-    r13.name = name;
-    r13.setDash(dash);
-    r13.setColor(color);
-    std::cout << "trace4 " << name << std::endl;
-
-}
-
-/** @brief Helper to make all 5 signature files, if no
-* TODO refactor out to signatures.h
- *
- * Signature files are named as "<data_path>/
- *
- * @param[in] data_path, std::string the path to the folder where signature files will be stored
- * @param[in] is_coarse, bool If true (the default), make coarse-grained signatures which are very quick for the purposes of unit testing, but which won't validate correctly.
- */
-void make_signatures(const std::string &data_path, const bool is_coarse=true) {
-
-    int n_lambda = 400;
-    double dx = 0.005;
-    std::string level = "fine";
-    if (is_coarse) {
-        n_lambda = 200;
-        dx = 0.01;
-        level = "coarse";
-    }
-
-    std::vector<std::string> types = {"A", "B1", "B2", "B3", "B4"};
-    for (auto type : types) {
-        EddySignature sig = EddySignature();
-        sig.computeSignature(type, n_lambda, dx);
-        sig.save(data_path + std::string("/signatures_"+type+"_"+level+".mat"));
-    }
+    // Recreate Perry & Marusic 1995, Figure 15, with additional es-flow validation
+    Figure fig_15 = Figure();
+    fig_15.add(r13_validation_trace_1); // From the paper
+    fig_15.add(r13_validation_trace_2); // From the paper
+    fig_15.add(r13_analytic_trace_1);   // From es-flow
+    fig_15.add(r13_trace_1);            // From es-flow
+    Layout lay_15 = Layout("Validation against P&M 1995 Figure 15 (with R_theta = 49180)");
+    lay_15.xTitle("$z/\\delta_{c}$");
+    lay_15.yTitle("$-\\overline{u_1u_3} / U_{\\tau}^2$");
+    fig_15.setLayout(lay_15);
+    fig_15.write("validation_perry_and_marusic_15.json");
 
 }
 
-/** @brief Helper function to load eddy signatures for type A and ensembled Type B eddies
- *
- * @param sig_a, EddySignature to which the type A eddy data is loaded
- * @param sig_b
- * @param data_path
- * @param is_coarse
- */
-void load_ensemble(EddySignature &sig_a, EddySignature &sig_b, const std::string &data_path, const bool is_coarse=true) {
-    std::string level = "fine";
-    if (is_coarse) {
-        level = "coarse";
-    }
-    sig_a.load(data_path + "/signatures_A_" + level + ".mat");
-    sig_b.load(data_path + "/signatures_B1_" + level + ".mat");
-    EddySignature sig_bx = EddySignature();
-    sig_bx.load(data_path + "/signatures_B2_" + level + ".mat");
-    sig_b = sig_b + sig_bx;
-    sig_bx.load(data_path + "/signatures_B3_" + level + ".mat");
-    sig_b = sig_b + sig_bx;
-    sig_bx.load(data_path + "/signatures_B4_" + level + ".mat");
-    sig_b = sig_b + sig_bx;
-    sig_b = sig_b / 4.0;
-}
 
 TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
 
@@ -784,18 +887,21 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     ScatterPlot r33_fig7_composite = ScatterPlot();
     ScatterPlot r13_fig7_composite = ScatterPlot();
     getStressTraces(r11_fig7_composite, r22_fig7_composite, r33_fig7_composite, r13_fig7_composite, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "solid", "es-flow, composite", "#ff7f0e");
+    r13_fig7_composite.y = -1.0*r13_fig7_composite.y;
 
     ScatterPlot r11_fig7_type_a = ScatterPlot();
     ScatterPlot r22_fig7_type_a = ScatterPlot();
     ScatterPlot r33_fig7_type_a = ScatterPlot();
     ScatterPlot r13_fig7_type_a = ScatterPlot();
     getStressTraces(r11_fig7_type_a, r22_fig7_type_a, r33_fig7_type_a, r13_fig7_type_a, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "dash", "es-flow, Type A only", "#ff7f0e", "type_a");
+    r13_fig7_type_a.y = -1.0*r13_fig7_type_a.y;
 
     ScatterPlot r11_fig7_type_b = ScatterPlot();
     ScatterPlot r22_fig7_type_b = ScatterPlot();
     ScatterPlot r33_fig7_type_b = ScatterPlot();
     ScatterPlot r13_fig7_type_b = ScatterPlot();
     getStressTraces(r11_fig7_type_b, r22_fig7_type_b, r33_fig7_type_b, r13_fig7_type_b, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "dot", "es-flow, Type B only", "#ff7f0e", "type_b");
+    r13_fig7_type_b.y = -1.0*r13_fig7_type_b.y;
 
 
     // Digitally extracted from Marusic and Perry 1995 Part 2, Figure 6a:
@@ -1099,7 +1205,7 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
 
     Layout lay_7c = Layout();
     lay_7c.xTitle("$z/\\delta_{c}$");
-    lay_7c.yTitle("$\\overline{u_1u_3} / U_{\\tau}^2$");
+    lay_7c.yTitle("$-\\overline{u_1u_3} / U_{\\tau}^2$");
     fig_7c.setLayout(lay_7c);
     fig_7c.write("validation_perry_marusic_7c.json");
 
@@ -1125,7 +1231,6 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     fig_7d.setLayout(lay_7d);
     fig_7d.write("validation_perry_marusic_7d.json");
 }
-
 
 
 TEST_F(AdemTest, test_validate_spectra_perry_marusic) {

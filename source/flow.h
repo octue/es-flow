@@ -1,5 +1,5 @@
 /*
- * flow.h Sketching out publiic api for the flow library
+ * flow.h Sketching out public api for the flow library
  * 
  * Author:              Tom Clark  (thclark @ github)
  *
@@ -10,7 +10,7 @@
 #ifndef ES_FLOW_FLOW_H
 #define ES_FLOW_FLOW_H
 
-/*
+
 
 
 #endif //ES_FLOW_FLOW_H

@@ -50,11 +50,14 @@ T fft_next_good_size(const T n) {
  *
  * Uses zero-padded fft based output
  *
+ *
  * @param out
  * @param input
  * @param kernel
  */
 Eigen::VectorXd conv(const Eigen::VectorXd &input, const Eigen::VectorXd &kernel) {
+
+    // TODO template this function signature to also accept arrays
 
     // Map the input signature data to tensors (shared memory)
     auto input_len = input.rows();
