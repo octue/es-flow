@@ -343,9 +343,7 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
      */
     Eigen::ArrayXXd ja_fine(lambda_fine.rows(), 6);
     Eigen::ArrayXXd jb_fine(lambda_fine.rows(), 6);
-    std::cout << "Preallocated ja,b_fine" << std::endl;
     for (int k = 0; k < 6; k++) {
-        std::cout << "k: " << k << std::endl;
         Eigen::ArrayXd ja_signature = signature_a.j.bottomRows(lambda_signature.rows()).col(k);
         Eigen::ArrayXd jb_signature = signature_b.j.bottomRows(lambda_signature.rows()).col(k);
         utilities::CubicSplineInterpolant s_a(lambda_signature.matrix(), ja_signature.matrix());
@@ -355,8 +353,6 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     }
     Eigen::ArrayXd j13a_fine = ja_fine.col(2);
     Eigen::ArrayXd j13b_fine = jb_fine.col(2);
-
-    std::cout << "Interpolated signatures to fine, linearly spaced, values" << std::endl;
 
     // Get an ascending version of eta, containing the point eta=0, for use in determining analytic R13 distributions
     Eigen::ArrayXd eta_with_zero = Eigen::ArrayXd(eta_fine.rows()+1);
@@ -430,15 +426,6 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     layj.yTitle("$J_{13}$");
     figj.setLayout(layj);
     figj.write("check_j13.json");
-
-    std::cout << "Wrote figure check_j13" << std::endl;
-
-    // We multiply both Reynolds Stresses and Signatures by -1. The distributions are entirely negative, which
-    // destabilises the deconvolution algorithm (it iteratively normalises on the first coefficient).
-//    r13a = -1.0 * r13a;
-//    r13b = -1.0 * r13b;
-//    j13a = -1.0 * j13a * pow((0.25 / M_PI), 2.0);
-//    j13b = -1.0 * j13b * pow((0.25 / M_PI), 2.0);
 
     // Deconvolve out the A and B structure contributions to the Reynolds Stresses
     // NOTE: it's actually -1*T^2w in this variable
