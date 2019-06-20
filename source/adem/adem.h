@@ -585,14 +585,9 @@ void get_reynolds_stresses(AdemData& data, const EddySignature& signature_a, con
     data.reynolds_stress_b.setZero();
 
     // Column-wise convolution of T2w with J
-    // TODO refactor to use the conv() function
     for (int k = 0; k < 6; k++) {
-        std::cout << "Convolving, k: " << k << std::endl;
-        Eigen::ArrayXd ra_fine_recon = conv(data.minus_t2wa_fine.matrix(), data.ja_fine.col(k).matrix());
-        Eigen::ArrayXd rb_fine_recon = conv(data.minus_t2wb_fine.matrix(), data.jb_fine.col(k).matrix());
-
-        data.reynolds_stress_a.col(k) = ra_fine_recon;
-        data.reynolds_stress_b.col(k) = rb_fine_recon;
+        data.reynolds_stress_a.col(k) = conv(data.minus_t2wa_fine.matrix(), data.ja_fine.col(k).matrix());
+        data.reynolds_stress_b.col(k) = conv(data.minus_t2wb_fine.matrix(), data.jb_fine.col(k).matrix());
     }
 
     // Trim the zero-padded ends
