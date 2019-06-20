@@ -17,6 +17,7 @@
 #include <math.h>
 #include "NumericalIntegration.h"
 #include "profile.h"
+#include "relations/velocity.h"
 #include "utilities/trapz.h"
 #include "utilities/cumtrapz.h"
 
@@ -29,74 +30,11 @@ using namespace cpplot;
 namespace es {
 
 
-/** @brief Get the Coles wake distribution @f$ w_{c} @f$ from the wake parameter @f$ \Pi @f$.
+/** @brief Compute Horizontal-Vertical Reynolds Stress R13 profile.
  *
- */
-template<typename T>
-T get_coles_wake(const T eta, const double pi_coles) {
-    T wc;
-    T eta_pow_2 = pow(eta, 2.0);
-    wc = (2.0 * eta_pow_2 * (3.0 - (2.0 * eta)))
-        - (1.0 / pi_coles) * eta_pow_2 * (1.0 - eta) * (1.0 - (2.0 * eta));
-    return wc;
-}
-
-// Remove template specialisation from doc (causes duplicate) @cond
-Eigen::ArrayXd get_coles_wake(const Eigen::ArrayXd &eta, const double pi_coles) {
-    Eigen::ArrayXd wc;
-    Eigen::ArrayXd eta_pow_2;
-    eta_pow_2 = eta.pow(2.0);
-    wc = (2.0 * eta_pow_2 * (3.0 - (2.0 * eta)))
-        - (1.0 / pi_coles) * eta_pow_2 * (1.0 - eta) * (1.0 - (2.0 * eta));
-    return wc;
-}
-// @endcond
-
-
-/** @brief Get the integrand @f$ f @f$ used in computation of @f$ R_{13} @f$.
+ * Gets Reynolds Stress profiles due to Type A and B eddies.
  *
- * Implements both the Lewkowicz approach (equations 2 and 7 Perry and Marusic 1995 Part 1) and the modified
- *
- */
-Eigen::ArrayXd get_f_integrand(const Eigen::ArrayXd &eta, const double kappa, const double pi_coles, const double shear_ratio) {
-
-    Eigen::ArrayXd f;
-    Eigen::ArrayXd ones;
-    ones.setOnes(eta.size());
-    f = (-1.0 / kappa) * eta.log()
-        + (pi_coles/kappa) * get_coles_wake(ones, pi_coles)
-        - (pi_coles/kappa) * get_coles_wake(eta, pi_coles);
-    for (int k = 0; k < f.size(); k++) {
-        if (std::isinf(f[k])) {
-            f(k) = shear_ratio; // from eqs 2 and 7 P&M part 1 1995
-        }
-    }
-    return f;
-}
-
-Eigen::ArrayXd get_f_integrand_vik(const Eigen::ArrayXd &eta, const double kappa, const double pi_coles, const double shear_ratio) {
-
-    Eigen::ArrayXd f;
-    Eigen::ArrayXd ones;
-    ones.setOnes(eta.size());
-    f = (eta.pow(3.0) - 1.0)/(3.0*kappa)
-        -(1.0 / kappa) * eta.log()
-        + 2.0*pi_coles*(1.0 - 3.0*eta.pow(2.) + 2.0*eta.pow(3.0))/kappa;
-    std::cout << "USING get_f_integrand_vik" <<std::endl;
-    for (int k = 0; k < f.size(); k++) {
-        if (std::isinf(f[k])) {
-            f(k) = shear_ratio; // from eqs 2 and 7 P&M part 1 1995
-        }
-    }
-    return f;
-}
-
-
-
-/** @brief Compute Horizontal-vertical Reynolds Stress R13 profile using modified Lewkowicz formulation.
- *
- * Gets Reynolds Stress profiles due to Type A and B eddies. Adopts the approach of Perry and Marusic 1995,
- * using the modified Lewkowicz formulation (Perry and Marusic eq.51).
+ * Can use either the Lewkowicz formulation for velocity deficit (per Perry and Marusic 1995) or
  *
  * TODO - presently, the integrations here are sensitive to the chosen eta distribution. Refactor according to
  * issue #38
@@ -138,10 +76,10 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
 //    }
 
     // Get f between eta = 0 and eta = 1 (bounds for C1 integration)
-    Eigen::ArrayXd f = get_f_integrand(eta, kappa, pi_coles, shear_ratio);
+    Eigen::ArrayXd f = deficit(eta, kappa, pi_coles, shear_ratio, true);
     const double d_pi = 0.01 * pi_coles;
-    Eigen::ArrayXd f_plus  = get_f_integrand(eta, kappa, (pi_coles + d_pi), shear_ratio);
-    Eigen::ArrayXd f_minus  = get_f_integrand(eta, kappa, (pi_coles - d_pi), shear_ratio);
+    Eigen::ArrayXd f_plus  = deficit(eta, kappa, (pi_coles + d_pi), shear_ratio, true);
+    Eigen::ArrayXd f_minus  = deficit(eta, kappa, (pi_coles - d_pi), shear_ratio, true);
 
     // TODO can we cast this returned value directly?
     Eigen::ArrayXd c1_tmp;
@@ -188,9 +126,10 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
     double e1_coeff = 1.0 / (kappa * shear_ratio + 1.0);
 
     // N from (eqn A5) using central differencing as before
-    double wc_minus = get_coles_wake(1.0, pi_coles - d_pi);
-    double wc_plus =  get_coles_wake(1.0, pi_coles + d_pi);
-    double n = get_coles_wake(1.0, pi_coles) + pi_coles * (wc_plus - wc_minus) / (2.0 * d_pi);
+    // TODO compute N for non-lewkowicz model
+    double wc_minus = coles_wake(1.0, pi_coles - d_pi);
+    double wc_plus =  coles_wake(1.0, pi_coles + d_pi);
+    double n = coles_wake(1.0, pi_coles) + pi_coles * (wc_plus - wc_minus) / (2.0 * d_pi);
 
     // Compile f_i terms
     Eigen::ArrayXd f1;
