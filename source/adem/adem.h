@@ -324,12 +324,19 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     Eigen::Index n_lambda_fine = round((lambda_max - lambda_min)/d_lambda_fine);
 
     Eigen::ArrayXd lambda_fine = Eigen::ArrayXd::LinSpaced(n_lambda_fine, lambda_min, lambda_max);
+
+    // Hard limit on lambda max
+//    double mymax = log(1.0/0.01);
+//    Eigen::Index up_to = 0;
+//    for (Eigen::Index i=0; i<lambda_fine.rows(); i++) {
+//        if (lambda_fine(i) >= mymax) {
+//            up_to = i;
+//            break;
+//        }
+//    }
+//    lambda_fine = lambda_fine.topRows(up_to);
+
     Eigen::ArrayXd eta_fine = lambda_fine.exp().inverse();
-
-    double eta_min = 1./exp(lambda_max);
-    double eta_max = 1./exp(lambda_min);
-
-    std::cout << "Determined lambda sizes, with n_lambda_fine = " << lambda_fine.rows() << std::endl;
 
     /* On the signatures:
      *

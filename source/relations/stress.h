@@ -36,9 +36,8 @@ template<typename T>
 T get_coles_wake(const T eta, const double pi_coles) {
     T wc;
     T eta_pow_2 = pow(eta, 2.0);
-    wc = (2.0 * eta_pow_2 * (3.0 - (2.0 * eta)));
-//        - (1.0 / pi_coles) * eta_pow_2 * (1.0 - eta) * (1.0 - (2.0 * eta));
-    std::cout << "REMOVE THE mult BODGE" << std::endl;
+    wc = (2.0 * eta_pow_2 * (3.0 - (2.0 * eta)))
+        - (1.0 / pi_coles) * eta_pow_2 * (1.0 - eta) * (1.0 - (2.0 * eta));
     return wc;
 }
 
@@ -47,19 +46,16 @@ Eigen::ArrayXd get_coles_wake(const Eigen::ArrayXd &eta, const double pi_coles) 
     Eigen::ArrayXd wc;
     Eigen::ArrayXd eta_pow_2;
     eta_pow_2 = eta.pow(2.0);
-    wc = (2.0 * eta_pow_2 * (3.0 - (2.0 * eta)));
-//        - (1.0 / pi_coles) * eta_pow_2 * (1.0 - eta) * (1.0 - (2.0 * eta));
-
-    std::cout << "REMOVE THE mult BODGE" << std::endl;
-
+    wc = (2.0 * eta_pow_2 * (3.0 - (2.0 * eta)))
+        - (1.0 / pi_coles) * eta_pow_2 * (1.0 - eta) * (1.0 - (2.0 * eta));
     return wc;
 }
 // @endcond
 
 
-/** @brief Get the integrand @f$ f @f$ used in computation of @f$ R_{13} @f$ in the modified Lewkowicz method.
+/** @brief Get the integrand @f$ f @f$ used in computation of @f$ R_{13} @f$.
  *
- * Uses equations 2 and 7 Perry and Marusic 1995 Part 1.
+ * Implements both the Lewkowicz approach (equations 2 and 7 Perry and Marusic 1995 Part 1) and the modified
  *
  */
 Eigen::ArrayXd get_f_integrand(const Eigen::ArrayXd &eta, const double kappa, const double pi_coles, const double shear_ratio) {
@@ -77,6 +73,7 @@ Eigen::ArrayXd get_f_integrand(const Eigen::ArrayXd &eta, const double kappa, co
     }
     return f;
 }
+
 Eigen::ArrayXd get_f_integrand_vik(const Eigen::ArrayXd &eta, const double kappa, const double pi_coles, const double shear_ratio) {
 
     Eigen::ArrayXd f;
@@ -85,7 +82,7 @@ Eigen::ArrayXd get_f_integrand_vik(const Eigen::ArrayXd &eta, const double kappa
     f = (eta.pow(3.0) - 1.0)/(3.0*kappa)
         -(1.0 / kappa) * eta.log()
         + 2.0*pi_coles*(1.0 - 3.0*eta.pow(2.) + 2.0*eta.pow(3.0))/kappa;
-    std::cout << "USING VIK" <<std::endl;
+    std::cout << "USING get_f_integrand_vik" <<std::endl;
     for (int k = 0; k < f.size(); k++) {
         if (std::isinf(f[k])) {
             f(k) = shear_ratio; // from eqs 2 and 7 P&M part 1 1995
@@ -141,10 +138,10 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
 //    }
 
     // Get f between eta = 0 and eta = 1 (bounds for C1 integration)
-    Eigen::ArrayXd f = get_f_integrand_vik(eta, kappa, pi_coles, shear_ratio);
+    Eigen::ArrayXd f = get_f_integrand(eta, kappa, pi_coles, shear_ratio);
     const double d_pi = 0.01 * pi_coles;
-    Eigen::ArrayXd f_plus  = get_f_integrand_vik(eta, kappa, (pi_coles + d_pi), shear_ratio);
-    Eigen::ArrayXd f_minus  = get_f_integrand_vik(eta, kappa, (pi_coles - d_pi), shear_ratio);
+    Eigen::ArrayXd f_plus  = get_f_integrand(eta, kappa, (pi_coles + d_pi), shear_ratio);
+    Eigen::ArrayXd f_minus  = get_f_integrand(eta, kappa, (pi_coles - d_pi), shear_ratio);
 
     // TODO can we cast this returned value directly?
     Eigen::ArrayXd c1_tmp;
@@ -176,33 +173,24 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
     e7 = f * e5;
 
     // Get A coefficients from equations A2 a-d
-    //MARK correct
     Eigen::ArrayXd a1 = e2 - e3 + shear_ratio * (e4 - e1);
-    //MARK correct
     Eigen::ArrayXd a2 = (-2.0 * e2) + e3 + (shear_ratio * e1);
     Eigen::ArrayXd a3 = e6 - e7 - (shear_ratio * e5);
-    //MARK correct
     Eigen::ArrayXd a4 = (2.0 * e2) - e3 + (shear_ratio * e4) - (shear_ratio * 3.0 * e1);
 
     // B coefficients are simply evaluated at eta = 1 (eqn A6)
-    //MARK correct
     double b1 = a1(eta.rows()-1);
-    //MARK correct
     double b2 = a2(eta.rows()-1);
     double b3 = a3(eta.rows()-1);
-    //MARK correct
     double b4 = a4(eta.rows()-1);
 
     // E1 from (eqn A4). Can't call it E1 due to name conflict with above.
-    //MARK correct
     double e1_coeff = 1.0 / (kappa * shear_ratio + 1.0);
 
     // N from (eqn A5) using central differencing as before
     double wc_minus = get_coles_wake(1.0, pi_coles - d_pi);
     double wc_plus =  get_coles_wake(1.0, pi_coles + d_pi);
     double n = get_coles_wake(1.0, pi_coles) + pi_coles * (wc_plus - wc_minus) / (2.0 * d_pi);
-    std::cout << "BODGE: MULTIPLYING N BY 1.17 SEEMS TO HELP FOR NO REASON (getting R13 analytic in non-equilibrium cases)"<< pi_coles << std::endl;
-//    n *=1.17;
 
     // Compile f_i terms
     Eigen::ArrayXd f1;
@@ -257,11 +245,6 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
     lay.xTitle("$\\eta$");
     fig.setLayout(lay);
     fig.write("check_perry_marusic_fig_1");
-
-    std::cout << "BODGE HERE!!!! zeta, beta" << zeta << ", " << beta << std::endl;
-
-    // Get the component due to equilibrium sink flow (OLD version - see P&M eqn 53)
-    // minusReynStressA = ones(size(eta)) - eta + eta.*log(eta);
 
     // Lewkowicz 1982 shear stress for equilibrium sink flow, Perry and Marusic eqn. 51
     Eigen::ArrayXd minus_r13_a = 1.0 - (60.0/59.0)*eta - (20.0/59.0)*eta.pow(3.0) + (45.0/59.0)*eta.pow(4.0) - (24.0/59.0)*eta.pow(5.0) + (60.0/59.0)*eta*eta.log();
