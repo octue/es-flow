@@ -849,37 +849,37 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     ScatterPlot r22_trace_1 = ScatterPlot();
     ScatterPlot r33_trace_1 = ScatterPlot();
     ScatterPlot r13_trace_1 = ScatterPlot();
-    getStressTraces(r11_trace_1, r22_trace_1, r33_trace_1, r13_trace_1, signature_a, signature_b, 3.23, 38.4, 15.32, 7.16, "solid", "es-flow, $R_\\theta = 7257$", "#1f77b4");
+    getStressTraces(r11_trace_1, r22_trace_1, r33_trace_1, r13_trace_1, signature_a, signature_b, 3.23, 38.4, 15.32, 7.16, "solid", "$\\text{es-flow,} R_\\theta = 7257$", "#1f77b4");
 
     ScatterPlot r11_trace_2 = ScatterPlot();
     ScatterPlot r22_trace_2 = ScatterPlot();
     ScatterPlot r33_trace_2 = ScatterPlot();
     ScatterPlot r13_trace_2 = ScatterPlot();
-    getStressTraces(r11_trace_2, r22_trace_2, r33_trace_2, r13_trace_2, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "solid", "es-flow, $R_\\theta = 6395$", "#ff7f0e");
+    getStressTraces(r11_trace_2, r22_trace_2, r33_trace_2, r13_trace_2, signature_a, signature_b, 2.46, 34.5, 8.01, 4.48, "solid", "$\\text{es_flow,} R_\\theta = 6395$", "#ff7f0e");
 
     ScatterPlot r11_trace_3 = ScatterPlot();
     ScatterPlot r22_trace_3 = ScatterPlot();
     ScatterPlot r33_trace_3 = ScatterPlot();
     ScatterPlot r13_trace_3 = ScatterPlot();
-    getStressTraces(r11_trace_3, r22_trace_3, r33_trace_3, r13_trace_3, signature_a, signature_b, 1.87, 31.5, 4.64, 2.90, "solid", "es-flow, $R_\\theta = 5395$", "#2ca02c");
+    getStressTraces(r11_trace_3, r22_trace_3, r33_trace_3, r13_trace_3, signature_a, signature_b, 1.87, 31.5, 4.64, 2.90, "solid", "$\\text{es_flow,} R_\\theta = 5395$", "#2ca02c");
 
     ScatterPlot r11_trace_4 = ScatterPlot();
     ScatterPlot r22_trace_4 = ScatterPlot();
     ScatterPlot r33_trace_4 = ScatterPlot();
     ScatterPlot r13_trace_4 = ScatterPlot();
-    getStressTraces(r11_trace_4, r22_trace_4, r33_trace_4, r13_trace_4, signature_a, signature_b, 1.19, 28.1, 2.18, 1.45, "solid", "es-flow, $R_\\theta = 4155$", "#d62728");
+    getStressTraces(r11_trace_4, r22_trace_4, r33_trace_4, r13_trace_4, signature_a, signature_b, 1.19, 28.1, 2.18, 1.45, "solid", "$\\text{es_flow,} R_\\theta = 4155$", "#d62728");
 
     ScatterPlot r11_trace_5 = ScatterPlot();
     ScatterPlot r22_trace_5 = ScatterPlot();
     ScatterPlot r33_trace_5 = ScatterPlot();
     ScatterPlot r13_trace_5 = ScatterPlot();
-    getStressTraces(r11_trace_5, r22_trace_5, r33_trace_5, r13_trace_5, signature_a, signature_b, 0.68, 25.4, 0.94, 0.65, "solid", "es-flow, $R_\\theta = 3153$", "#9467bd");
+    getStressTraces(r11_trace_5, r22_trace_5, r33_trace_5, r13_trace_5, signature_a, signature_b, 0.68, 25.4, 0.94, 0.65, "solid", "$\\text{es_flow,} R_\\theta = 3153$", "#9467bd");
 
     ScatterPlot r11_trace_6 = ScatterPlot();
     ScatterPlot r22_trace_6 = ScatterPlot();
     ScatterPlot r33_trace_6 = ScatterPlot();
     ScatterPlot r13_trace_6 = ScatterPlot();
-    getStressTraces(r11_trace_6, r22_trace_6, r33_trace_6, r13_trace_6, signature_a, signature_b, 0.42, 23.6, 0.15, 0.0, "solid", "es-flow, $R_\\theta = 2206$", "#e377c2");
+    getStressTraces(r11_trace_6, r22_trace_6, r33_trace_6, r13_trace_6, signature_a, signature_b, 0.42, 23.6, 0.15, 0.0, "solid", "$\\text{es_flow,} R_\\theta = 2206$", "#e377c2");
 
     // Rerun ADEM for the Pi=2.46 location in the "10APG" flow case in Marusic and Perry 1995, for reconstruction of their Figure 7
     ScatterPlot r11_fig7_composite = ScatterPlot();
@@ -1040,23 +1040,21 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
 
 
     // Recreate Figure 6a
-    ScatterPlot trace1_6a = getTrace(fig_6a_trace_1, "#1f77b4", "dash");
-    ScatterPlot trace2_6a = getTrace(fig_6a_trace_2, "#ff7f0e", "dash");
-    ScatterPlot trace3_6a = getTrace(fig_6a_trace_3, "#2ca02c", "dash");
-    ScatterPlot trace4_6a = getTrace(fig_6a_trace_4, "#d62728", "dash");
-    ScatterPlot trace5_6a = getTrace(fig_6a_trace_5, "#9467bd", "dash");
-    ScatterPlot trace6_6a = getTrace(fig_6a_trace_6, "#e377c2", "dash");
-    Figure fig_6a = Figure();
+    ScatterPlot trace1_6a = getTrace(fig_6a_trace_1, "#1f77b4", "dash", "$\\text{M&P 1995,} R_\\theta=7257$");
+    ScatterPlot trace2_6a = getTrace(fig_6a_trace_2, "#ff7f0e", "dash", "$\\text{M&P 1995,} R_\\theta=6395$");
+    ScatterPlot trace3_6a = getTrace(fig_6a_trace_3, "#2ca02c", "dash", "$\\text{M&P 1995,} R_\\theta=5395$");
+    ScatterPlot trace4_6a = getTrace(fig_6a_trace_4, "#d62728", "dash", "$\\text{M&P 1995,} R_\\theta=4155$");
+    ScatterPlot trace5_6a = getTrace(fig_6a_trace_5, "#9467bd", "dash", "$\\text{M&P 1995,} R_\\theta=3153$");
+    ScatterPlot trace6_6a = getTrace(fig_6a_trace_6, "#e377c2", "dash", "$\\text{M&P 1995,} R_\\theta=2206$");
 
-    // Traces from the paper
+    // Add traces from the paper and es-flow to the figure
+    Figure fig_6a = Figure();
     fig_6a.add(trace1_6a);
     fig_6a.add(trace2_6a);
     fig_6a.add(trace3_6a);
     fig_6a.add(trace4_6a);
     fig_6a.add(trace5_6a);
     fig_6a.add(trace6_6a);
-
-    // Traces recreated with es-flow
     fig_6a.add(r11_trace_1);
     fig_6a.add(r11_trace_2);
     fig_6a.add(r11_trace_3);
@@ -1070,32 +1068,28 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     fig_6a.setLayout(lay_6a);
     fig_6a.write("validation_perry_marusic_6a.json");
 
-
     // Recreate Figure 6b
-    ScatterPlot trace1_6b = getTrace(fig_6b_trace_1, "#1f77b4", "dash");
-    ScatterPlot trace2_6b = getTrace(fig_6b_trace_2, "#ff7f0e", "dash");
-    ScatterPlot trace3_6b = getTrace(fig_6b_trace_3, "#2ca02c", "dash");
-    ScatterPlot trace4_6b = getTrace(fig_6b_trace_4, "#d62728", "dash");
-    ScatterPlot trace5_6b = getTrace(fig_6b_trace_5, "#9467bd", "dash");
-    ScatterPlot trace6_6b = getTrace(fig_6b_trace_6, "#e377c2", "dash");
-    Figure fig_6b = Figure();
+    ScatterPlot trace1_6b = getTrace(fig_6b_trace_1, "#1f77b4", "dash", "$\\text{M&P 1995,} R_\\theta=7257$");
+    ScatterPlot trace2_6b = getTrace(fig_6b_trace_2, "#ff7f0e", "dash", "$\\text{M&P 1995,} R_\\theta=6395$");
+    ScatterPlot trace3_6b = getTrace(fig_6b_trace_3, "#2ca02c", "dash", "$\\text{M&P 1995,} R_\\theta=5395$");
+    ScatterPlot trace4_6b = getTrace(fig_6b_trace_4, "#d62728", "dash", "$\\text{M&P 1995,} R_\\theta=4155$");
+    ScatterPlot trace5_6b = getTrace(fig_6b_trace_5, "#9467bd", "dash", "$\\text{M&P 1995,} R_\\theta=3153$");
+    ScatterPlot trace6_6b = getTrace(fig_6b_trace_6, "#e377c2", "dash", "$\\text{M&P 1995,} R_\\theta=2206$");
 
-    // Traces from the paper
+    // Add traces from the paper and es-flow to the figure
+    Figure fig_6b = Figure();
     fig_6b.add(trace1_6b);
     fig_6b.add(trace2_6b);
     fig_6b.add(trace3_6b);
     fig_6b.add(trace4_6b);
     fig_6b.add(trace5_6b);
     fig_6b.add(trace6_6b);
-
-    // Traces recreated with es-flow
     fig_6b.add(r22_trace_1);
     fig_6b.add(r22_trace_2);
     fig_6b.add(r22_trace_3);
     fig_6b.add(r22_trace_4);
     fig_6b.add(r22_trace_5);
     fig_6b.add(r22_trace_6);
-
     Layout lay_6b = Layout();
     lay_6b.xLog();
     lay_6b.xTitle("$z/\\delta_{c}$");
@@ -1103,87 +1097,71 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     fig_6b.setLayout(lay_6b);
     fig_6b.write("validation_perry_marusic_6b.json");
 
+    // Recreate Figure 6c
+    ScatterPlot trace1_6c = getTrace(fig_6c_trace_1, "#1f77b4", "dash", "$\\text{M&P 1995,} R_\\theta=7257$");
+    ScatterPlot trace2_6c = getTrace(fig_6c_trace_2, "#ff7f0e", "dash", "$\\text{M&P 1995,} R_\\theta=6395$");
+    ScatterPlot trace3_6c = getTrace(fig_6c_trace_3, "#2ca02c", "dash", "$\\text{M&P 1995,} R_\\theta=5395$");
+    ScatterPlot trace4_6c = getTrace(fig_6c_trace_4, "#d62728", "dash", "$\\text{M&P 1995,} R_\\theta=4155$");
+    ScatterPlot trace5_6c = getTrace(fig_6c_trace_5, "#9467bd", "dash", "$\\text{M&P 1995,} R_\\theta=3153$");
+    ScatterPlot trace6_6c = getTrace(fig_6c_trace_6, "#e377c2", "dash", "$\\text{M&P 1995,} R_\\theta=2206$");
 
-    // Recreate P&M Figure 6c
-    ScatterPlot trace1_6c = getTrace(fig_6c_trace_1, "#1f77b4", "dash");
-    ScatterPlot trace2_6c = getTrace(fig_6c_trace_2, "#ff7f0e", "dash");
-    ScatterPlot trace3_6c = getTrace(fig_6c_trace_3, "#2ca02c", "dash");
-    ScatterPlot trace4_6c = getTrace(fig_6c_trace_4, "#d62728", "dash");
-    ScatterPlot trace5_6c = getTrace(fig_6c_trace_5, "#9467bd", "dash");
-    ScatterPlot trace6_6c = getTrace(fig_6c_trace_6, "#e377c2", "dash");
+    // Add traces from the paper and es-flow to the figure
     Figure fig_6c = Figure();
-
-    // Traces from the paper
     fig_6c.add(trace1_6c);
     fig_6c.add(trace2_6c);
     fig_6c.add(trace3_6c);
     fig_6c.add(trace4_6c);
     fig_6c.add(trace5_6c);
     fig_6c.add(trace6_6c);
-
-    // Traces recreated with es-flow
     fig_6c.add(r33_trace_1);
     fig_6c.add(r33_trace_2);
     fig_6c.add(r33_trace_3);
     fig_6c.add(r33_trace_4);
     fig_6c.add(r33_trace_5);
     fig_6c.add(r33_trace_6);
-
     Layout lay_6c = Layout();
     lay_6c.xTitle("$z/\\delta_{c}$");
     lay_6c.yTitle("$\\overline{u_3^2} / U_{\\tau}^2$");
     fig_6c.setLayout(lay_6c);
     fig_6c.write("validation_perry_marusic_6c.json");
 
-
     // Recreate P&M Figure 7a
     ScatterPlot trace1_7a = getTrace(fig_7a_trace_1, "#1f77b4", "solid", "M&P 1995, composite");
     ScatterPlot trace2_7a = getTrace(fig_7a_trace_2, "#1f77b4", "dash", "M&P 1995, Type A only");
     ScatterPlot trace3_7a = getTrace(fig_7a_trace_3, "#1f77b4", "dot", "M&P 1995, Type B only");
-    Figure fig_7a = Figure();
 
-    // Traces from the paper
+    // Add traces from the paper and es-flow to the figure
+    Figure fig_7a = Figure();
     fig_7a.add(trace1_7a);
     fig_7a.add(trace2_7a);
     fig_7a.add(trace3_7a);
-
-    // Traces recreated with es-flow
     fig_7a.add(r11_fig7_composite);
     fig_7a.add(r11_fig7_type_a);
     fig_7a.add(r11_fig7_type_b);
-
     Layout lay_7a = Layout();
     lay_7a.xTitle("$z/\\delta_{c}$");
     lay_7a.yTitle("$\\overline{u_1^2} / U_{\\tau}^2$");
-    // TODO M&P display these on an x log axis. But for debug, its better to show linear.
-    //  Uncomment for to show the formal validation figures.
-    // lay_7a.xLog();
+    lay_7a.xLog();
     fig_7a.setLayout(lay_7a);
     fig_7a.write("validation_perry_marusic_7a.json");
-
 
     // Recreate P&M Figure 7b
     ScatterPlot trace1_7b = getTrace(fig_7b_trace_1, "#1f77b4", "solid", "M&P 1995, composite");
     ScatterPlot trace2_7b = getTrace(fig_7b_trace_2, "#1f77b4", "dash", "M&P 1995, Type A only");
     ScatterPlot trace3_7b = getTrace(fig_7b_trace_3, "#1f77b4", "dot", "M&P 1995, Type B only");
-    Figure fig_7b = Figure();
 
-    // Traces from the paper
+    // Add traces from the paper and es-flow to the figure
+    Figure fig_7b = Figure();
     fig_7b.add(trace1_7b);
     fig_7b.add(trace2_7b);
     fig_7b.add(trace3_7b);
-
-    // Traces recreated with es-flow
     fig_7b.add(r22_fig7_composite);
     fig_7b.add(r22_fig7_type_a);
     fig_7b.add(r22_fig7_type_b);
-
     Layout lay_7b = Layout();
     lay_7b.xTitle("$z/\\delta_{c}$");
     lay_7b.yTitle("$\\overline{u_2^2} / U_{\\tau}^2$");
-    // TODO M&P display these on an x log axis. But for debug, its better to show linear.
-    //  Uncomment for to show the formal validation figures.
-    // lay_7b.xLog();
+    lay_7b.xLog();
     fig_7b.setLayout(lay_7b);
     fig_7b.write("validation_perry_marusic_7b.json");
 
@@ -1191,18 +1169,15 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     ScatterPlot trace1_7c = getTrace(fig_7c_trace_1, "#1f77b4", "solid", "M&P 1995, composite");
     ScatterPlot trace2_7c = getTrace(fig_7c_trace_2, "#1f77b4", "dash", "M&P 1995, Type A only");
     ScatterPlot trace3_7c = getTrace(fig_7c_trace_3, "#1f77b4", "dot", "M&P 1995, Type B only");
-    Figure fig_7c = Figure();
 
-    // Traces from the paper
+    // Add traces from the paper and es-flow to the figure
+    Figure fig_7c = Figure();
     fig_7c.add(trace1_7c);
     fig_7c.add(trace2_7c);
     fig_7c.add(trace3_7c);
-
-    // Traces recreated with es-flow
     fig_7c.add(r13_fig7_composite);
     fig_7c.add(r13_fig7_type_a);
     fig_7c.add(r13_fig7_type_b);
-
     Layout lay_7c = Layout();
     lay_7c.xTitle("$z/\\delta_{c}$");
     lay_7c.yTitle("$-\\overline{u_1u_3} / U_{\\tau}^2$");
@@ -1213,18 +1188,15 @@ TEST_F(AdemTest, test_validate_stresses_perry_marusic) {
     ScatterPlot trace1_7d = getTrace(fig_7d_trace_1, "#1f77b4", "solid", "M&P 1995, composite");
     ScatterPlot trace2_7d = getTrace(fig_7d_trace_2, "#1f77b4", "dash", "M&P 1995, Type A only");
     ScatterPlot trace3_7d = getTrace(fig_7d_trace_3, "#1f77b4", "dot", "M&P 1995, Type B only");
-    Figure fig_7d = Figure();
 
-    // Traces from the paper
+    // Add traces from the paper and es-flow to the figure
+    Figure fig_7d = Figure();
     fig_7d.add(trace1_7d);
     fig_7d.add(trace2_7d);
     fig_7d.add(trace3_7d);
-
-    // Traces recreated with es-flow
     fig_7d.add(r33_fig7_composite);
     fig_7d.add(r33_fig7_type_a);
     fig_7d.add(r33_fig7_type_b);
-
     Layout lay_7d = Layout();
     lay_7d.xTitle("$z/\\delta_{c}$");
     lay_7d.yTitle("$\\overline{u_3^2} / U_{\\tau}^2$");
