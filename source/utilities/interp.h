@@ -1,5 +1,5 @@
 /*
- * interp.h Brief overview sentence
+ * interp.h Interpolation tools
  * 
  * Author:              Tom Clark  (thclark @ github)
  *
@@ -9,15 +9,13 @@
 
 #ifndef ES_FLOW_INTERP_H
 #define ES_FLOW_INTERP_H
-#include <Eigen/Core>
-#include <unsupported/Eigen/Splines>
 
 #include <iostream>
-
-#include <Eigen/Dense>
-#include <Eigen/Core>
-#include <unsupported/Eigen/FFT>
 #include <math.h>
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <unsupported/Eigen/Splines>
+#include <unsupported/Eigen/FFT>
 
 
 namespace utilities {
