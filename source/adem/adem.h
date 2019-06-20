@@ -294,7 +294,7 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
      * For us to maintain the fundamental boundary layer top condition that U = U_inf and u' = 0 for all z/delta >= 1,
      * we assume that eddies can have no influence above their own scale (following Perry & Marusic 1995 pp. 371-2).
      *
-     * This is equivalent to clipping the eddy signatures for values of lambda < 0.
+     * Clipping the signatures like this is the equivalent of setting the eddy signatures to zero where lambda < 0.
      *
      */
     data.start_idx = 0;
