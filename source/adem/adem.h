@@ -368,62 +368,55 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     r13a_fine.reverseInPlace();
     r13b_fine.reverseInPlace();
 
-    std::cout << "Determined R13a,b analytically" << std::endl;
+    // Produce visual check that eta is ascending exponentially
+    ScatterPlot pc = ScatterPlot();
+    pc.x = Eigen::ArrayXd::LinSpaced(eta_with_zero.rows(), 1, eta_with_zero.rows());
+    pc.y = eta_with_zero;
+    Layout layc = Layout("Check that eta ascends exponentially");
+    layc.xTitle("Row number");
+    layc.yTitle("$\\eta$");
+    Figure figc = Figure();
+    figc.add(pc);
+    figc.setLayout(layc);
+    figc.write("check_that_eta_ascends_exponentially.json");
 
-//    // Produce visual check that eta is ascending exponentially
-//    Figure figc = Figure();
-//    ScatterPlot pc = ScatterPlot();
-//    pc.x = Eigen::ArrayXd::LinSpaced(eta_with_zero.rows(), 1, eta_with_zero.rows());
-//    pc.y = eta_with_zero;
-//    figc.add(pc);
-//    Layout layc = Layout("Check that eta ascends exponentially");
-//    layc.xTitle("Row number");
-//    layc.yTitle("$\\eta$");
-//    figc.setLayout(layc);
-//    figc.write("check_that_eta_ascends.json");
-//
-//    // Produce a visual check that lambda is ascending linearly
-//    Figure figc1 = Figure();
-//    ScatterPlot pc1 = ScatterPlot();
-//    pc1.x = Eigen::ArrayXd::LinSpaced(lambda_fine.rows(), 1, lambda_fine.rows());
-//    pc1.y = lambda_fine;
-//    figc1.add(pc1);
-//    Layout layc1 = Layout("Check that lambda ascends linearly");
-//    layc1.xTitle("Row number");
-//    layc1.yTitle("$\\lambda$");
-//    figc1.setLayout(layc1);
-//    figc1.write("check_that_lambda_ascends.json");
+    // Produce a visual check that lambda is ascending linearly
+    ScatterPlot pc1 = ScatterPlot();
+    pc1.x = Eigen::ArrayXd::LinSpaced(lambda_fine.rows(), 1, lambda_fine.rows());
+    pc1.y = lambda_fine;
+    Layout layc1 = Layout("Check that lambda ascends linearly");
+    layc1.xTitle("Row number");
+    layc1.yTitle("$\\lambda$");
+    Figure figc1 = Figure();
+    figc1.add(pc1);
+    figc1.setLayout(layc1);
+    figc1.write("check_that_lambda_ascends.json");
 
     // Double check J13 and interpolations
-    Figure figj = Figure();
-
     ScatterPlot pja = ScatterPlot();
     pja.x = lambda_signature;
     pja.y = signature_a.j.bottomRows(n_lambda_signature).col(2);
     pja.name = "Type A (signature)";
-    figj.add(pja);
-
     ScatterPlot pjaf = ScatterPlot();
     pjaf.x = lambda_fine;
     pjaf.y = j13a_fine;
     pjaf.name = "Type A (fine)";
-    figj.add(pjaf);
-
     ScatterPlot pjb = ScatterPlot();
     pjb.x = lambda_signature;
     pjb.y = signature_b.j.bottomRows(n_lambda_signature).col(2);
     pjb.name = "Type B (signature)";
-    figj.add(pjb);
-
     ScatterPlot pjbf = ScatterPlot();
     pjbf.x = lambda_fine;
     pjbf.y = j13b_fine;
     pjbf.name = "Type B (fine)";
-    figj.add(pjbf);
-
     Layout layj = Layout();
     layj.xTitle("$\\lambda$");
     layj.yTitle("$J_{13}$");
+    Figure figj = Figure();
+    figj.add(pja);
+    figj.add(pjaf);
+    figj.add(pjb);
+    figj.add(pjbf);
     figj.setLayout(layj);
     figj.write("check_j13.json");
 
@@ -471,44 +464,6 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     fig.add(pbr);
     fig.setLayout(lay);
     fig.write("check_r13_fine_reconstruction.json");
-
-    std::cout << "Wrote figure checkr13_fine_reconstruction" << std::endl;
-
-
-    // Now we want to map fine variables back onto the space where we're working
-//    Eigen::ArrayXd minus_t2wa(n_lambda_signature);
-//    Eigen::ArrayXd minus_t2wb(n_lambda_signature);
-//    Eigen::ArrayXd r13a(n_lambda_signature);
-//    Eigen::ArrayXd r13b(n_lambda_signature);
-//    for (auto ind=0; ind < n_lambda_signature; ind++) {
-//        minus_t2wa(ind) = minus_t2wa_fine(ind*10);
-//        minus_t2wb(ind) = minus_t2wb_fine(ind*10);
-//        r13a(ind) = r13a_fine(ind*10);
-//        r13b(ind) = r13b_fine(ind*10);
-//    };
-
-//    // Show Reynolds Stresses behaving as part of validation
-//    Figure fig = Figure();
-//    Layout lay = Layout();
-//    ScatterPlot pa = ScatterPlot();
-//    pa.x = eta_fine;
-//    pa.y = -1.0*r13a_fine;
-//    pa.name = "Type A";
-//    ScatterPlot pb = ScatterPlot();
-//    pb.x = eta_fine;
-//    pb.y = -1.0*r13b_fine;
-//    pb.name = "Type B";
-//    ScatterPlot pab = ScatterPlot();
-//    pab.x = eta_fine;
-//    pab.y = -1.0*(r13a_fine + r13b_fine);
-//    pab.name = "Total";
-//    fig.add(pa);
-//    fig.add(pb);
-//    fig.add(pab);
-//    lay.xTitle("$z/\\delta_{c}$");
-//    lay.yTitle("$-\\overline{u_1u_3}/U_\\tau^2$");
-//    fig.setLayout(lay);
-//    fig.write("check_r13_analytic.json");
 
     // Create a plot to show the t2w terms
     Figure figt = Figure();
