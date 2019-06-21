@@ -326,15 +326,15 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     Eigen::ArrayXd lambda_fine = Eigen::ArrayXd::LinSpaced(n_lambda_fine, lambda_min, lambda_max);
 
     // Hard limit on lambda max
-//    double mymax = log(1.0/0.01);
-//    Eigen::Index up_to = 0;
-//    for (Eigen::Index i=0; i<lambda_fine.rows(); i++) {
-//        if (lambda_fine(i) >= mymax) {
-//            up_to = i;
-//            break;
-//        }
-//    }
-//    lambda_fine = lambda_fine.topRows(up_to);
+    double mymax = log(1.0/0.01);
+    Eigen::Index up_to = 0;
+    for (Eigen::Index i=0; i<lambda_fine.rows(); i++) {
+        if (lambda_fine(i) >= mymax) {
+            up_to = i;
+            break;
+        }
+    }
+    lambda_fine = lambda_fine.topRows(up_to);
 
     Eigen::ArrayXd eta_fine = lambda_fine.exp().inverse();
 
@@ -432,8 +432,12 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     Eigen::ArrayXd minus_t2wa_fine;
     Eigen::ArrayXd minus_t2wb_fine;
     double stability = 0.005;
-    minus_t2wa_fine = utilities::lowpass_fft_deconv(r13a_fine, j13a_fine, "Type_A", stability);
-    minus_t2wb_fine = utilities::lowpass_fft_deconv(r13b_fine, j13b_fine, "Type_B", stability);
+//    minus_t2wa_fine = utilities::lowpass_fft_deconv(r13a_fine, j13a_fine, "Type_A", stability);
+//    minus_t2wb_fine = utilities::lowpass_fft_deconv(r13b_fine, j13b_fine, "Type_B", stability);
+
+    double alpha = 0.1;
+    minus_t2wa_fine = utilities::diagonal_loading_deconv(r13a_fine, j13a_fine, alpha);
+    minus_t2wb_fine = utilities::diagonal_loading_deconv(r13b_fine, j13b_fine, alpha);
 
     // Test the roundtripping convolution without any of the remapping
     Eigen::ArrayXd r13a_fine_recon = conv(minus_t2wa_fine.matrix(), j13a_fine.matrix()).matrix();

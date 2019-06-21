@@ -37,7 +37,6 @@ TEST_F(ConvTest, test_loaded_diagonal_deconv) {
                2.6934,
               -2.9723,
               -0.5919;
-    std::cout << correct << std::endl;
     ASSERT_TRUE(out.isApprox(correct, 0.01));
 }
 
