@@ -82,6 +82,8 @@ Eigen::VectorXd most_law_speed(Eigen::VectorXd const & z, const double kappa, co
 
 /** @brief Compute speed profile according to Marusic and Jones' relations.
  *
+ * TODO refactor to base it on velocity deficit, keep code DRY
+ *
  * Templated so that it can be called with active scalars (allows use of autodiff), doubles/floats,
  * Eigen::Arrays (directly) or Eigen::VectorXds (via template specialisation) of z values.
  *

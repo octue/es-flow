@@ -76,10 +76,11 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
 //    }
 
     // Get f between eta = 0 and eta = 1 (bounds for C1 integration)
-    Eigen::ArrayXd f = deficit(eta, kappa, pi_coles, shear_ratio, true);
+    bool lewkowicz = true;
+    Eigen::ArrayXd f = deficit(eta, kappa, pi_coles, shear_ratio, lewkowicz);
     const double d_pi = 0.01 * pi_coles;
-    Eigen::ArrayXd f_plus  = deficit(eta, kappa, (pi_coles + d_pi), shear_ratio, true);
-    Eigen::ArrayXd f_minus  = deficit(eta, kappa, (pi_coles - d_pi), shear_ratio, true);
+    Eigen::ArrayXd f_plus  = deficit(eta, kappa, (pi_coles + d_pi), shear_ratio, lewkowicz);
+    Eigen::ArrayXd f_minus  = deficit(eta, kappa, (pi_coles - d_pi), shear_ratio, lewkowicz);
 
     // TODO can we cast this returned value directly?
     Eigen::ArrayXd c1_tmp;
