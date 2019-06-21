@@ -9,6 +9,7 @@ add_executable(es_flow_test
         main_test.cpp
         unit/relations_test.cpp
         unit/readers_test.cpp
+        unit/utilities_conv_test.cpp
         unit/utilities_cumtrapz_test.cpp
         unit/utilities_interp_test.cpp
         unit/utilities_trapz_test.cpp
