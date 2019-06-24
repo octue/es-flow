@@ -1,0 +1,266 @@
+[
+	{
+		"name": "effect.E1: Gusting",
+			"imports": ["scale.S1: Large"],
+		"size": 1
+	},
+	{
+		"name": "effect.E2: Blade section properties",
+			"imports": ["scale.S3: Small"],
+		"size": 1
+	},
+	{
+		"name": "effect.E3: Snap loading",
+			"imports": ["scale.S2: Medium"],
+		"size": 1
+	},
+	{
+		"name": "effect.E4: Downstream wake signature",
+		"imports": [
+				"scale.S1: Large",
+				"scale.S2: Medium",
+				"scale.S3: Small"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.E5: Induction of distorted wake",
+		"imports": [
+				"scale.S1: Large",
+				"scale.S2: Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.E6: Dynamic stall and cavitation",
+			"imports": ["scale.S2: Medium"],
+		"size": 1
+	},
+	{
+		"name": "effect.E7: Direct hydrodynamic loading",
+		"imports": [
+				"scale.S1: Large",
+				"scale.S2: Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.E8: Altered drag coefficient",
+			"imports": ["scale.S3: Small"],
+		"size": 1
+	},
+	{
+		"name": "effect.E9: Peak power load",
+		"imports": [
+				"scale.S1: Large",
+				"scale.S2: Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.E10: Transient electrical effects",
+		"imports": [
+				"scale.S1: Large",
+				"scale.S2: Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.E11: Altered excitation frequency",
+			"imports": ["scale.S3: Small"],
+		"size": 1
+	},
+	{
+		"name": "effect.E12: Seabed related excitation",
+			"imports": [
+                "scale.S2: Medium",
+                "scale.S3: Small"
+        ],
+		"size": 1
+	},
+	{
+		"name": "effect.E13: Altered velocity shear",
+		"imports": [
+				"scale.S1: Large",
+				"scale.S2: Medium",
+				"scale.S3: Small"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.E14: Fluctuating inflow conditions",
+		"imports": [
+				"scale.S1: Large",
+				"scale.S2: Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.E15: Changing hull pressures",
+		"imports": [
+				"scale.S1: Large",
+				"scale.S2: Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.E16: Blade singing & lock-in",
+		"imports": ["scale.S3: Small"],
+		"size": 1
+	},
+	{
+		"name": "effect.E17: Blade surface pressures",
+			"imports": [
+				"scale.S2: Medium",
+                "scale.S3: Small"
+            ],
+		"size": 1
+	},
+	{
+		"name": "effect.E18: Broadband pressures",
+			"imports": [
+				"scale.S1: Large",
+				"scale.S2: Medium",
+                "scale.S3: Small"
+            ],
+		"size": 1
+	},
+	{
+		"name": "nature.N1: Periodic",
+		"imports": [
+				"effect.E2: Blade section properties",
+				"effect.E4: Downstream wake signature",
+				"effect.E11: Altered excitation frequency",
+                "effect.E16: Blade singing & lock-in"
+		],
+		"size": 1
+	},
+	{
+		"name": "nature.N2: Chaotic / Aperiodic",
+		"imports": [
+				"effect.E3: Snap loading",
+				"effect.E4: Downstream wake signature",
+				"effect.E5: Induction of distorted wake",
+                "effect.E6: Dynamic stall and cavitation",
+                "effect.E7: Direct hydrodynamic loading",
+				"effect.E9: Peak power load",
+				"effect.E10: Transient electrical effects",
+                "effect.E12: Seabed related excitation",
+                "effect.E14: Fluctuating inflow conditions",
+                "effect.E15: Changing hull pressures",
+                "effect.E17: Blade surface pressures",
+                "effect.E18: Broadband pressures"
+		],
+		"size": 1
+	},
+	{
+		"name": "nature.N3: Steady State",
+		"imports": [
+				"effect.E1: Gusting",
+				"effect.E2: Blade section properties",
+				"effect.E5: Induction of distorted wake",
+				"effect.E8: Altered drag coefficient",
+                "effect.E13: Altered velocity shear"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.D1: Enery Yield",
+		"imports": [
+				"effect.E1: Gusting",
+				"effect.E5: Induction of distorted wake",
+				"design.D2: Blade Loading"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.D2: Blade Loading",
+		"imports": [
+				"effect.E2: Blade section properties",
+				"effect.E3: Snap loading",
+				"effect.E4: Downstream wake signature",
+				"effect.E5: Induction of distorted wake",
+                "effect.E6: Dynamic stall and cavitation"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.D3: Tower / Platform Loading",
+		"imports": [
+                "effect.E7: Direct hydrodynamic loading",
+				"effect.E8: Altered drag coefficient",
+				"design.D2: Blade Loading"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.D4: Drivetrain Loading",
+		"imports": [
+				"design.D1: Enery Yield",
+				"design.D2: Blade Loading"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.D5: Electrical Loading",
+		"imports": [
+				"effect.E9: Peak power load",
+				"effect.E10: Transient electrical effects",
+				"design.D4: Drivetrain Loading"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.D6: Cabling",
+		"imports": [
+				"effect.E8: Altered drag coefficient",
+				"effect.E11: Altered excitation frequency",
+                "effect.E12: Seabed related excitation",
+                "effect.E13: Altered velocity shear"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.D7: Subsea Structure Loading",
+		"imports": [
+				"effect.E8: Altered drag coefficient",
+				"effect.E11: Altered excitation frequency",
+                "effect.E13: Altered velocity shear"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.D8: Installation Equipment / Plant",
+			"imports": ["effect.E14: Fluctuating inflow conditions"],
+		"size": 1
+	},
+	{
+		"name": "design.D9: Vessel Operations",
+			"imports": ["effect.E15: Changing hull pressures"],
+		"size": 1
+	},
+	{
+		"name": "design.D10: Radiated Noise",
+		"imports": [
+                "effect.E16: Blade singing & lock-in",
+                "effect.E17: Blade surface pressures",
+                "effect.E18: Broadband pressures"
+		],
+		"size": 1
+	},
+	{
+		"name": "scale.S1: Large",
+			"imports": [],
+		"size": 1
+	},
+	{
+		"name": "scale.S2: Medium",
+			"imports": [],
+		"size": 1
+	},
+	{
+		"name": "scale.S3: Small",
+			"imports": [],
+		"size": 1
+	}
+]

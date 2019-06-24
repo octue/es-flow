@@ -31,12 +31,17 @@
 #include <unsupported/Eigen/CXX11/Tensor>
 
 using Eigen::Array;
+using Eigen::ArrayXd;
+using Eigen::Array3d;
 using Eigen::ArrayXXd;
 using Eigen::Vector3d;
 using Eigen::VectorXd;
 using Eigen::Tensor;
 using Eigen::Dynamic;
+typedef Eigen::Array<double, 3, 2> Array32d;
 
+
+// TODO the Eigen variable readers are getting very unwieldy. Template them!
 
 namespace es {
 
@@ -137,6 +142,12 @@ Vector3d readVector3d(mat_t *matfp, const std::string var_name, bool print_var) 
 
 }
 
+
+Array3d readArray3d(mat_t *matfp, const std::string var_name, bool print_var) {
+    return readVector3d(matfp, var_name, print_var).array();
+}
+
+
 VectorXd readVectorXd(mat_t *matfp, const std::string var_name, bool print_var) {
 
     // Get the variable's structure pointer and check validity
@@ -166,6 +177,44 @@ VectorXd readVectorXd(mat_t *matfp, const std::string var_name, bool print_var) 
     return var;
 
 }
+
+
+ArrayXd readArrayXd(mat_t *matfp, const std::string var_name, bool print_var) {
+    return readVectorXd(matfp, var_name, print_var).array();
+}
+
+
+Array32d readArray32d(mat_t *matfp, const std::string var_name, bool print_var) {
+
+    // Get the variable's structure pointer and check validity
+    matvar_t *mat_var = getVariable(matfp, var_name, print_var);
+
+    // Check for three elements always
+    if ((mat_var->dims[0] != 3) || (mat_var->dims[1] != 2)) {
+        std::string msg = "Variable '" + var_name + "' must be of size 3 x 2";
+        throw std::invalid_argument(msg);
+    }
+
+    // Declare and size the array
+    Eigen::Array<double, 3, 2> var;
+    var = Eigen::Array<double, 3, 2>();
+
+    // Copy the data into the native Eigen types. However, we can also map to data already in
+    // memory which avoids a copy. Read about mapping here:
+    // http://eigen.tuxfamily.org/dox/group__TutorialMapClass.html
+    // TODO consider mapping to reduce peak memory overhead
+    double *var_d = (double *) mat_var->data;
+    long int i = 0;
+    for (i = 0; i < var.rows()*var.cols(); i++) {
+        var(i) = var_d[i];
+    }
+
+    // Free the data pointer and return the new variable
+    Mat_VarFree(mat_var);
+    return var;
+
+}
+
 
 ArrayXXd readArrayXXd(mat_t *matfp, const std::string var_name, bool print_var) {
 

@@ -1,0 +1,274 @@
+[
+	{
+		"name": "effect.Effect 1: Gusting",
+        "imports": ["scale.Large"],
+        "size": 1},
+	{
+		"name": "effect.Effect 2: Blade Boundary Layer",
+			"imports": ["scale.Small"],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 3: Snap loading",
+			"imports": ["scale.Medium"],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 4: Wake meandering",
+		"imports": [
+				"scale.Large",
+				"scale.Medium",
+				"scale.Small"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 5: Wake distortion",
+		"imports": [
+				"scale.Large",
+				"scale.Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 6: Wake diffusion",
+		"imports": [
+				"scale.Medium",
+				"scale.Small"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 7: Turbulent stall",
+			"imports": ["scale.Medium"],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 8: Direct unsteady loading",
+		"imports": [
+				"scale.Large",
+				"scale.Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 9: Network interference",
+		"imports": [
+				"scale.Large",
+				"scale.Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 10: Differential generation",
+			"imports": ["scale.Large"],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 11: Shedding frequency shift",
+			"imports": ["scale.Small"],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 12: Shedding disruption",
+		"imports": [
+				"scale.Medium",
+				"scale.Small"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 13: Excitation",
+		"imports": [
+				"scale.Medium",
+				"scale.Small"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 14: Altered velocity shear",
+		"imports": [
+				"scale.Large",
+				"scale.Medium",
+				"scale.Small"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 15: Altered operation window",
+		"imports": [
+				"scale.Large",
+				"scale.Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 16: Altered operating envelope",
+		"imports": [
+				"scale.Large",
+				"scale.Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 17: Blade singing",
+			"imports": ["scale.Small"],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 18: Surface pressure",
+		"imports": [
+				"scale.Large",
+				"scale.Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 19: Shedding lock in",
+		"imports": [
+				"scale.Large",
+				"scale.Medium"
+		],
+		"size": 1
+	},
+	{
+		"name": "effect.Effect 20: High frequency pressure fluctuation",
+			"imports": ["scale.Small"],
+		"size": 1
+	},
+	{
+		"name": "nature.Periodic",
+		"imports": [
+				"effect.Effect 2: Blade Boundary Layer",
+				"effect.Effect 4: Wake meandering",
+				"effect.Effect 11: Shedding frequency shift",
+				"effect.Effect 12: Shedding disruption",
+				"effect.Effect 17: Blade singing",
+				"effect.Effect 19: Shedding lock in"
+		],
+		"size": 1
+	},
+	{
+		"name": "nature.Chaotic / Aperiodic",
+		"imports": [
+				"effect.Effect 3: Snap loading",
+				"effect.Effect 5: Wake distortion",
+				"effect.Effect 7: Turbulent stall",
+				"effect.Effect 8: Direct unsteady loading",
+				"effect.Effect 9: Network interference",
+				"effect.Effect 10: Differential generation",
+				"effect.Effect 13: Excitation",
+				"effect.Effect 8: Direct unsteady loading",
+				"effect.Effect 15: Altered operation window",
+				"effect.Effect 16: Altered operating envelope",
+				"effect.Effect 18: Surface pressure",
+				"effect.Effect 20: High frequency pressure fluctuation"
+		],
+		"size": 1
+	},
+	{
+		"name": "nature.Steady State",
+		"imports": [
+				"effect.Effect 1: Gusting",
+				"effect.Effect 2: Blade Boundary Layer",
+				"effect.Effect 4: Wake meandering",
+				"effect.Effect 14: Altered velocity shear",
+				"effect.Effect 14: Altered velocity shear"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.Enery Yield",
+		"imports": [
+				"effect.Effect 1: Gusting",
+				"design.Blade Loading"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.Blade Loading",
+		"imports": [
+				"effect.Effect 2: Blade Boundary Layer",
+				"effect.Effect 3: Snap loading",
+				"effect.Effect 4: Wake meandering",
+				"effect.Effect 5: Wake distortion",
+				"effect.Effect 7: Turbulent stall"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.Tower / Platform Loading",
+		"imports": [
+				"effect.Effect 8: Direct unsteady loading",
+				"design.Blade Loading"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.Drivetrain Loading",
+			"imports": ["design.Blade Loading"],
+		"size": 1
+	},
+	{
+		"name": "design.Electrical Loading",
+		"imports": [
+				"effect.Effect 9: Network interference",
+				"effect.Effect 10: Differential generation",
+				"design.Drivetrain Loading"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.Cabling",
+		"imports": [
+				"effect.Effect 11: Shedding frequency shift",
+				"effect.Effect 12: Shedding disruption",
+				"effect.Effect 13: Excitation",
+				"effect.Effect 14: Altered velocity shear"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.Subsea Structure Loading",
+		"imports": [
+				"effect.Effect 8: Direct unsteady loading",
+				"effect.Effect 14: Altered velocity shear"
+		],
+		"size": 1
+	},
+	{
+		"name": "design.Installation Equipment / Plant",
+			"imports": ["effect.Effect 15: Altered operation window"],
+		"size": 1
+	},
+	{
+		"name": "design.Vessel Operations",
+			"imports": ["effect.Effect 16: Altered operating envelope"],
+		"size": 1
+	},
+	{
+		"name": "design.Radiated Noise",
+		"imports": [
+				"effect.Effect 17: Blade singing",
+				"effect.Effect 18: Surface pressure",
+				"effect.Effect 19: Shedding lock in",
+				"effect.Effect 20: High frequency pressure fluctuation"
+		],
+		"size": 1
+	},
+	{
+		"name": "scale.Large",
+			"imports": [],
+		"size": 1
+	},
+	{
+		"name": "scale.Medium",
+			"imports": [],
+		"size": 1
+	},
+	{
+		"name": "scale.Small",
+			"imports": [],
+		"size": 1
+	}
+]

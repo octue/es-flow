@@ -9,7 +9,9 @@ add_executable(es_flow_test
         main_test.cpp
         unit/relations_test.cpp
         unit/readers_test.cpp
+        unit/utilities_conv_test.cpp
         unit/utilities_cumtrapz_test.cpp
+        unit/utilities_interp_test.cpp
         unit/utilities_trapz_test.cpp
         )
 
@@ -35,10 +37,10 @@ target_link_libraries(es_flow_test_fit ${GTEST_BOTH_LIBRARIES})
 target_link_libraries(es_flow_test_profile ${GTEST_BOTH_LIBRARIES})
 
 # Link the third party libraries
-target_link_libraries(es_flow_test ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${MATIO_LIBRARIES})
-target_link_libraries(es_flow_test_adem ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${MATIO_LIBRARIES})
-target_link_libraries(es_flow_test_fit ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${MATIO_LIBRARIES})
-target_link_libraries(es_flow_test_profile ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${MATIO_LIBRARIES})
+target_link_libraries(es_flow_test ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${TBB_LIBRARIES} ${MATIO_LIBRARIES})
+target_link_libraries(es_flow_test_adem ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${TBB_LIBRARIES} ${MATIO_LIBRARIES})
+target_link_libraries(es_flow_test_fit ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${TBB_LIBRARIES} ${MATIO_LIBRARIES})
+target_link_libraries(es_flow_test_profile ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${TBB_LIBRARIES} ${MATIO_LIBRARIES})
 
 # Link the library to test
 target_link_libraries(es_flow_test flow)

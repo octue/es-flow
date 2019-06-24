@@ -13,6 +13,13 @@ A key strength of **es-flow** is the :doc:`adem`. This extremely robust method a
     - characterise turbulence and shear beyond tip height of even the biggest offshore wind turbines
     - characterise **coherent structure** in turbulence, crucially important for fatigue loading in wind turbines.
 
+.. figure:: images/psd_s11_lidar.png
+    :width: 500px
+    :align: center
+    :figclass: align-center
+    :alt: Atmospheric Boundary Layer PSD determined with es-flow
+
+    Atmospheric Boundary Layer PSD determined with **es-flow**.
 
 Aims
 ====
@@ -34,6 +41,13 @@ In future, generation of artificial flow fields for simulation purposes might be
     - ``.wnd`` fields input to BEM or FVM models like Bladed, FAST and TurbineGRID
     - Inlet boundary conditions for DES or LES codes
 
+.. figure:: images/wind_speed_component_fit.png
+    :width: 500px
+    :align: center
+    :figclass: align-center
+    :alt: Atmospheric Boundary Layer velocity profile, fitted with es-flow
+
+    Atmospheric Boundary Layer velocity profile, fitted with **es-flow**.
 
 Uses
 =====
@@ -60,6 +74,7 @@ We use the `GitHub Issue Tracker <https://github.com/octue/es-flow>`_ to manage 
    examples
    file_formats
    installation
+   turbulence
    license
    version_history
    bibliography

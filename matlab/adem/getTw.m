@@ -105,7 +105,10 @@ lambdaE = 0:0.01:100;
 % Re-express as eta and flip so that eta ascends (required for
 % getReynoldsStress13)
 eta = fliplr(exp(-1*lambdaE));
-
+disp('eta 1')
+disp(eta(1))
+disp('eta end')
+disp(eta(end))
 % Get the Reynolds Stresses and flip back
 [r13A, r13B] = getReynoldsStress13(eta, Pi, S, zeta, beta);
 r13A = fliplr(r13A);

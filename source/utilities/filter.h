@@ -117,6 +117,7 @@ void deconv(Eigen::ArrayBase<DerivedOut> &z,
 
     // Cannot deconvolve a longer signal out of a smaller one
     if (na > nb) {
+        std::cout << "Warning! You cannot deconvolve a longer signal (a) out of a shorter one (b)!!" << std::endl;
         z_.derived().setZero(1, 1);
         return;
     }

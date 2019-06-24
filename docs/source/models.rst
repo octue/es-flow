@@ -1,10 +1,10 @@
 .. _chapter-models:
-
 =================
 Analytical Models
 =================
 
 
+.. _velocity_relations:
 Velocity Relations
 ==================
 
@@ -13,45 +13,52 @@ profiles returns a metric of accuracy; but this isn't the be-all and end-all. Al
 represents the physics in play!
 
 
+.. _relation_power_law:
 Power Law
 ---------
 
 Power law
 
 
+.. _relation_logarithmic:
 Logarithmic
 -----------
 
 Log law
 
 
+.. _relation_most:
 MOST
 ----
 
 Most law
 
 
+.. _relation_lewkowicz:
 Lewkowicz
 ---------
 
 Lewkowicz 1982, modified by P&M. Include the Reynolds Stress profile
 
 
+.. _veer_relations:
 Veer Relations
 ==============
 
+.. _relation_monin_obukhov:
 Monin obukhov
 -------------
 
 
+.. _spectral_relations:
+Spectral Relations
+==================
 
-Spectra
-=======
-
+.. _relation_kaimal:
 Kaimal
 ------
 
-
+.. _relation_adem:
 Attached-Detached Eddy Method
 -----------------------------
 
