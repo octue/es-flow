@@ -12,10 +12,73 @@
 
 // Remove template specialisation from doc (causes duplicate) @cond
 
+
+/***********************************************************************************************************************
+ * HOW TO DIFFERENTIATE USING EIGEN::AUTODIFF
+ **********************************************************************************************************************/
+
+
+/**
+ * Application of automatic differentiation with one variable, using a templated function which can be called
+ * with active scalars or normal floats/doubles.
+ */
+template <typename T>
+T myfun2(const double a, T const & b){
+    T c = pow(sin(a),2.) + pow(cos(b),2.) + 1.;
+    return c;
+}
+
+void test_scalar() {
+    std::cout << "== test_scalar() ==" << std::endl;
+    double a;
+    a = 0.3;
+    typedef Eigen::AutoDiffScalar<Eigen::VectorXd> AScalar;
+    AScalar Ab;
+    Ab.value() = 0.5;
+    Ab.derivatives() = Eigen::VectorXd::Unit(1,0);
+    AScalar Ac = myfun2(a,Ab);
+    std::cout << "Result: " << Ac.value() << std::endl;
+    std::cout << "Gradient: " << Ac.derivatives().transpose() << std::endl;
+}
+
+
+/**
+ * Typical application of automatic differentiation in two dimensions
+ * A templated function which can be called with active scalars
+ * or normal floats/doubles.
+ */
+template <typename T>
+T myfun(T const & a, T const & b){
+	T c = pow(sin(a),2.) + pow(cos(b),2.) + 1.;
+	return c;
+}
+
+void test_scalar(){
+	std::cout << "== test_scalar() ==" << std::endl;
+	// use with normal floats
+	double a,b;
+	a = 0.3;
+	b = 0.5;
+	double c = myfun(a,b);
+	std::cout << "Result: " << c << std::endl;
+
+	// use with AutoDiffScalar
+	typedef Eigen::AutoDiffScalar<Eigen::VectorXd> AScalar;
+	AScalar Aa,Ab;
+	Aa.value() = 0.3;
+	Ab.value() = 0.5;
+	Aa.derivatives() = Eigen::VectorXd::Unit(2,0); // This is a unit vector [1, 0]
+	Ab.derivatives() = Eigen::VectorXd::Unit(2,1); // This is a unit vector [0, 1]
+	AScalar Ac = myfun(Aa,Ab);
+	std::cout << "Result: " << Ac.value() << std::endl;
+	std::cout << "Gradient: " << Ac.derivatives().transpose() << std::endl;
+}
+
+
 /***********************************************************************************************************************
  * HOW TO INTEGRATE USING THE NUMERICALINTEGRATION LIBRARY
  **********************************************************************************************************************/
-//
+
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <iostream>
