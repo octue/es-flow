@@ -317,7 +317,7 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
      * that signatures were computed on an appropriate grid.
      *
      */
-    double d_lambda_signature = signature_a.domain_spacing(2);
+    double d_lambda_signature = signature_a.domain_spacing(2)*10;
     double d_lambda_fine = d_lambda_signature/10.0;
     double lambda_min = lambda_signature(0);
     double lambda_max = lambda_signature(n_lambda_signature-1);
@@ -431,7 +431,7 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     // NOTE: it's actually -1*T^2w in this variable
     Eigen::ArrayXd minus_t2wa_fine;
     Eigen::ArrayXd minus_t2wb_fine;
-    double stability = 0.005;
+//    double stability = 0.005;
 //    minus_t2wa_fine = utilities::lowpass_fft_deconv(r13a_fine, j13a_fine, "Type_A", stability);
 //    minus_t2wb_fine = utilities::lowpass_fft_deconv(r13b_fine, j13b_fine, "Type_B", stability);
 

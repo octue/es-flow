@@ -240,6 +240,15 @@ ScatterPlot getTrace(const ArrayXXd &data, const std::string &color, const std::
     p.setColor(color);
     return p;
 }
+ScatterPlot getTrace(const ArrayXd &x, const ArrayXd &y, const std::string &color, const std::string &dash, std::string name="") {
+    ScatterPlot p = ScatterPlot();
+    p.x = x;
+    p.y = y;
+    p.name = name;
+    p.setDash(dash);
+    p.setColor(color);
+    return p;
+}
 
 
 /** @brief Helper function to plot a trace of R13, calculated from parameters
@@ -591,7 +600,7 @@ TEST_F(AdemTest, test_get_reynolds_stress_13) {
 
 TEST_F(AdemTest, test_reynolds_stress_13a_analytic) {
 
-    // Digitally extracted from Perry and Marusic 1995, Figure 11 (eq. 51 for typ a eddy shear stress):
+    // Digitally extracted from Perry and Marusic 1995, Figure 11 (eq. 51 for type a eddy shear stress):
     ArrayXXd fig_11_trace_1 = Eigen::ArrayXXd(2, 25);
     fig_11_trace_1 << 0.0, 0.012063814, 0.029733311, 0.046593536, 0.070664416, 0.093932194, 0.12360629, 0.156486629, 0.189363266, 0.224635643, 0.263913665, 0.301583013, 0.343258007, 0.384925599, 0.424186349, 0.467447811, 0.511511141, 0.557169574, 0.622848832, 0.677310555, 0.738973065, 0.797429331, 0.852680587, 0.921535246, 1.0,
                       1.0, 0.933830986, 0.864629672, 0.806207948, 0.741678448, 0.680224425, 0.617278925, 0.54973563, 0.486814803, 0.431616593, 0.373367579, 0.324351164, 0.272283946, 0.229461662, 0.192784164, 0.159219152, 0.124119486, 0.096736269, 0.063343967, 0.040651068, 0.024176974, 0.012300674, 0.003481346, 0.004011813, 0.001522318;
@@ -625,6 +634,97 @@ TEST_F(AdemTest, test_reynolds_stress_13a_analytic) {
     lay_11.yTitle("$-\\overline{u_1u_3} / U_{\\tau}^2$");
     fig_11.setLayout(lay_11);
     fig_11.write("validation_perry_and_marusic_11.json");
+}
+
+TEST_F(AdemTest, test_sensitivity_to_eta_distribution) {
+    /// The aim of this test is to determine how sensitive the Reynolds Stress calculation is to smoothness and
+    /// monotonicity in the eta distribution
+
+    // Digitally extracted from Perry and Marusic 1995, Figure 11 (eq. 51 for type a eddy shear stress):
+    ArrayXXd fig_11_trace_1 = Eigen::ArrayXXd(2, 25);
+    fig_11_trace_1 << 0.0, 0.012063814, 0.029733311, 0.046593536, 0.070664416, 0.093932194, 0.12360629, 0.156486629, 0.189363266, 0.224635643, 0.263913665, 0.301583013, 0.343258007, 0.384925599, 0.424186349, 0.467447811, 0.511511141, 0.557169574, 0.622848832, 0.677310555, 0.738973065, 0.797429331, 0.852680587, 0.921535246, 1.0,
+        1.0, 0.933830986, 0.864629672, 0.806207948, 0.741678448, 0.680224425, 0.617278925, 0.54973563, 0.486814803, 0.431616593, 0.373367579, 0.324351164, 0.272283946, 0.229461662, 0.192784164, 0.159219152, 0.124119486, 0.096736269, 0.063343967, 0.040651068, 0.024176974, 0.012300674, 0.003481346, 0.004011813, 0.001522318;
+
+    // Use the parameter set for a non-equilibrium case, to allow us to evaluate how sensitive we are to all the
+    // different terms in R13. Params other than eta don't matter for r13a, but they do for r13b, so we choose the same
+    // parameter set as in Figure 7, M&P199 Part 2.
+    double pi_coles = 2.46;
+    double shear_ratio = 34.5;
+    double zeta = 8.01;
+    double beta = 4.48;
+
+    // Recreate P&M Figure 11 with different eta distributions...
+
+    // From the paper
+    Eigen::ArrayXd eta_paper(25);
+    eta_paper = fig_11_trace_1.row(0);
+    Eigen::ArrayXd r13_a_paper(25);
+    r13_a_paper = fig_11_trace_1.row(1);
+
+    // A coarse logarithmic distribution, with eta=0 prepended
+    Eigen::ArrayXd eta_log_coarse(15);
+    eta_log_coarse.setZero();
+    eta_log_coarse.bottomRows(14) = Eigen::ArrayXd::LinSpaced(14, 5, 0).exp().inverse();
+    std::cout << "ETA LOG COARSE: " << eta_log_coarse << std::endl;
+
+    // A fine logarithmic distribution, with eta=0 prepended
+    Eigen::ArrayXd eta_log_fine(200);
+    eta_log_fine.setZero();
+    eta_log_fine.bottomRows(199) = Eigen::ArrayXd::LinSpaced(199, 5, 0).exp().inverse();
+
+    // A coarse linear distribution
+    Eigen::ArrayXd eta_lin_coarse = Eigen::ArrayXd::LinSpaced(15, 0.0, 1.0);
+
+    // A fine linear distribution
+    Eigen::ArrayXd eta_lin_fine = Eigen::ArrayXd::LinSpaced(200, 0.0, 1.0);
+
+    // Initialise Reynolds Stresses
+    Eigen::ArrayXd r13_a_log_coarse(15);
+    Eigen::ArrayXd r13_b_log_coarse(15);
+    Eigen::ArrayXd r13_a_log_fine(200);
+    Eigen::ArrayXd r13_b_log_fine(200);
+    Eigen::ArrayXd r13_a_lin_coarse(15);
+    Eigen::ArrayXd r13_b_lin_coarse(15);
+    Eigen::ArrayXd r13_a_lin_fine(200);
+    Eigen::ArrayXd r13_b_lin_fine(200);
+    reynolds_stress_13(r13_a_log_coarse, r13_b_log_coarse, beta, eta_log_coarse, KAPPA_VON_KARMAN, pi_coles, shear_ratio, zeta);
+    reynolds_stress_13(r13_a_log_fine,   r13_b_log_fine,   beta, eta_log_fine,   KAPPA_VON_KARMAN, pi_coles, shear_ratio, zeta);
+    reynolds_stress_13(r13_a_lin_coarse, r13_b_lin_coarse, beta, eta_lin_coarse, KAPPA_VON_KARMAN, pi_coles, shear_ratio, zeta);
+    reynolds_stress_13(r13_a_lin_fine,   r13_b_lin_fine,   beta, eta_lin_fine,   KAPPA_VON_KARMAN, pi_coles, shear_ratio, zeta);
+
+    // Get scatter plot traces for each, plus the validation case
+    ScatterPlot p_paper = getTrace(eta_paper, r13_a_paper, "#1f77b4", "solid", "P&M 1995, Eqn. 51");
+
+    ScatterPlot p_log_coarse_a = getTrace(eta_log_coarse, -1.0*r13_a_log_coarse, "#2ca02c", "dash", "eta_log_coarse a");
+    ScatterPlot p_log_coarse_b = getTrace(eta_log_coarse, -1.0*r13_b_log_coarse, "#2ca02c", "dot",  "eta_log_coarse b");
+
+    ScatterPlot p_log_fine_a = getTrace(eta_log_fine, -1.0*r13_a_log_fine, "#d62728", "dash", "eta_log_fine a");
+    ScatterPlot p_log_fine_b = getTrace(eta_log_fine, -1.0*r13_b_log_fine, "#d62728", "dot",  "eta_log_fine b");
+
+    ScatterPlot p_lin_coarse_a = getTrace(eta_lin_coarse, -1.0*r13_a_lin_coarse, "#9467bd", "dash", "eta_lin_coarse a");
+    ScatterPlot p_lin_coarse_b = getTrace(eta_lin_coarse, -1.0*r13_b_lin_coarse, "#9467bd", "dot",  "eta_lin_coarse b");
+
+    ScatterPlot p_lin_fine_a = getTrace(eta_lin_fine, -1.0*r13_a_lin_fine, "#e377c2", "dash", "eta_lin_fine a");
+    ScatterPlot p_lin_fine_b = getTrace(eta_lin_fine, -1.0*r13_b_lin_fine, "#e377c2", "dot",  "eta_lin_fine b");
+
+
+    // Add Traces
+    Figure fig = Figure();
+    fig.add(p_paper);
+    fig.add(p_log_coarse_a);
+    fig.add(p_log_coarse_b);
+    fig.add(p_log_fine_a);
+    fig.add(p_log_fine_b);
+    fig.add(p_lin_coarse_a);
+    fig.add(p_lin_coarse_b);
+    fig.add(p_lin_fine_a);
+    fig.add(p_lin_fine_b);
+    Layout lay = Layout();
+    lay.xTitle("$z/\\delta_{c}$");
+    lay.yTitle("$-\\overline{u_1u_3} / U_{\\tau}^2$");
+    fig.setLayout(lay);
+    fig.write("validation_sensitivity_to_eta_distribution.json");
+
 }
 
 
