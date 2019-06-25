@@ -224,17 +224,36 @@ bool is_double_inf(T in) {
  *
  * @return
  */
-Eigen::ArrayXd deficit(const Eigen::ArrayXd &eta, const double kappa, const double pi_coles, const double shear_ratio, const bool lewkowicz=false) {
-    Eigen::ArrayXd f;
-    Eigen::ArrayXd ones;
-    ones.setOnes(eta.size());
-    f = -1.0 * eta.log()/ kappa;
+template <typename T_eta, typename T_param>
+T_eta deficit(T_eta const &eta, const double kappa, T_param const & pi_coles, const double shear_ratio, const bool lewkowicz=false) {
+    T_eta f, ones;
+    ones = 1.0;
+    f = -1.0 * log(eta)/ kappa;
     if (lewkowicz) {
         f = f + (pi_coles/kappa) * coles_wake(ones, pi_coles)
               - (pi_coles/kappa) * coles_wake(eta, pi_coles);
     } else {
+        f = f + (pow(eta, 3.0) - 1.0)/(3.0*kappa)
+              + 2.0*pi_coles*(1.0 - 3.0*pow(eta, 2.0) + 2.0*pow(eta, 3.0))/kappa;
+    }
+    if (is_double_inf(f)) {
+        f = shear_ratio;
+    };
+    return f;
+}
+// Remove template specialisation from doc (causes duplicate) @cond
+template <typename T_param>
+Eigen::ArrayXd deficit(const Eigen::ArrayXd &eta, const double kappa, T_param const & pi_coles, const double shear_ratio, const bool lewkowicz=false) {
+    Eigen::ArrayXd f;
+    Eigen::ArrayXd ones;
+    ones.setOnes(eta.size());
+    f = -1.0 * log(eta)/ kappa;
+    if (lewkowicz) {
+        f = f + (pi_coles/kappa) * coles_wake(ones, pi_coles)
+            - (pi_coles/kappa) * coles_wake(eta, pi_coles);
+    } else {
         f = f + (eta.pow(3.0) - 1.0)/(3.0*kappa)
-              + 2.0*pi_coles*(1.0 - 3.0*eta.pow(2.) + 2.0*eta.pow(3.0))/kappa;
+            + 2.0*pi_coles*(1.0 - 3.0*eta.pow(2.) + 2.0*eta.pow(3.0))/kappa;
     }
     for (int k = 0; k < f.size(); k++) {
         if (std::isinf(f[k])) {
@@ -243,6 +262,7 @@ Eigen::ArrayXd deficit(const Eigen::ArrayXd &eta, const double kappa, const doub
     }
     return f;
 }
+// @endcond
 
 
 /** Compute Lewkowicz (1982) velocity profile.
@@ -272,6 +292,7 @@ T_z lewkowicz_speed(T_z const & z, T_param const & pi_coles, T_param const & kap
     T_z term2 = pi_coles * coles_wake(T_z(1.0), pi_coles, true) / kappa;
     T_z term3 = pi_coles * coles_wake(eta, pi_coles, true) / kappa;
     f = term1 + term2 - term3;
+    // TODO why isn't this set directly to shear_ratio?
     if (is_double_inf(f)) {
         f = u_inf / u_tau;
     };
