@@ -13,7 +13,7 @@
 #include <Eigen/Dense>
 
 
-namespace es {
+namespace utilities {
 
 
 /** @brief Columnwise cumulative sum of elements.
