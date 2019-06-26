@@ -26,6 +26,7 @@
 #include "utilities/filter.h"
 #include "utilities/conv.h"
 #include "utilities/tensors.h"
+#include "utilities/trapz.h"
 #include "io/variable_readers.h"
 #include "io/variable_writers.h"
 
