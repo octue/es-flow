@@ -317,8 +317,8 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
      * that signatures were computed on an appropriate grid.
      *
      */
-    double d_lambda_signature = signature_a.domain_spacing(2)*10;
-    double d_lambda_fine = d_lambda_signature/10.0;
+    double d_lambda_signature = signature_a.domain_spacing(2);
+    double d_lambda_fine = d_lambda_signature;
     double lambda_min = lambda_signature(0);
     double lambda_max = lambda_signature(n_lambda_signature-1);
     Eigen::Index n_lambda_fine = round((lambda_max - lambda_min)/d_lambda_fine);
