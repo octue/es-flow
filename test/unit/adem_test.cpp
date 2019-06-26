@@ -636,6 +636,7 @@ TEST_F(AdemTest, test_reynolds_stress_13a_analytic) {
     fig_11.write("validation_perry_and_marusic_11.json");
 }
 
+
 TEST_F(AdemTest, test_sensitivity_to_eta_distribution) {
     /// The aim of this test is to determine how sensitive the Reynolds Stress calculation is to smoothness and
     /// monotonicity in the eta distribution
@@ -706,8 +707,7 @@ TEST_F(AdemTest, test_sensitivity_to_eta_distribution) {
 
     ScatterPlot p_lin_fine_a = getTrace(eta_lin_fine, -1.0*r13_a_lin_fine, "#e377c2", "dash", "eta_lin_fine a");
     ScatterPlot p_lin_fine_b = getTrace(eta_lin_fine, -1.0*r13_b_lin_fine, "#e377c2", "dot",  "eta_lin_fine b");
-
-
+    
     // Add Traces
     Figure fig = Figure();
     fig.add(p_paper);
