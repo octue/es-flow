@@ -193,6 +193,7 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
             - (24.0 / 59.0) * eta.pow(5.0)
             + (60.0 / 59.0) * eta * eta.log();
     } else {
+        // Shear stress for `pure` equilibrium sink flow with no correction, Perry and Marusic eqn. 53
         minus_r13_a = 1.0 - eta + eta * eta.log();
     }
 
