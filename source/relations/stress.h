@@ -126,11 +126,8 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
     // E1 from (eqn A4). Can't call it E1 due to name conflict with above.
     double e1_coeff = 1.0 / (kappa * shear_ratio + 1.0);
 
-    // N from (eqn A5) using central differencing as before
-    // TODO compute N for non-lewkowicz model
-    double wc_minus = coles_wake(1.0, pi_coles - d_pi);
-    double wc_plus =  coles_wake(1.0, pi_coles + d_pi);
-    double n = coles_wake(1.0, pi_coles) + pi_coles * (wc_plus - wc_minus) / (2.0 * d_pi);
+    // TODO Resolve issue #59 here.
+    double n = coles_wake(1.0, pi_coles);
 
     // Compile f_i terms
     Eigen::ArrayXd f1;
