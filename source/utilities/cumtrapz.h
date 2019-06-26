@@ -47,7 +47,12 @@ EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eig
 // @endcond
 
 
-/** @brief Trapezoidal numerical integration with unit spacing.Cumulative trapezoidal numerical integration with unit spacing.
+/** @brief Trapezoidal numerical integration with unit spacing. Cumulative trapezoidal numerical integration with unit spacing.
+ *
+ * You should first consider using the utilities::integration::cumint module, since it's far more accurate in the
+ * general case. Only use this coarse trapezoidal method if you can be confident your integrand varies slowly compared
+ * to your discretisation in X and that a consistent bias is not introduced by the method. For example, integrating x^2
+ * using cumtrapz produces an ever-increasing bias error as x increases.
  *
  * Operates in the first dimension (colwise). Applied by reference or returns by value.
  *
@@ -76,10 +81,12 @@ EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eig
 
 /** @brief Cumulative trapezoidal numerical integration with non-unit spacing.
  *
- * Operates in the first dimension (colwise). Applied by reference or returns by value.
+ * You should first consider using the utilities::integration::cumint module, since it's far more accurate in the
+ * general case. Only use this coarse trapezoidal method if you can be confident your integrand varies slowly compared
+ * to your discretisation in X and that a consistent bias is not introduced by the method. For example, integrating x^2
+ * using cumtrapz produces an ever-increasing bias error as x increases.
  *
- * TODO make the function also accept an array the same size as in_y so we can integrate a different spacing for
- * each column.
+ * Operates in the first dimension (colwise). Applied by reference or returns by value.
  *
  * @tparam DerivedX Type of the in_x array
  * @tparam DerivedY Type of the in_y array
