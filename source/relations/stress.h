@@ -71,9 +71,9 @@ namespace es {
 void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const double beta, const Eigen::ArrayXd &eta, const double kappa, const double pi_coles, const double shear_ratio, const double zeta){
 
     // Check the input has a valid range; the integration will be messed up otherwise.
-//    if ((eta(eta.rows()-1) != 1.0) || (eta(0) != 0.0)) {
-//        throw std::invalid_argument("Input eta must be defined in the range 0, 1 exactly");
-//    }
+    if ((eta(eta.rows()-1) != 1.0) || (eta(0) != 0.0)) {
+        throw std::invalid_argument("Input eta must be defined in the range 0, 1 exactly");
+    }
 
     // Get f between eta = 0 and eta = 1 (bounds for C1 integration)
     bool lewkowicz = true;
