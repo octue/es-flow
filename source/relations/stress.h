@@ -183,8 +183,18 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
     fig.setLayout(lay);
     fig.write("check_perry_marusic_fig_1");
 
-    // Lewkowicz 1982 shear stress for equilibrium sink flow, Perry and Marusic eqn. 51
-    Eigen::ArrayXd minus_r13_a = 1.0 - (60.0/59.0)*eta - (20.0/59.0)*eta.pow(3.0) + (45.0/59.0)*eta.pow(4.0) - (24.0/59.0)*eta.pow(5.0) + (60.0/59.0)*eta*eta.log();
+    Eigen::ArrayXd minus_r13_a(eta.rows());
+    if (lewkowicz) {
+        // Lewkowicz 1982 shear stress for equilibrium sink flow, Perry and Marusic eqn. 51
+        minus_r13_a = 1.0
+            - (60.0 / 59.0) * eta
+            - (20.0 / 59.0) * eta.pow(3.0)
+            + (45.0 / 59.0) * eta.pow(4.0)
+            - (24.0 / 59.0) * eta.pow(5.0)
+            + (60.0 / 59.0) * eta * eta.log();
+    } else {
+        minus_r13_a = 1.0 - eta + eta * eta.log();
+    }
 
     // Handle the log(0) singularity
     for (int i = 0; i < minus_r13_a.size(); i++) {
