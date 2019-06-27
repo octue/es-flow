@@ -198,18 +198,15 @@ public:
      */
     Eigen::ArrayXXd k1z(Eigen::ArrayXd &eta) const {
 
-        // TODO we store eta, so can use it directly. Make optional
-
         double dx = domain_spacing[0];
         auto nx = Eigen::Index((domain_extents(0,1) - domain_extents(0,0)) / dx) + 1;
         Eigen::ArrayXd k1_delta = Eigen::ArrayXd::LinSpaced(nx, 0, nx-1) * 2.0 * M_PI / dx;
+        Eigen::ArrayXXd k1z = k1_delta.replicate(1, eta.rows()) * eta.transpose().replicate(k1_delta.rows(), 1);
+
         std::cout << "k1_delta_start " << k1_delta(0) << std::endl;
         std::cout << "k1_delta_end " << k1_delta(nx-1) << std::endl;
         std::cout << "eta_start " << eta(0) << std::endl;
         std::cout << "eta_end " << eta(eta.rows()-1) << std::endl;
-
-
-        Eigen::ArrayXXd k1z = k1_delta.replicate(1, eta.rows()) * eta.transpose().replicate(k1_delta.rows(), 1);
         std::cout << "k1z_n_rows " << k1z.rows() << std::endl;
         std::cout << "k1z_n_cols " << k1z.cols() << std::endl;
 
