@@ -17,6 +17,7 @@ set(SOURCE_FILES
         io/variable_readers.h
         io/variable_writers.h
         utilities/conv.h
+        utilities/cumsum.h
         utilities/cumtrapz.h
         utilities/filter.h
         utilities/integration.h
