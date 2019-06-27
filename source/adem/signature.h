@@ -141,11 +141,32 @@ public:
     {
         EddySignature result;
         result.eddy_type = this->eddy_type + "+" + c.eddy_type;
+        result.eta = this->eta;
         result.lambda = this->lambda;
         result.domain_spacing = this->domain_spacing;
         result.domain_extents = this->domain_extents;
         result.g = (this->g + c.g);
         result.j = (this->j + c.j);
+        return result;
+    }
+
+    /** @brief Define overloaded * (multiply) operator for eddy signatures.
+     *
+     * @param[in] a The number to multiply by
+     * @return new EddySignature() whose signature (g, j) is element-wise multiplied by input a.
+     */
+    EddySignature operator*(double a) const
+    {
+        EddySignature result;
+        result.eddy_type = "(" + this->eddy_type + ")*" + std::to_string(a);
+        result.eta = this->eta;
+        result.lambda = this->lambda;
+        result.domain_spacing = this->domain_spacing;
+        result.domain_extents = this->domain_extents;
+        result.g = this->g;
+        result.j = this->j;
+        result.g = result.g * a;
+        result.j = result.j * a;
         return result;
     }
 
@@ -158,6 +179,7 @@ public:
     {
         EddySignature result;
         result.eddy_type = "(" + this->eddy_type + ")/" + std::to_string(denom);
+        result.eta = this->eta;
         result.lambda = this->lambda;
         result.domain_spacing = this->domain_spacing;
         result.domain_extents = this->domain_extents;
