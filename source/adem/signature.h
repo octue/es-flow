@@ -67,7 +67,7 @@ public:
     Eigen::Array<double, Eigen::Dynamic, 6> j;
 
     /** Spacing of the regular grid used to create the eddy intensity signatures [dx, dy, dlambda] (note for the third
-     * coorinate, points are linearly spaced in a logarithmic domain, so this is d_lambda, not d_z).
+     * coordinate, points are linearly spaced in a logarithmic domain, so this is d_lambda, not d_z).
      */
     Eigen::Array3d domain_spacing;
 
@@ -213,7 +213,7 @@ public:
         return k1z;
     }
 
-    /** @brief Interpolate the signature to new locations in lambda or eta
+    /** @brief Interpolate the signature @f$J_{i,j}(\lambda)@f$ to new locations in lambda or eta.
      *
      * To avoid warping the reconstruction, we need to do the convolution and the deconvolution with
      * both the input and the signature on the same, equally spaced, basis. What if we want to do it on a basis
