@@ -25,6 +25,7 @@
 #include "relations/velocity.h"
 #include "utilities/filter.h"
 #include "utilities/conv.h"
+#include "utilities/interp.h"
 #include "utilities/tensors.h"
 #include "utilities/trapz.h"
 #include "io/variable_readers.h"
@@ -214,6 +215,47 @@ public:
 
         return k1z;
     }
+
+    /** @brief Interpolate the signature to new locations in lambda or eta
+     *
+     * To avoid warping the reconstruction, we need to do the convolution and the deconvolution with
+     * both the input and the signature on the same, equally spaced, basis. What if we want to do it on a basis
+     * different to the positions where the signature was calculated?
+     *
+     * This function allows you to get the signature array, j, at different vertical locations
+     *
+     * @param[in] locations [N x 1] The lambda (or optionally eta) values at which to retrieve the signature j
+     * @param[in] linear boolean If true, locations are on a linear basis (i.e. they are values of eta). Otherwise
+     * (default) they are on a logarithmic basis (i.e. they are values of lambda).
+     * @return [N x 6] signature array Jij interpolated to input locations
+     */
+    Eigen::ArrayXXd getJ(const Eigen::ArrayXd & locations, const bool linear=false) const {
+        Eigen::ArrayXXd j_fine(locations.rows(), 6);
+        if (linear) {
+            // The new locations are values of eta
+
+            // Assert locations are in the valid range...
+            if ((locations < 0.0).any()) {
+                throw std::invalid_argument("Input locations (eta values) must be defined for eta >= 0.0");
+            }
+
+            // Interpolate on an eta basis
+            for (int k = 0; k < 6; k++) {
+                utilities::CubicSplineInterpolant s(this->eta.matrix(), this->j.col(k).matrix());
+                j_fine.col(k) = s(locations);
+            }
+
+        } else {
+            // The new locations are values of lambda
+
+            // Interpolate on a lambda basis
+            for (int k = 0; k < 6; k++) {
+                utilities::CubicSplineInterpolant s(this->lambda.matrix(), this->j.col(k).matrix());
+                j_fine.col(k) = s(locations);
+            }
+        }
+        return j_fine;
+     };
 
     /** @brief Calculate eddy intensity functions @f$J_{i,j}@f$ and @f$g_{i,j}@f$.
      *

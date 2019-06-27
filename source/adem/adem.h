@@ -344,19 +344,9 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
      *
      * To do this, we interpolate to a fine distribution and store the fine values.
      *
-     * TODO refactor this out to a separate function, which should be a method of the signature class
-     *
      */
-    Eigen::ArrayXXd ja_fine(lambda_fine.rows(), 6);
-    Eigen::ArrayXXd jb_fine(lambda_fine.rows(), 6);
-    for (int k = 0; k < 6; k++) {
-        Eigen::ArrayXd ja_signature = signature_a.j.bottomRows(lambda_signature.rows()).col(k);
-        Eigen::ArrayXd jb_signature = signature_b.j.bottomRows(lambda_signature.rows()).col(k);
-        utilities::CubicSplineInterpolant s_a(lambda_signature.matrix(), ja_signature.matrix());
-        utilities::CubicSplineInterpolant s_b(lambda_signature.matrix(), jb_signature.matrix());
-        ja_fine.col(k) = s_a(lambda_fine);
-        jb_fine.col(k) = s_b(lambda_fine);
-    }
+    Eigen::ArrayXXd ja_fine = signature_a.getJ(lambda_fine);
+    Eigen::ArrayXXd jb_fine = signature_b.getJ(lambda_fine);
     Eigen::ArrayXd j13a_fine = ja_fine.col(2);
     Eigen::ArrayXd j13b_fine = jb_fine.col(2);
 
