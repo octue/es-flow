@@ -18,6 +18,7 @@
  **********************************************************************************************************************/
 
 
+#include <unsupported/Eigen/AutoDiff>
 /**
  * Application of automatic differentiation with one variable, using a templated function which can be called
  * with active scalars or normal floats/doubles.
