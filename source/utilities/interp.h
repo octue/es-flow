@@ -15,10 +15,86 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/Splines>
-#include <unsupported/Eigen/FFT>
 
 
 namespace utilities {
+
+
+class LinearInterpolant {
+public:
+    /** @brief Create a linear interpolant
+     *
+     * Initialise an interpolant as follows:
+     *
+     *    Eigen::ArrayXd xvals(3);
+     *    Eigen::ArrayXd yvals(xvals.rows());
+     *
+     *    xvals << 0, 15, 30;
+     *    yvals << 0, 12, 17;
+     *
+     *    LinearInterpolant s(xvals, yvals);
+     *
+     */
+    LinearInterpolant(const Eigen::ArrayXd x_vec, const Eigen::ArrayXd y_vec)
+      : x_min(x_vec.minCoeff()), x_max(x_vec.maxCoeff()), x(x_vec), y(y_vec) {}
+
+    /** @brief Evaluate interpolant at values xi whose yi values are unknown
+     *
+     * Out of range xi values are constrained to the endpoints (i.e. nearest neighbour interpolation)
+     *
+     * Performs linear interpolation to evaluate values yi at
+     *    // ... Initialise interpolant (see constructor) ...
+     *    LinearInterpolant s(xvals, yvals);
+     *    std::cout << s(12.34) << std::endl;
+     *
+     *@param xi double (or eigen ArrayXd) of target x values for the interpolation
+     *@return double interpolated value yi corresponding to location xi
+     */
+    double operator()(double xi) const {
+        double bounded_xi = std::max(std::min(xi, x_max), x_min);
+        Eigen::Index node = findNode(bounded_xi);
+        if (node == x.size()-1) {
+            return y[node];
+        }
+        double proportion = (bounded_xi - x[node]) / (x[node + 1] - x[node]);
+        return proportion * (y[node + 1] - y[node]) + y[node];
+    }
+
+    Eigen::ArrayXd operator()(Eigen::ArrayXd const &xi_vec) {
+        Eigen::ArrayXd yi_vec(xi_vec.rows());
+        yi_vec = xi_vec.unaryExpr([this](double xi) { return this->operator()(xi); }).transpose();
+        return yi_vec;
+    }
+
+private:
+
+    // Find the index of the data value in x_vec immediately before the required xi value
+    Eigen::Index findNode(const double bounded_xi) const {
+
+        // Run a binary search to find the adjacent node in the grid. This is O(log(N)) to evaluate one location.
+        // https://stackoverflow.com/questions/6553970/find-the-first-element-in-a-sorted-array-that-is-greater-than-the-target
+        Eigen::Index low = 0;
+        Eigen::Index high = x.size();
+        while (low != high) {
+            Eigen::Index mid = (low + high) / 2; // Or a fancy way to avoid int overflow
+            if (x[mid] <= bounded_xi) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+        return low - 1;
+    }
+
+    // Boundaries of the vector
+    double x_min;
+    double x_max;
+
+    // Hold a copy of the data in case it changes outside during the life of the interpolant
+    Eigen::ArrayXd x;
+    Eigen::ArrayXd y;
+};
+
 
 class CubicSplineInterpolant {
 public:

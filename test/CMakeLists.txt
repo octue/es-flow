@@ -13,6 +13,7 @@ add_executable(es_flow_test
         unit/utilities_cumtrapz_test.cpp
         unit/utilities_cumsum_test.cpp
         unit/utilities_integration_test.cpp
+        unit/utilities_interp_test.cpp
         unit/utilities_trapz_test.cpp
         )
 
