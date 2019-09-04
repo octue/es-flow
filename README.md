@@ -2,6 +2,7 @@
 
 Atmospheric and marine flow characterisation tools, implementing the 'Attached-Detached Eddy Method' for boundary layer analysis.
 
+[![Documentation Status](https://readthedocs.org/projects/es-flow/badge/?version=latest)](https://es-flow.readthedocs.io/en/latest/?badge=latest)
 
 ## Project structure and Code Style
 
