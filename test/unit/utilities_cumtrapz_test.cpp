@@ -13,7 +13,7 @@
 #include "utilities/cumtrapz.h"
 
 
-using namespace es;
+using namespace utilities;
 
 
 class CumtrapzTest : public ::testing::Test {};

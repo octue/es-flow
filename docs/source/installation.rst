@@ -19,6 +19,30 @@ Download the Intel MKL library packages. Click on the icon and follow installati
 The tools are installed in ``/opt/intel/``, the ``include`` directory is ``/opt/intel/include``.
 
 
+Intel TBB
+---------
+
+.. ATTENTION::
+   If you don't wish to use Intel TBB, or need to build for a non-intel architecture, please contact Octue.
+
+
+.. tabs::
+
+   .. group-tab:: Mac OSX
+      .. code-block::
+         brew install tbb
+
+   .. group-tab:: Linux
+
+        Download the Intel TBB library packages. Click on the icon and follow installation instructions, ensuring that
+        the TBBROOT environment variable is set. You'll need the administrator password.
+
+        The tools are installed in ``/opt/intel/``, the ``include`` directory is ``/opt/intel/include``.
+
+   .. group-tab:: Windows
+
+        Follow the Intel TBB instructions, ensuring that the TBBROOT environment variable is set.
+
 matio
 -----
 

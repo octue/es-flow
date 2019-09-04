@@ -13,7 +13,7 @@
 #include <string>
 #include "matio.h"
 #include <eigen3/Eigen/Core>
-#include "variable_readers.h"
+#include "io/variable_readers.h"
 
 
 namespace es {

@@ -133,6 +133,15 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
 
+cumsum
+--------
+
+cumsum.h header file utility for numerical summation is adapted from `The libigl geometry library`_. under MPL2.0
+Copyright (C) 2013 Alec Jacobson.
+
+.. _`The libigl geometry library`: https://github.com/libigl/libigl
+
+
 cxxopts
 -------
 

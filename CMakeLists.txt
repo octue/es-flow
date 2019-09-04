@@ -36,6 +36,10 @@ set(MKL_MULTI_THREADED "1")
 find_package(MKL REQUIRED)
 include_directories(${MKL_INCLUDE_DIRS})
 
+# Add Intel TBB dependency
+find_package(TBB REQUIRED)
+include_directories(${TBB_INCLUDE_DIRS})
+
 # Add matio dependency
 find_package(MATIO REQUIRED)
 include_directories(${MATIO_INCLUDE_DIRS})

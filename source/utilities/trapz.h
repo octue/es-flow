@@ -19,35 +19,52 @@ namespace utilities {
 
 /** @brief Trapezoidal numerical integration with unit spacing.
  *
- * Operates in the first dimension (colwise). Applied by reference or returns by value.
+ * Operates in the first dimension (colwise)by default, or along the dimension specified in teh input parameter
+ * 'dimension'.
+ *
+ * Applied by reference or returns by value.
  *
  * @tparam Derived Type of the input array
  * @tparam OtherDerived Type of the output array
  * @param out The output (integral) array
  * @param in The input (integrand) array
+ * @param[in] dimension, Eigen::Index either 1 or 2. 1 gives trapz down teh columns, 2 across the rows
  */
 template<typename Derived, typename OtherDerived>
-EIGEN_STRONG_INLINE void trapz(Eigen::ArrayBase<OtherDerived> const & out, const Eigen::ArrayBase<Derived>& in)
-{
-    Eigen::ArrayBase<OtherDerived>& out_ = const_cast< Eigen::ArrayBase<OtherDerived>& >(out);
-    Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eigen::ArrayBase<Derived>::RowsAtCompileTime, Eigen::ArrayBase<Derived>::ColsAtCompileTime> inter;
+EIGEN_STRONG_INLINE void trapz(Eigen::ArrayBase<OtherDerived> const & out, const Eigen::ArrayBase<Derived>& in, Eigen::Index direction=1) {
+    Eigen::ArrayBase<OtherDerived> &out_ = const_cast< Eigen::ArrayBase<OtherDerived> & >(out);
+    Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar,
+                 Eigen::ArrayBase<Derived>::RowsAtCompileTime,
+                 Eigen::ArrayBase<Derived>::ColsAtCompileTime> inter;
 
-    if (in.rows() == 1) {
-        out_.derived().setZero(1, in.cols());
+    if (direction == 1) {
+        if (in.rows() == 1) {
+            out_.derived().setZero(1, in.cols());
+        } else {
+            inter = (in.topRows(in.rows() - 1) + in.bottomRows(in.rows() - 1)) * 0.5;
+            out_.derived() = inter.colwise().sum();
+        }
+    } else if (direction == 2) {
+        if (in.cols() == 1) {
+            out_.derived().setZero(in.rows(), 1);
+        } else {
+            inter = (in.leftCols(in.cols() - 1) + in.rightCols(in.cols() - 1)) * 0.5;
+            out_.derived() = inter.rowwise().sum();
+        }
     } else {
-        inter = (in.topRows(in.rows()-1) + in.bottomRows(in.rows()-1)) * 0.5;
-        out_.derived() = inter.colwise().sum();
+        assert(((direction == 1) || (direction == 2)));
     }
+
 }
 
 /*
  * Overload method to return result by value.
  */
 template<typename Derived>
-EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eigen::ArrayBase<Derived>::RowsAtCompileTime, Eigen::ArrayBase<Derived>::ColsAtCompileTime> trapz(const Eigen::ArrayBase<Derived>& y)
+EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eigen::ArrayBase<Derived>::RowsAtCompileTime, Eigen::ArrayBase<Derived>::ColsAtCompileTime> trapz(const Eigen::ArrayBase<Derived>& y, Eigen::Index dimension=1)
 {
     Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eigen::ArrayBase<Derived>::RowsAtCompileTime, Eigen::ArrayBase<Derived>::ColsAtCompileTime> z;
-    trapz(z,y);
+    trapz(z,y, dimension);
     return z;
 }
 
@@ -57,6 +74,8 @@ EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<Derived>::Scalar, Eig
  *
  * TODO make the function also accept an array the same size as in_y so we can integrate a different spacing for
  * each column.
+ *
+ * TODO add dimension argument, for optional integration along the second dimension.
  *
  * @tparam DerivedX Type of the in_x array
  * @tparam DerivedY Type of the in_y array
@@ -99,8 +118,9 @@ EIGEN_STRONG_INLINE void trapz(Eigen::ArrayBase<DerivedOut> const & out, const E
     out_.derived() = inter.colwise().sum();
 }
 
-/*
+/* @brief Trapezoidal numerical integration with non-unit spacing
  * Overload method to return result by value.
+ * TODO add dimension argument, for optional integration along the second dimension.
  */
 template<typename DerivedX, typename DerivedY, typename DerivedOut>
 EIGEN_STRONG_INLINE Eigen::Array<typename Eigen::ArrayBase<DerivedOut>::Scalar, Eigen::ArrayBase<DerivedOut>::RowsAtCompileTime, Eigen::ArrayBase<DerivedOut>::ColsAtCompileTime> trapz(const Eigen::ArrayBase<DerivedX>& x, const Eigen::ArrayBase<DerivedY>& y)
