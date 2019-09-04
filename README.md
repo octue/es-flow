@@ -27,18 +27,15 @@ Code style, includes and project structure should conform to the [Google C++ sty
 ## Release Flow
 
 Steps to create a new release:
-
 - Create a new branch, from master, entitled `release<version-tag>` and push to remote. Version tags are semantic:
 ```
 git checkout master
 git checkout -b release-v0.1.1-alpha.1
 git push --set-upstream origin release-v0.1.1-alpha.1
 ```
-- TravisCI automatically creates a tagged draft release on github. In the above example, the tag is `v0.1.1-alpha.1`.
-- Any commits into, or merges to, this branch, will trigger automatic builds on TravisCI. The documentation gets built, binaries compiled, tests run. Assets (e.g. precompiled binaries and HTML documentation) onto s3, `the octue-builds bucket`. 
-- Download the asset package as a zip and add attach it to the release. 
-- Once the release is prepared, checked, and all builds have completed, publish the release from GitHub.
-- Once the release is published, the feature branch may finally be merged into master.
+- Once a release is prepared, create a release on GitHub (which tags the repo) then pull that branch into master.
+- Master therefore always contains the latest release.
+- You may need to activate versions on ReadTheDocs before they show up in the version list for the documentation. 
 
 
 ## Third party dependencies
@@ -60,11 +57,14 @@ See documentation
 [**cxxopts**](https://github.com/jarro2783/cxxopts) argument parser for C++11 under the MIT license (NB most "standard" parsers are under GNU!!!).
  
 [**glog**](https://github.com/google/glog) google's asynchronous logging library, used for logging to file.
+
+[**cpplot**](https://github.com/thclark/cpplot) for plotting figures
+
+ ### For building documentation
  
 [**sphinx**](http://www.sphinx-doc.org/en/1.5.1/) is the document generator; it'll take the .rst documentation files and turn them into formatted documentation, in either latex or HTML form.
 
 [**sphinx_rtd_theme**](https://github.com/snide/sphinx_rtd_theme) gives us the excellent looking ReadTheDocs theme for our HTML documentation.
-
 
 
 ### For consideration and possible future use
