@@ -317,8 +317,7 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
      * that signatures were computed on an appropriate grid.
      *
      */
-    double d_lambda_signature = signature_a.domain_spacing(2);
-    double d_lambda_fine = d_lambda_signature/10.0;
+    double d_lambda_fine = signature_a.domain_spacing(2);
     double lambda_min = lambda_signature(0);
     double lambda_max = lambda_signature(n_lambda_signature-1);
     Eigen::Index n_lambda_fine = round((lambda_max - lambda_min)/d_lambda_fine);
@@ -345,40 +344,31 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
      *
      * To do this, we interpolate to a fine distribution and store the fine values.
      *
-     * TODO refactor this out to a separate function, which should be a method of the signature class
-     *
      */
-    Eigen::ArrayXXd ja_fine(lambda_fine.rows(), 6);
-    Eigen::ArrayXXd jb_fine(lambda_fine.rows(), 6);
-    for (int k = 0; k < 6; k++) {
-        Eigen::ArrayXd ja_signature = signature_a.j.bottomRows(lambda_signature.rows()).col(k);
-        Eigen::ArrayXd jb_signature = signature_b.j.bottomRows(lambda_signature.rows()).col(k);
-        utilities::CubicSplineInterpolant s_a(lambda_signature.matrix(), ja_signature.matrix());
-        utilities::CubicSplineInterpolant s_b(lambda_signature.matrix(), jb_signature.matrix());
-        ja_fine.col(k) = s_a(lambda_fine);
-        jb_fine.col(k) = s_b(lambda_fine);
-    }
+    Eigen::ArrayXXd ja_fine = signature_a.getJ(lambda_fine);
+    Eigen::ArrayXXd jb_fine = signature_b.getJ(lambda_fine);
     Eigen::ArrayXd j13a_fine = ja_fine.col(2);
     Eigen::ArrayXd j13b_fine = jb_fine.col(2);
 
     // Get an ascending version of eta, containing the point eta=0, for use in determining analytic R13 distributions
-    Eigen::ArrayXd eta_with_zero = Eigen::ArrayXd(eta_fine.rows()+1);
-    eta_with_zero.setZero();
-    eta_with_zero.bottomRows(eta_fine.rows()) = eta_fine.reverse();
+    Eigen::ArrayXd bounded_eta = Eigen::ArrayXd(eta_fine.rows()+2);
+    bounded_eta.setZero();
+    bounded_eta.middleRows(1, eta_fine.rows()) = eta_fine.reverse();
+    bounded_eta.bottomRows(1) = 1.0;
 
     // Get Reynolds Stresses, trim the zero point, reverse back so the ordering is consistent with lambda coordinates
     Eigen::ArrayXd r13a_fine;
     Eigen::ArrayXd r13b_fine;
-    reynolds_stress_13(r13a_fine, r13b_fine, data.beta, eta_with_zero, data.kappa, data.pi_coles, data.shear_ratio, data.zeta);
-    r13a_fine = r13a_fine.bottomRows(eta_fine.rows());
-    r13b_fine = r13b_fine.bottomRows(eta_fine.rows());
+    reynolds_stress_13(r13a_fine, r13b_fine, data.beta, bounded_eta, data.kappa, data.pi_coles, data.shear_ratio, data.zeta);
+    r13a_fine = r13a_fine.middleRows(1, eta_fine.rows());
+    r13b_fine = r13b_fine.middleRows(1, eta_fine.rows());
     r13a_fine.reverseInPlace();
     r13b_fine.reverseInPlace();
 
     // Produce visual check that eta is ascending exponentially
     ScatterPlot pc = ScatterPlot();
-    pc.x = Eigen::ArrayXd::LinSpaced(eta_with_zero.rows(), 1, eta_with_zero.rows());
-    pc.y = eta_with_zero;
+    pc.x = Eigen::ArrayXd::LinSpaced(bounded_eta.rows(), 1, bounded_eta.rows());
+    pc.y = bounded_eta;
     Layout layc = Layout("Check that eta ascends exponentially");
     layc.xTitle("Row number");
     layc.yTitle("$\\eta$");
@@ -431,7 +421,7 @@ void get_t2w(AdemData& data, const EddySignature& signature_a, const EddySignatu
     // NOTE: it's actually -1*T^2w in this variable
     Eigen::ArrayXd minus_t2wa_fine;
     Eigen::ArrayXd minus_t2wb_fine;
-    double stability = 0.005;
+//    double stability = 0.005;
 //    minus_t2wa_fine = utilities::lowpass_fft_deconv(r13a_fine, j13a_fine, "Type_A", stability);
 //    minus_t2wb_fine = utilities::lowpass_fft_deconv(r13b_fine, j13b_fine, "Type_B", stability);
 

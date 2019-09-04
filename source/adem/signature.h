@@ -25,7 +25,9 @@
 #include "relations/velocity.h"
 #include "utilities/filter.h"
 #include "utilities/conv.h"
+#include "utilities/interp.h"
 #include "utilities/tensors.h"
+#include "utilities/trapz.h"
 #include "io/variable_readers.h"
 #include "io/variable_writers.h"
 
@@ -65,7 +67,7 @@ public:
     Eigen::Array<double, Eigen::Dynamic, 6> j;
 
     /** Spacing of the regular grid used to create the eddy intensity signatures [dx, dy, dlambda] (note for the third
-     * coorinate, points are linearly spaced in a logarithmic domain, so this is d_lambda, not d_z).
+     * coordinate, points are linearly spaced in a logarithmic domain, so this is d_lambda, not d_z).
      */
     Eigen::Array3d domain_spacing;
 
@@ -140,11 +142,32 @@ public:
     {
         EddySignature result;
         result.eddy_type = this->eddy_type + "+" + c.eddy_type;
+        result.eta = this->eta;
         result.lambda = this->lambda;
         result.domain_spacing = this->domain_spacing;
         result.domain_extents = this->domain_extents;
         result.g = (this->g + c.g);
         result.j = (this->j + c.j);
+        return result;
+    }
+
+    /** @brief Define overloaded * (multiply) operator for eddy signatures.
+     *
+     * @param[in] a The number to multiply by
+     * @return new EddySignature() whose signature (g, j) is element-wise multiplied by input a.
+     */
+    EddySignature operator*(double a) const
+    {
+        EddySignature result;
+        result.eddy_type = "(" + this->eddy_type + ")*" + std::to_string(a);
+        result.eta = this->eta;
+        result.lambda = this->lambda;
+        result.domain_spacing = this->domain_spacing;
+        result.domain_extents = this->domain_extents;
+        result.g = this->g;
+        result.j = this->j;
+        result.g = result.g * a;
+        result.j = result.j * a;
         return result;
     }
 
@@ -157,6 +180,7 @@ public:
     {
         EddySignature result;
         result.eddy_type = "(" + this->eddy_type + ")/" + std::to_string(denom);
+        result.eta = this->eta;
         result.lambda = this->lambda;
         result.domain_spacing = this->domain_spacing;
         result.domain_extents = this->domain_extents;
@@ -174,23 +198,61 @@ public:
      */
     Eigen::ArrayXXd k1z(Eigen::ArrayXd &eta) const {
 
-        // TODO we store eta, so can use it directly. Make optional
-
         double dx = domain_spacing[0];
         auto nx = Eigen::Index((domain_extents(0,1) - domain_extents(0,0)) / dx) + 1;
         Eigen::ArrayXd k1_delta = Eigen::ArrayXd::LinSpaced(nx, 0, nx-1) * 2.0 * M_PI / dx;
+        Eigen::ArrayXXd k1z = k1_delta.replicate(1, eta.rows()) * eta.transpose().replicate(k1_delta.rows(), 1);
+
         std::cout << "k1_delta_start " << k1_delta(0) << std::endl;
         std::cout << "k1_delta_end " << k1_delta(nx-1) << std::endl;
         std::cout << "eta_start " << eta(0) << std::endl;
         std::cout << "eta_end " << eta(eta.rows()-1) << std::endl;
-
-
-        Eigen::ArrayXXd k1z = k1_delta.replicate(1, eta.rows()) * eta.transpose().replicate(k1_delta.rows(), 1);
         std::cout << "k1z_n_rows " << k1z.rows() << std::endl;
         std::cout << "k1z_n_cols " << k1z.cols() << std::endl;
 
         return k1z;
     }
+
+    /** @brief Interpolate the signature @f$J_{i,j}(\lambda)@f$ to new locations in lambda or eta.
+     *
+     * To avoid warping the reconstruction, we need to do the convolution and the deconvolution with
+     * both the input and the signature on the same, equally spaced, basis. What if we want to do it on a basis
+     * different to the positions where the signature was calculated?
+     *
+     * This function allows you to get the signature array, j, at different vertical locations
+     *
+     * @param[in] locations [N x 1] The lambda (or optionally eta) values at which to retrieve the signature j
+     * @param[in] linear boolean If true, locations are on a linear basis (i.e. they are values of eta). Otherwise
+     * (default) they are on a logarithmic basis (i.e. they are values of lambda).
+     * @return [N x 6] signature array Jij interpolated to input locations
+     */
+    Eigen::ArrayXXd getJ(const Eigen::ArrayXd & locations, const bool linear=false) const {
+        Eigen::ArrayXXd j_fine(locations.rows(), 6);
+        if (linear) {
+            // The new locations are values of eta
+
+            // Assert locations are in the valid range...
+            if ((locations < 0.0).any()) {
+                throw std::invalid_argument("Input locations (eta values) must be defined for eta >= 0.0");
+            }
+
+            // Interpolate on an eta basis
+            for (int k = 0; k < 6; k++) {
+                utilities::CubicSplineInterpolant s(this->eta.matrix(), this->j.col(k).matrix());
+                j_fine.col(k) = s(locations);
+            }
+
+        } else {
+            // The new locations are values of lambda
+
+            // Interpolate on a lambda basis
+            for (int k = 0; k < 6; k++) {
+                utilities::CubicSplineInterpolant s(this->lambda.matrix(), this->j.col(k).matrix());
+                j_fine.col(k) = s(locations);
+            }
+        }
+        return j_fine;
+     };
 
     /** @brief Calculate eddy intensity functions @f$J_{i,j}@f$ and @f$g_{i,j}@f$.
      *
@@ -378,14 +440,106 @@ public:
             j.block<1,1>(lam_ctr, 5) = trapz(trapz(ww,2) * domain_spacing(0),1) * domain_spacing(1);
         };
 
-        // TODO Use this scaling factor to show eddy signature against P&M Appendix C with correct scaling.
-        // I11 = I11*(0.25/pi)^2;
-        // I12 = I12*(0.25/pi)^2;
-        // I13 = I13*(0.25/pi)^2;
-        // I22 = I22*(0.25/pi)^2;
-        // I23 = I23*(0.25/pi)^2;
-        // I33 = I33*(0.25/pi)^2;
 
+    }
+
+    /** @brief Apply signature defaults.
+     *
+     * Eddy intensity functions @f$J_{i,j}(\lambda)@f$ is applied for type ``A`` or ``B`` eddies, by digitisation of
+     * Figure 20 in Perry and Marusic (1995).
+     *
+     * Note that these signatures are incomplete:
+     *  1. Only four terms are given (I11, I13, I22, I33, the remaining two are assumed to be zero)
+     *
+     *  2. Eddy spectral functions @f$g_{i,j}(k1z,\lambda)@f$ are not documented in P&M 1995, so can't be reproduced
+     *     here. Thus, signatures defined by this method cannot be used for computation of spectra (and sets arbitrary
+     *     ``domain_spacing`` and ``domain_extents`` values for the ``x`` and ``y`` directions).
+     *
+     * This method updates class properties ``j``, ``lambda``, ``eta``, ``eddy_type``, ``domain_spacing``,
+     * ``domain_extents``.
+     *
+     * See Perry AE and Marusic I (1995) A wall-wake model for turbulent boundary layers. Part 1. Extension of the
+     * attached eddy hypothesis J Fluid Mech vol 298 pp 361-388
+     *
+     * @param[in] type, string one of 'A', 'B1', 'B2', 'B3', 'B4'
+     * @param[in] n_lambda, int number of points logarithmically spaced in the z direction, between the outer part of
+     * the domain and a location very close to the wall. Default 200.
+     *
+     */
+    void applySignature(const std::string &type, const int n_lambda=200) {
+
+        // Set the type string
+        eddy_type = type;
+
+        // Set arbitrary domain extents
+        double lambda_max = log(500);
+        double lambda_min = log(1/1.5);
+        domain_extents = Eigen::Array<double, 3, 2>::Zero();
+        domain_extents << -4, 4,
+            -2, 2,
+            (1.0 / exp(lambda_max)), (1.0 / exp(lambda_min));
+
+        // Logarithmically space lambda coordinates
+        lambda = Eigen::ArrayXd::LinSpaced(n_lambda, lambda_min, lambda_max);
+        domain_spacing << 1.0, 1.0, lambda(1)-lambda(0);
+
+        // Store real space vertical coordinates too
+        eta = lambda.exp().inverse();
+
+        // Interpolate the signatures that are given.
+        j = Eigen::ArrayXXd(n_lambda,6);
+        j.setZero();
+        Eigen::ArrayXXd i11;
+        Eigen::ArrayXXd i13;
+        Eigen::ArrayXXd i22;
+        Eigen::ArrayXXd i33;
+        if (type == "A") {
+            i11 = Eigen::ArrayXXd(2, 26);
+            i11 << 0, 0.012710542, 0.030316638, 0.05182384, 0.08898147, 0.1300581, 0.18483716, 0.2357049, 0.29636374, 0.35898846, 0.41573855, 0.4783607, 0.5585967, 0.6368718, 0.7073141, 0.76600707, 0.82468724, 0.87943816, 0.91658044, 0.9419913, 0.97133654, 1.0007021, 1.0516082, 1.1260028, 1.2239062, 1.50,
+                1.6593906, 1.6418779, 1.611259, 1.5544281, 1.4713508, 1.3926289, 1.3051336, 1.2263831, 1.1476042, 1.08192, 1.0162529, 0.94620186, 0.8586324, 0.7667018, 0.6747941, 0.5829205, 0.469213, 0.33368298, 0.22440498, 0.1457287, 0.09760853, 0.084422655, 0.07117407, 0.040389933, 0.027004533, 0.0;
+
+            i13 = Eigen::ArrayXXd(2, 21);
+            i13 << 0, 0.023503713, 0.05093406, 0.08618198, 0.12728672, 0.17620902, 0.22121488, 0.28186864, 0.3620689, 0.45790172, 0.55568004, 0.64367235, 0.7238267, 0.80006206, 0.86259496, 0.90362066, 0.93487054, 0.9700394, 0.9993566, 1.0423712, 1.50,
+                0, -0.061066702, -0.14832275, -0.22682244, -0.2878379, -0.340097, -0.38363394, -0.43149212, -0.4618262, -0.4702808, -0.46126255, -0.43917242, -0.39090434, -0.32954726, -0.24639612, -0.17204118, -0.102081485, -0.045210768, -0.014557855, -0.0030345472, -0.004372481;
+
+            i22 = Eigen::ArrayXXd(2, 23);
+            i22 << 0, 0.018947192, 0.03648182, 0.054011352, 0.0754471, 0.10665094, 0.17303112, 0.21991083, 0.28439146, 0.34693173, 0.41142765, 0.48179564, 0.57952243, 0.65573704, 0.7202125, 0.788579, 0.8452064, 0.9115866, 0.9701798, 1.0483195, 1.1304111, 1.2340457, 1.50,
+                1.176464, 1.150218, 1.0934712, 1.0323671, 0.966883, 0.8926276, 0.79638124, 0.74817854, 0.6998736, 0.6646518, 0.6294187, 0.5985088, 0.5500107, 0.5016375, 0.4489753, 0.37886125, 0.3044581, 0.20821178, 0.14251183, 0.067983694, 0.028291034, 0.014617034, 0.0043686354;
+
+            i33 = Eigen::ArrayXXd(2, 32);
+            i33 << 0.0, 0.023483196, 0.041119818, 0.06269325, 0.09603633, 0.12936921, 0.17444114, 0.21754721, 0.25868744, 0.30175778, 0.35461667, 0.4133425, 0.46618098, 0.5346596, 0.608995, 0.6696255, 0.73806334, 0.7908406, 0.83576465, 0.8884807, 0.92553115, 0.95087314, 0.9898843, 1.0288852, 1.0737991, 1.1304673, 1.1793332, 1.2321156, 1.2849082, 1.3552966, 1.4374342, 1.50,
+                0.0, 0.012935479, 0.043334138, 0.095496446, 0.1780915, 0.251972, 0.3301416, 0.39960802, 0.46037126, 0.49933675, 0.54696, 0.5945491, 0.6247433, 0.6504893, 0.6674866, 0.6714917, 0.66237944, 0.6402863, 0.59209496, 0.51771456, 0.42599595, 0.35613185, 0.26875913, 0.17267188, 0.115766004, 0.07622104, 0.05415063, 0.036414765, 0.027393447, 0.013912599, 0.013435401, 0.0043572737;
+
+        } else if (type == "B") {
+            i11 = Eigen::ArrayXXd(2, 23);
+            i11 << 0, 0.07068844, 0.1666695, 0.27835685, 0.36659724, 0.4334307, 0.48672056, 0.5342177, 0.5837344, 0.62532634, 0.67665803, 0.74737716, 0.8137505, 0.8545449, 0.8894136, 0.93391985, 0.9706649, 1.00945, 1.0521617, 1.1184429, 1.2122818, 1.3199301, 1.50,
+                0.016322415, 0.016322415, 0.018703382, 0.024518738, 0.03472676, 0.056264196, 0.091715895, 0.13412246, 0.18173045, 0.22154763, 0.25700384, 0.27592924, 0.25842202, 0.23056176, 0.19837682, 0.15315433, 0.11402357, 0.08182956, 0.050494146, 0.025177978, 0.011945607, 0.0073581133, 0.0017353186;
+
+            i13 = Eigen::ArrayXXd(2, 14);
+            i13 << 0, 0.2741542, 0.34076267, 0.42109883, 0.47993597, 0.56440324, 0.6233631, 0.7057494, 0.7918987, 0.8779049, 0.94425774, 1.0145372, 1.1240618, 1.50,
+                0, -2.3333919E-4, -0.002682268, -0.0068347994, -0.014507807, -0.036872122, -0.054957043, -0.06691398, -0.06584696, -0.05263271, -0.033390157, -0.015006201, -0.0034729026, -8.676593E-4;
+
+            i22 = Eigen::ArrayXXd(2, 23);
+            i22 << 0, 0.14884579, 0.29180932, 0.4054613, 0.46828458, 0.515565, 0.5411826, 0.5746176, 0.6335705, 0.6963938, 0.74149364, 0.7689007, 0.8080032, 0.8490102, 0.89000964, 0.93290585, 0.9660264, 0.99715817, 1.0224689, 1.049784, 1.0810461, 1.1632366, 1.50,
+                0, 0.0023498295, 0.0038403252, 0.012338308, 0.030489888, 0.06258152, 0.08079781, 0.09726137, 0.12063707, 0.13878864, 0.14566672, 0.14474949, 0.13772498, 0.12461021, 0.110625885, 0.08968175, 0.07049375, 0.047830947, 0.031265218, 0.019913385, 0.012032943, 0.005803057, 0.0026086513;
+
+            i33 = Eigen::ArrayXXd(2, 20);
+            i33 << 0, 0.21936293, 0.31337926, 0.39961416, 0.44083738, 0.48011523, 0.5254081, 0.56480104, 0.64147526, 0.64147526, 0.70819265, 0.7767404, 0.8334498, 0.8939988, 0.9446548, 0.9952725, 1.0459669, 1.0967507, 1.1632637, 1.5000255,
+                0, 0.002830162, 0.004290453, 0.009236455, 0.016043989, 0.023722952, 0.0409085, 0.05637945, 0.07693768, 0.07693768, 0.08626908, 0.08693706, 0.081578515, 0.07101401, 0.053551547, 0.033491757, 0.018626625, 0.009821928, 0.0053009023, 0.0017315528;
+
+        } else {
+            throw std::invalid_argument("You can only apply signatures for type 'A' or type 'B' eddies");
+        }
+
+        utilities::LinearInterpolant s11(i11.row(0).transpose(), i11.row(1).transpose());
+        utilities::LinearInterpolant s13(i13.row(0).transpose(), i13.row(1).transpose());
+        utilities::LinearInterpolant s22(i22.row(0).transpose(), i22.row(1).transpose());
+        utilities::LinearInterpolant s33(i33.row(0).transpose(), i33.row(1).transpose());
+
+        j.col(0) = s11(eta);
+        j.col(2) = s13(eta);
+        j.col(3) = s22(eta);
+        j.col(5) = s33(eta);
     }
 };
 

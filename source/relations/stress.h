@@ -18,9 +18,9 @@
 #include "NumericalIntegration.h"
 #include "profile.h"
 #include "relations/velocity.h"
-#include "utilities/trapz.h"
-#include "utilities/cumtrapz.h"
+#include "utilities/integration.h"
 
+#include "definitions.h"
 #include "cpplot.h"
 
 using namespace utilities;
@@ -28,6 +28,25 @@ using namespace cpplot;
 
 
 namespace es {
+
+
+template<typename T_scalar, typename T_param>
+class DeficitFunctor {
+private:
+    double m_kappa, m_shear_ratio;
+    T_param m_pi_coles;
+    bool m_lewkowicz, m_deficit_squared;
+
+public:
+    DeficitFunctor(const double kappa, const T_param pi_coles, const double shear_ratio, const bool lewkowicz, const bool deficit_squared=false) : m_kappa(kappa), m_pi_coles(pi_coles), m_shear_ratio(shear_ratio), m_lewkowicz(lewkowicz), m_deficit_squared(deficit_squared) {};
+    T_scalar operator() (T_scalar eta) const{
+        if (m_deficit_squared){
+            return pow(deficit(eta, m_kappa, m_pi_coles, m_shear_ratio, m_lewkowicz), 2.0);
+
+        }
+        return deficit(eta, m_kappa, m_pi_coles, m_shear_ratio, m_lewkowicz);
+    };
+};
 
 
 /** @brief Compute Horizontal-Vertical Reynolds Stress R13 profile.
@@ -71,45 +90,38 @@ namespace es {
 void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const double beta, const Eigen::ArrayXd &eta, const double kappa, const double pi_coles, const double shear_ratio, const double zeta){
 
     // Check the input has a valid range; the integration will be messed up otherwise.
-//    if ((eta(eta.rows()-1) != 1.0) || (eta(0) != 0.0)) {
-//        throw std::invalid_argument("Input eta must be defined in the range 0, 1 exactly");
-//    }
+    if ((eta(eta.rows()-1) != 1.0) || (eta(0) != 0.0)) {
+        throw std::invalid_argument("Input eta must be defined in the range 0, 1 exactly");
+    }
 
-    // Get f between eta = 0 and eta = 1 (bounds for C1 integration)
+    // TODO Improved control of models - see #61.
     bool lewkowicz = true;
+
+    // Get f between eta = 0 and eta = 1
     Eigen::ArrayXd f = deficit(eta, kappa, pi_coles, shear_ratio, lewkowicz);
-    const double d_pi = 0.01 * pi_coles;
-    Eigen::ArrayXd f_plus  = deficit(eta, kappa, (pi_coles + d_pi), shear_ratio, lewkowicz);
-    Eigen::ArrayXd f_minus  = deficit(eta, kappa, (pi_coles - d_pi), shear_ratio, lewkowicz);
+    const double d_pi = 0.001 * pi_coles;
 
-    // TODO can we cast this returned value directly?
-    Eigen::ArrayXd c1_tmp;
-    trapz(c1_tmp, eta, f);
-    double c1 = c1_tmp(0);
+    // Do the integrations for ei, with central differencing for numerical differentiation of e coefficients 5-7
+    DeficitFunctor<double, double> deficit_functor(KAPPA_VON_KARMAN, pi_coles, shear_ratio, true, false);
+    DeficitFunctor<double, double> deficit_functor_plus(KAPPA_VON_KARMAN, pi_coles+d_pi, shear_ratio, true, false);
+    DeficitFunctor<double, double> deficit_functor_minus(KAPPA_VON_KARMAN, pi_coles-d_pi, shear_ratio, true, false);
+    DeficitFunctor<double, double> deficit_squared_functor(KAPPA_VON_KARMAN, pi_coles, shear_ratio, true, true);
+    DeficitFunctor<double, double> deficit_squared_functor_plus(KAPPA_VON_KARMAN, pi_coles+d_pi, shear_ratio, true, true);
+    DeficitFunctor<double, double> deficit_squared_functor_minus(KAPPA_VON_KARMAN, pi_coles-d_pi, shear_ratio, true, true);
+    Eigen::ArrayXd e1 = utilities::cumulative_integrate(eta, deficit_functor);
+    Eigen::ArrayXd e1_plus = utilities::cumulative_integrate(eta, deficit_functor_plus);
+    Eigen::ArrayXd e1_minus = utilities::cumulative_integrate(eta, deficit_functor_minus);
+    Eigen::ArrayXd e2 = utilities::cumulative_integrate(eta, deficit_squared_functor);
+    Eigen::ArrayXd e2_plus = utilities::cumulative_integrate(eta, deficit_squared_functor_plus);
+    Eigen::ArrayXd e2_minus = utilities::cumulative_integrate(eta, deficit_squared_functor_minus);
+    Eigen::ArrayXd e3 = f * e1;
+    Eigen::ArrayXd e4 = eta * f;
+    Eigen::ArrayXd e5 = (e1_plus - e1_minus) / (2.0 * d_pi);
+    Eigen::ArrayXd e6 = (e2_plus - e2_minus) / (2.0 * d_pi);
+    Eigen::ArrayXd e7 = f * e5;
 
-    // Do the integrations for ei with central differencing for numerical differentiation of e coefficients 5-7
-    Eigen::ArrayXd e1;
-    Eigen::ArrayXd e1_plus;
-    Eigen::ArrayXd e1_minus;
-    Eigen::ArrayXd e2;
-    Eigen::ArrayXd e2_plus;
-    Eigen::ArrayXd e2_minus;
-    Eigen::ArrayXd e3;
-    Eigen::ArrayXd e4;
-    Eigen::ArrayXd e5;
-    Eigen::ArrayXd e6;
-    Eigen::ArrayXd e7;
-    cumtrapz(e1, eta, f);
-    cumtrapz(e1_plus, eta, f_plus);
-    cumtrapz(e1_minus, eta, f_minus);
-    cumtrapz(e2, eta, f.pow(2.0));
-    cumtrapz(e2_plus, eta, f_plus.pow(2.0));
-    cumtrapz(e2_minus, eta, f_minus.pow(2.0));
-    e3 = f * e1;
-    e4 = eta * f;
-    e5 = (e1_plus - e1_minus) / (2.0 * d_pi);
-    e6 = (e2_plus - e2_minus) / (2.0 * d_pi);
-    e7 = f * e5;
+    // Get C1 value (eqn 14) which is the end value of the e1 distribution
+    double c1 = e1[e1.rows()-1];
 
     // Get A coefficients from equations A2 a-d
     Eigen::ArrayXd a1 = e2 - e3 + shear_ratio * (e4 - e1);
@@ -126,11 +138,8 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
     // E1 from (eqn A4). Can't call it E1 due to name conflict with above.
     double e1_coeff = 1.0 / (kappa * shear_ratio + 1.0);
 
-    // N from (eqn A5) using central differencing as before
-    // TODO compute N for non-lewkowicz model
-    double wc_minus = coles_wake(1.0, pi_coles - d_pi);
-    double wc_plus =  coles_wake(1.0, pi_coles + d_pi);
-    double n = coles_wake(1.0, pi_coles) + pi_coles * (wc_plus - wc_minus) / (2.0 * d_pi);
+    // TODO Resolve issue #59 here.
+    double n = coles_wake(1.0, pi_coles);
 
     // Compile f_i terms
     Eigen::ArrayXd f1;
@@ -186,8 +195,19 @@ void reynolds_stress_13(Eigen::ArrayXd &r13_a, Eigen::ArrayXd &r13_b, const doub
     fig.setLayout(lay);
     fig.write("check_perry_marusic_fig_1");
 
-    // Lewkowicz 1982 shear stress for equilibrium sink flow, Perry and Marusic eqn. 51
-    Eigen::ArrayXd minus_r13_a = 1.0 - (60.0/59.0)*eta - (20.0/59.0)*eta.pow(3.0) + (45.0/59.0)*eta.pow(4.0) - (24.0/59.0)*eta.pow(5.0) + (60.0/59.0)*eta*eta.log();
+    Eigen::ArrayXd minus_r13_a(eta.rows());
+    if (lewkowicz) {
+        // Lewkowicz 1982 shear stress for equilibrium sink flow, Perry and Marusic eqn. 51
+        minus_r13_a = 1.0
+            - (60.0 / 59.0) * eta
+            - (20.0 / 59.0) * eta.pow(3.0)
+            + (45.0 / 59.0) * eta.pow(4.0)
+            - (24.0 / 59.0) * eta.pow(5.0)
+            + (60.0 / 59.0) * eta * eta.log();
+    } else {
+        // Shear stress for `pure` equilibrium sink flow with no correction, Perry and Marusic eqn. 53
+        minus_r13_a = 1.0 - eta + eta * eta.log();
+    }
 
     // Handle the log(0) singularity
     for (int i = 0; i < minus_r13_a.size(); i++) {
