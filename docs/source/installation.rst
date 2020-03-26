@@ -52,9 +52,9 @@ matio
 
       Whatever you do, don't try to fork and build from source - the autoconf is complex and not suitable for OSX. Luckily there's a brew formula:
 
-      .. code-block::
+      .. code-block:: bash
 
-        brew install homebrew/science/libmatio --with-hdf5
+          brew install libmatio
 
    .. group-tab:: Linux
 
@@ -74,9 +74,9 @@ ceres-solver, eigen and glog
 
       Google's ceres-solver also depends on glog and eigen, so we get three for the price of one:
 
-      .. code-block::
+      .. code-block:: bash
 
-        brew install homebrew/science/ceres-solver
+          brew install homebrew/science/ceres-solver
 
 
    .. group-tab:: Linux
@@ -104,12 +104,12 @@ cxxopts
 
       To build **es-flow**, ``cxxopts`` must be placed alongside **es-flow**. From the **es-flow** root directory:
 
-      .. code-block::
+      .. code-block:: bash
 
-        cd ../thirdparty
-        git clone https://github.com/jarro2783/cxxopts
+          cd ../thirdparty
+          git clone https://github.com/jarro2783/cxxopts
 
-        Then using cmake to build **es-flow** will find the headers correctly.
+      Then using cmake to build **es-flow** will find the headers correctly.
 
    .. group-tab:: Linux
 
@@ -127,14 +127,14 @@ NumericalIntegration
 
    .. group-tab:: Mac OSX
 
-        To build **es-flow**, NumericalIntegration must be placed alongside **es-flow**. From the **es-flow** root directory:
+      To build **es-flow**, NumericalIntegration must be placed alongside **es-flow**. From the **es-flow** root directory:
 
       .. code-block::
 
-        cd ../thirdparty
-        git clone https://github.com/thclark/NumericalIntegration
+          cd ../thirdparty
+          git clone https://github.com/thclark/NumericalIntegration
 
-        Then using cmake to build **es-flow** will find the headers correctly.
+      Then using cmake to build **es-flow** will find the headers correctly.
 
    .. group-tab:: Linux
 
