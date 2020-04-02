@@ -31,20 +31,25 @@ include_directories(${CERES_INCLUDE_DIRS})
 find_package(NUMINT REQUIRED)
 include_directories(${NUMINT_INCLUDE_DIRS})
 
-# Add Intel MKL dependency
-set(MKL_MULTI_THREADED "1")
-find_package(MKL REQUIRED)
-include_directories(${MKL_INCLUDE_DIRS})
-
 # Add Intel TBB dependency
 find_package(TBB REQUIRED)
+set(USE_TBB "1")
 include_directories(${TBB_INCLUDE_DIRS})
+
+# Add Intel MKL dependency
+set(MKL_MULTI_THREADED "1")
+set(MKL_THREADING "TBB")
+find_package(MKL REQUIRED)
+include_directories(${MKL_INCLUDE_DIR})
+
+# Ensure any eigen operations use MKL
+add_definitions(-DEIGEN_USE_MKL_ALL)
 
 # Add matio dependency
 find_package(MATIO REQUIRED)
 include_directories(${MATIO_INCLUDE_DIRS})
 
-#Add libboost (mainly for string and path manipulation)
+# Add libboost (mainly for string and path manipulation)
 find_package(Boost REQUIRED)
 
 
