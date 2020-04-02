@@ -112,8 +112,8 @@ TEST_F(FitTest, test_fit_lewkowicz_speed){
     cpplot::ScatterPlot p_original = cpplot::ScatterPlot();
     cpplot::ScatterPlot p_noisy = cpplot::ScatterPlot();
     cpplot::ScatterPlot p_fitted = cpplot::ScatterPlot();
-    lay.xLabel("u_bar (m/s)");
-    lay.yLabel("z (m)");
+    lay.xTitle("u_bar (m/s)");
+    lay.yTitle("z (m)");
     fig.setLayout(lay);
 
     p_original.y = z.matrix();

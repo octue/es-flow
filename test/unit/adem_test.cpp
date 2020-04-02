@@ -90,7 +90,7 @@ void plotEddyIntensities(const EddySignature &sig, const std::string &type) {
     // Write figures
     fig_i.write("check_type_" + type + "_iij_from_cpp.json");
     fig_j.write("check_type_" + type + "_jij_from_cpp.json");
-};
+}
 
 
 /** @brief Helper function to run ADEM for Reynolds Stress comparisons
@@ -178,13 +178,16 @@ void getStressTraces(
  * Signature files are named as "<data_path>/
  *
  * @param[in] data_path, std::string the path to the folder where signature files will be stored
- * @param mode, std::string& can be "coarse" or "fine". Coarse makes signatures much more quickly for the sake of unit testing
+ * @param mode, std::string& can be "test", "coarse" or "fine". Test makes signatures much more quickly for the sake of unit testing, but they're useless for analysis.
  */
 void make_signatures(const std::string &data_path, const std::string &mode="fine") {
 
     int n_lambda;
     double dx;
-    if (mode == "coarse") {
+    if (mode == "test") {
+        n_lambda = 5;
+        dx= 0.1;
+    } else if (mode == "coarse") {
         n_lambda = 50;
         dx = 0.01;
     } else if (mode == "fine") {
@@ -213,7 +216,7 @@ void make_signatures(const std::string &data_path, const std::string &mode="fine
  */
 void load_ensemble(EddySignature &sig_a, EddySignature &sig_b, const std::string &data_path, const std::string &mode="fine" ) {
 
-    std::cout << "load_ensemble: Loading and ensemble-avaraging signatures with mode: " << mode << std::endl;
+    std::cout << "load_ensemble: Loading and ensemble-averaging signatures with mode: " << mode << std::endl;
     sig_a.load(data_path + "/signatures_A_" + mode + ".mat");
     sig_b.load(data_path + "/signatures_B1_" + mode + ".mat");
     EddySignature sig_bx = EddySignature();
@@ -224,7 +227,7 @@ void load_ensemble(EddySignature &sig_a, EddySignature &sig_b, const std::string
     sig_bx.load(data_path + "/signatures_B4_" + mode + ".mat");
     sig_b = sig_b + sig_bx;
     sig_b = sig_b / 4.0;
-};
+}
 
 
 // TODO refactor out to main library
@@ -248,7 +251,7 @@ void get_signatures(EddySignature &sig_a, EddySignature &sig_b, const std::strin
         throw std::invalid_argument("Unrecognised preset signature mode: '" + mode + "'. Try 'coarse', 'fine', or 'apply'.");
     }
 
-};
+}
 
 
 /** @brief Helper function to plot a trace digitised from a graph
@@ -312,8 +315,8 @@ ScatterPlot getStress13Trace(
 
 
 TEST_F(AdemTest, test_make_signatures) {
-    make_signatures(data_path, "coarse");
-};
+    make_signatures(data_path, "test");
+}
 
 
 TEST_F(AdemTest, test_save_load_signatures) {
@@ -331,7 +334,6 @@ TEST_F(AdemTest, test_save_load_signatures) {
     // Load from the file
     EddySignature sig2 = EddySignature();
     sig2.load(test_file_name);
-
     // Test for equality on all properties
     ASSERT_EQ(sig.eddy_type, sig2.eddy_type);
     ASSERT_TRUE(sig.lambda.isApprox(sig2.lambda));
@@ -342,7 +344,7 @@ TEST_F(AdemTest, test_save_load_signatures) {
     // ASSERT_TRUE(sig.g.isApprox(sig2.g));
     ASSERT_TRUE(sig.j.isApprox(sig2.j));
 
-};
+}
 
 
 TEST_F(AdemTest, test_get_type_a_eddy_intensity) {
@@ -351,7 +353,7 @@ TEST_F(AdemTest, test_get_type_a_eddy_intensity) {
     EddySignature sig = EddySignature();
     sig.computeSignature("A", n_lambda, dx);
     plotEddyIntensities(sig, "A");
-};
+}
 
 
 TEST_F(AdemTest, test_get_type_b1_eddy_intensity) {
@@ -360,7 +362,7 @@ TEST_F(AdemTest, test_get_type_b1_eddy_intensity) {
     EddySignature sig = EddySignature();
     sig.computeSignature("B1", n_lambda, dx);
     plotEddyIntensities(sig, "B1");
-};
+}
 
 
 TEST_F(AdemTest, test_get_type_b2_eddy_intensity) {
@@ -369,7 +371,7 @@ TEST_F(AdemTest, test_get_type_b2_eddy_intensity) {
     EddySignature sig = EddySignature();
     sig.computeSignature("B2", n_lambda, dx);
     plotEddyIntensities(sig, "B2");
-};
+}
 
 
 TEST_F(AdemTest, test_get_type_b3_eddy_intensity) {
@@ -378,7 +380,7 @@ TEST_F(AdemTest, test_get_type_b3_eddy_intensity) {
     EddySignature sig = EddySignature();
     sig.computeSignature("B3", n_lambda, dx);
     plotEddyIntensities(sig, "B3");
-};
+}
 
 
 TEST_F(AdemTest, test_get_type_b4_eddy_intensity) {
@@ -387,7 +389,7 @@ TEST_F(AdemTest, test_get_type_b4_eddy_intensity) {
     EddySignature sig = EddySignature();
     sig.computeSignature("B4", n_lambda, dx);
     plotEddyIntensities(sig, "B4");
-};
+}
 
 
 TEST_F(AdemTest, test_analysis) {
@@ -535,8 +537,8 @@ TEST_F(AdemTest, test_analysis) {
                 std::cout << "Pushing back index " << i << std::endl;
                 inds.push_back(i);
                 break;
-            };
-        };
+            }
+        }
     }
 
     // For each of the 6 auto / cross spectra terms, map a slice out of the psi tensor
