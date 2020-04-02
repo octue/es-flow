@@ -29,7 +29,8 @@ Intel TBB
 .. tabs::
 
    .. group-tab:: Mac OSX
-      .. code-block::
+
+        TBB is installable via brew.::
          brew install tbb
 
    .. group-tab:: Linux
@@ -50,19 +51,20 @@ matio
 
    .. group-tab:: Mac OSX
 
-      Whatever you do, don't try to fork and build from source - the autoconf is complex and not suitable for OSX. Luckily there's a brew formula:
+      Building from source is possible using instructions on the matio home page, although unwieldy. The `next major release of matio
+      <https://github.com/tbeu/matio/issues/133>`_ should bring CMake to the party, whereupon we'll add that to the build
+      system transparently (downloading and building it if not found).
 
-      .. code-block:: bash
-
-          brew install libmatio
+      In the meantime, you'll most likely have success with a brew formula, although `check this issue<>`_ if you experience runtime problems with HDF5 loading the signature files. ::
+         brew install libmatio
 
    .. group-tab:: Linux
 
-      Please contact Octue for Linux installation instructions.
+      Please contact Octue for Linux installation help.
 
    .. group-tab:: Windows
 
-      Please contact Octue for Windows installation instructions.
+      Please contact Octue for Windows installation help.
 
 
 ceres-solver, eigen and glog
@@ -72,20 +74,17 @@ ceres-solver, eigen and glog
 
    .. group-tab:: Mac OSX
 
-      Google's ceres-solver also depends on glog and eigen, so we get three for the price of one:
-
-      .. code-block:: bash
-
+      Google's ceres-solver also depends on glog and eigen, so we get three for the price of one.::
           brew install homebrew/science/ceres-solver
 
 
    .. group-tab:: Linux
 
-      Please contact Octue for Linux installation instructions.
+      Please contact Octue for Linux installation help.
 
    .. group-tab:: Windows
 
-      Please contact Octue for Windows installation instructions.
+      Please contact Octue for Windows installation help.
 
 
 Third party build requirements
@@ -113,11 +112,11 @@ cxxopts
 
    .. group-tab:: Linux
 
-      Please contact Octue for Linux installation instructions.
+      Please contact Octue for Linux installation help.
 
    .. group-tab:: Windows
 
-      Please contact Octue for Windows installation instructions.
+      Please contact Octue for Windows installation help.
 
 
 NumericalIntegration
@@ -138,8 +137,8 @@ NumericalIntegration
 
    .. group-tab:: Linux
 
-      Please contact Octue for Linux installation instructions.
+      Please contact Octue for Linux installation help.
 
    .. group-tab:: Windows
 
-      Please contact Octue for Windows installation instructions.
+      Please contact Octue for Windows installation help.
