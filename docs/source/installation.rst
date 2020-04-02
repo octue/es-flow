@@ -30,8 +30,11 @@ Intel TBB
 
    .. group-tab:: Mac OSX
 
-        TBB is installable via brew.::
-         brew install tbb
+      TBB is installable via brew.
+
+      .. code-block:: bash
+
+          brew install tbb
 
    .. group-tab:: Linux
 
@@ -42,7 +45,7 @@ Intel TBB
 
    .. group-tab:: Windows
 
-        Follow the Intel TBB instructions, ensuring that the TBBROOT environment variable is set.
+        Follow the Intel TBB instructions, ensuring that the ``TBBROOT`` environment variable is set.
 
 matio
 -----
@@ -51,12 +54,17 @@ matio
 
    .. group-tab:: Mac OSX
 
-      Building from source is possible using instructions on the matio home page, although unwieldy. The `next major release of matio
-      <https://github.com/tbeu/matio/issues/133>`_ should bring CMake to the party, whereupon we'll add that to the build
+      Building from source is possible using instructions on the matio home page, although unwieldy. The
+      `next major release of matio <https://github.com/tbeu/matio/issues/133>`_ should bring CMake to the party,
+      whereupon we'll add that to the build
       system transparently (downloading and building it if not found).
 
-      In the meantime, you'll most likely have success with a brew formula, although `check this issue<>`_ if you experience runtime problems with HDF5 loading the signature files. ::
-         brew install libmatio
+      In the meantime, you'll most likely have success with a brew formula, although `check this issue<>`_ if you
+      experience runtime problems with HDF5 loading the signature files.
+
+      .. code-block:: bash
+
+          brew install libmatio
 
    .. group-tab:: Linux
 
@@ -74,7 +82,10 @@ ceres-solver, eigen and glog
 
    .. group-tab:: Mac OSX
 
-      Google's ceres-solver also depends on glog and eigen, so we get three for the price of one.::
+      Google's ceres-solver also depends on glog and eigen, so we get three for the price of one.
+
+      .. code-block:: bash
+
           brew install homebrew/science/ceres-solver
 
 
@@ -128,7 +139,7 @@ NumericalIntegration
 
       To build **es-flow**, NumericalIntegration must be placed alongside **es-flow**. From the **es-flow** root directory:
 
-      .. code-block::
+      .. code-block:: bash
 
           cd ../thirdparty
           git clone https://github.com/thclark/NumericalIntegration
