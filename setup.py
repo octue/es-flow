@@ -18,7 +18,7 @@ with open('README.md') as f:
 
 setup(
     name='es_flow',
-    version='0.1.1',
+    version='0.1.2',
     description='Environment Studio - flow',
     long_description=readme_text,
     long_description_content_type="text/markdown",

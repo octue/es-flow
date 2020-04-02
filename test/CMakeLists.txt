@@ -1,8 +1,24 @@
 
 # Include google test
 enable_testing()
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+
+# Download and unpack googletest at configure time
+configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . RESULT_VARIABLE result WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+if(result)
+    message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+endif()
+execute_process(COMMAND ${CMAKE_COMMAND} --build . RESULT_VARIABLE result WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+if(result)
+    message(FATAL_ERROR "Build step for googletest failed: ${result}")
+endif()
+
+# Prevent overriding the parent project's compiler/linker settings on Windows
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+# Add googletest directly to our build. This defines the gtest and gtest_main targets.
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src ${CMAKE_CURRENT_BINARY_DIR}/googletest-build EXCLUDE_FROM_ALL)
+include_directories("${gtest_SOURCE_DIR}/include")
 
 # The unit test executables (there need to be more than one due to duplicate symbol conflicts)
 add_executable(es_flow_test
@@ -33,10 +49,10 @@ add_executable(es_flow_test_profile
         )
 
 # Link the google test libraries
-target_link_libraries(es_flow_test ${GTEST_BOTH_LIBRARIES})
-target_link_libraries(es_flow_test_adem ${GTEST_BOTH_LIBRARIES})
-target_link_libraries(es_flow_test_fit ${GTEST_BOTH_LIBRARIES})
-target_link_libraries(es_flow_test_profile ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(es_flow_test gtest gtest_main)
+target_link_libraries(es_flow_test_adem gtest gtest_main)
+target_link_libraries(es_flow_test_fit gtest gtest_main)
+target_link_libraries(es_flow_test_profile gtest gtest_main)
 
 # Link the third party libraries
 target_link_libraries(es_flow_test ${CERES_LIBRARIES} ${MKL_LIBRARIES} ${TBB_LIBRARIES} ${MATIO_LIBRARIES})

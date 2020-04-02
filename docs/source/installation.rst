@@ -29,8 +29,12 @@ Intel TBB
 .. tabs::
 
    .. group-tab:: Mac OSX
-      .. code-block::
-         brew install tbb
+
+      TBB is installable via brew.
+
+      .. code-block:: bash
+
+          brew install tbb
 
    .. group-tab:: Linux
 
@@ -41,7 +45,7 @@ Intel TBB
 
    .. group-tab:: Windows
 
-        Follow the Intel TBB instructions, ensuring that the TBBROOT environment variable is set.
+        Follow the Intel TBB instructions, ensuring that the ``TBBROOT`` environment variable is set.
 
 matio
 -----
@@ -50,19 +54,26 @@ matio
 
    .. group-tab:: Mac OSX
 
-      Whatever you do, don't try to fork and build from source - the autoconf is complex and not suitable for OSX. Luckily there's a brew formula:
+      Building from source is possible using instructions on the matio home page, although unwieldy. The
+      `next major release of matio <https://github.com/tbeu/matio/issues/133>`_ should bring CMake to the party,
+      whereupon we'll add that to the build
+      system transparently (downloading and building it if not found).
 
-      .. code-block::
+      In the meantime, you'll most likely have success with a brew formula, although
+      `check this issue<https://github.com/octue/es-flow/issues/73>`_ if you experience runtime problems with HDF5
+      loading the signature files.
 
-        brew install homebrew/science/libmatio --with-hdf5
+      .. code-block:: bash
+
+          brew install libmatio
 
    .. group-tab:: Linux
 
-      Please contact Octue for Linux installation instructions.
+      Please contact Octue for Linux installation help.
 
    .. group-tab:: Windows
 
-      Please contact Octue for Windows installation instructions.
+      Please contact Octue for Windows installation help.
 
 
 ceres-solver, eigen and glog
@@ -72,20 +83,20 @@ ceres-solver, eigen and glog
 
    .. group-tab:: Mac OSX
 
-      Google's ceres-solver also depends on glog and eigen, so we get three for the price of one:
+      Google's ceres-solver also depends on glog and eigen, so we get three for the price of one.
 
-      .. code-block::
+      .. code-block:: bash
 
-        brew install homebrew/science/ceres-solver
+          brew install homebrew/science/ceres-solver
 
 
    .. group-tab:: Linux
 
-      Please contact Octue for Linux installation instructions.
+      Please contact Octue for Linux installation help.
 
    .. group-tab:: Windows
 
-      Please contact Octue for Windows installation instructions.
+      Please contact Octue for Windows installation help.
 
 
 Third party build requirements
@@ -104,20 +115,20 @@ cxxopts
 
       To build **es-flow**, ``cxxopts`` must be placed alongside **es-flow**. From the **es-flow** root directory:
 
-      .. code-block::
+      .. code-block:: bash
 
-        cd ../thirdparty
-        git clone https://github.com/jarro2783/cxxopts
+          cd ../thirdparty
+          git clone https://github.com/jarro2783/cxxopts
 
-        Then using cmake to build **es-flow** will find the headers correctly.
+      Then using cmake to build **es-flow** will find the headers correctly.
 
    .. group-tab:: Linux
 
-      Please contact Octue for Linux installation instructions.
+      Please contact Octue for Linux installation help.
 
    .. group-tab:: Windows
 
-      Please contact Octue for Windows installation instructions.
+      Please contact Octue for Windows installation help.
 
 
 NumericalIntegration
@@ -127,19 +138,19 @@ NumericalIntegration
 
    .. group-tab:: Mac OSX
 
-        To build **es-flow**, NumericalIntegration must be placed alongside **es-flow**. From the **es-flow** root directory:
+      To build **es-flow**, NumericalIntegration must be placed alongside **es-flow**. From the **es-flow** root directory:
 
-      .. code-block::
+      .. code-block:: bash
 
-        cd ../thirdparty
-        git clone https://github.com/thclark/NumericalIntegration
+          cd ../thirdparty
+          git clone https://github.com/thclark/NumericalIntegration
 
-        Then using cmake to build **es-flow** will find the headers correctly.
+      Then using cmake to build **es-flow** will find the headers correctly.
 
    .. group-tab:: Linux
 
-      Please contact Octue for Linux installation instructions.
+      Please contact Octue for Linux installation help.
 
    .. group-tab:: Windows
 
-      Please contact Octue for Windows installation instructions.
+      Please contact Octue for Windows installation help.

@@ -10,7 +10,22 @@ View the manual and full documentation at [https://es-flow.readthedocs.io/](http
 
 # Developer notes
 
-## Project structure and Code Style
+## Commit codes
+
+Each commit has a code to help improve understanding and relevance:
+
+| Code 	| Description                                                       	|
+|------	|-------------------------------------------------------------------	|
+| OPS  	| Related to Devops - release workflow and CI/CD                    	|
+| DOC  	| Improvements in documentation or descriptive comments in the code 	|
+| FIX  	| Fixes a particular bug                                            	|
+| IMP  	| Implements all or part of a particular feature                    	|
+| TST  	| Implements or improves tests                                      	|
+| GIT  	| Related to Git or GitHub (e.g. submodules, ignores, etc)          	|
+| REF  	| Refactoring                                                       	|
+| STY  	| Changes to comply with code style guide                              	|
+
+## Project Structure and Code Style
 
 The folder structure is arranged as:
 
@@ -39,14 +54,15 @@ git push --set-upstream origin release-v0.1.1-alpha.1
 ```
 - Once a release is prepared, create a release on GitHub (which tags the repo) then pull that branch into master.
 - Master therefore always contains the latest release.
-- You may need to activate versions on ReadTheDocs before they show up in the version list for the documentation. 
+- Log in to ReadTheDocs and add the new version, so it shows up in the version list for the documentation.
+ 
 
 
 ## Third party dependencies
 
 ### Currently in use
 
-See documentation
+See documentation for additional info on build and use of these libraries.
  
 [**Intel MKL**]() to provide FFT and other performance primitives, enhancing Eigen.
  
@@ -93,7 +109,8 @@ A cross-platform compilation file is provided using cmake.
 ### MATLAB MEX
 **DEPRECATION WARNING:** The MathWorks really make it extremely difficult to support integrations. *MATLAB mex files are almost completely platform- and matlab-version- dependent. So you basically have to recompile for every MATLAB release, on every platform, clearly a nightmare. MATLAB does however allow you to invoke C library functions directly (see `loadlibrary` in the MATLAB help) so we may consider writing a header exposing C-style library API for use with MATLAB, to allow us to continue supporting MATLAB in a practical way.*
 
-The CMake build process includes MATLAB based mex files for library functionality - requiring MATLAB to be installed on the build machine for linking purposes. This is unsupported as of January 2019 and removed in the 0.1.0 release.
+The CMake build process used to MATLAB based mex files for library functionality - requiring MATLAB to be installed on the build machine for linking purposes. This is unsupported as of January 2019 and removed in the 0.1.0 release.
+
 
 ## Documentation
 
@@ -103,7 +120,7 @@ Documentation resides in the `./docs` directory, as `*.rst` files. The instructi
 
 For sphinx to create a bibliography, the `bibliography.rst` file needs to contain, in RestructuredText format, the references used.
 
-However, you may have  BibTeX, rather than .rst, references. To convert, you can use [**bib2reSTcitation**](https://github.com/cykustcc/bib2reSTcitation), a handy tool for converting `.bib` files to `.rst` files.
+However, you may have BibTeX, rather than .rst, references. To convert, you can use [**bib2reSTcitation**](https://github.com/cykustcc/bib2reSTcitation), a handy tool for converting `.bib` files to `.rst` files.
 
 ### Building documentation
 
