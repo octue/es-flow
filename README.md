@@ -23,6 +23,7 @@ Each commit has a code to help improve understanding and relevance:
 | TST  	| Implements or improves tests                                      	|
 | GIT  	| Related to Git or GitHub (e.g. submodules, ignores, etc)          	|
 | REF  	| Refactoring                                                       	|
+| STY  	| Changes to comply with code style guide                              	|
 
 ## Project Structure and Code Style
 
