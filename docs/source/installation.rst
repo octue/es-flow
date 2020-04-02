@@ -59,8 +59,9 @@ matio
       whereupon we'll add that to the build
       system transparently (downloading and building it if not found).
 
-      In the meantime, you'll most likely have success with a brew formula, although `check this issue<>`_ if you
-      experience runtime problems with HDF5 loading the signature files.
+      In the meantime, you'll most likely have success with a brew formula, although
+      `check this issue<https://github.com/octue/es-flow/issues/73>`_ if you experience runtime problems with HDF5
+      loading the signature files.
 
       .. code-block:: bash
 
